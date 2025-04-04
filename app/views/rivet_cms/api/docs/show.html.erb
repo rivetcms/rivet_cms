@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>RivetCMS - API Documentation</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= stylesheet_link_tag "rivet_cms", "data-turbo-track": "reload", time: Time.now.to_i %>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <style>
+      .swagger-ui {
+        margin-top: 1rem;
+      }
+      .swagger-ui .topbar {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav class="flex h-12">
+        <%= link_to root_path, class: "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard mr-2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          Dashboard
+        <% end %>
+      </nav>
+    </div>
+    <div id="swagger-ui"></div>
+    <script>
+      window.onload = function() {
+        SwaggerUIBundle({
+          url: "<%= api_docs_path(format: :yaml) %>",
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIBundle.SwaggerUIStandalonePreset
+          ],
+          layout: "BaseLayout",
+          docExpansion: 'list',
+          defaultModelsExpandDepth: 1,
+          defaultModelExpandDepth: 1,
+          displayRequestDuration: true
+        });
+      };
+    </script>
+  </body>
+</html> 

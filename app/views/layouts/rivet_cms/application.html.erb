@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html class="h-full bg-gray-50">
+<head>
+  <title>Rivet CMS</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= yield :head %>
+
+  <%= javascript_include_tag "rivet_cms", "data-turbo-track": "reload", type: "module" %>
+  <%= stylesheet_link_tag "rivet_cms", "data-turbo-track": "reload", time: Time.now.to_i %>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap" rel="stylesheet">
+  <%= brand_color_css.html_safe %>
+</head>
+<body class="h-full font-sans antialiased text-gray-900">
+  <div class="min-h-full">
+    <!-- Top navigation -->
+    <%= render "rivet_cms/shared/navigation" %>
+
+    <!-- Flash messages -->
+    <% if flash.any? %>
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
+        <% flash.each do |type, message| %>
+          <div class="<%= flash_class_for(type) %> p-4 rounded-md mb-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <%= flash_icon_for(type) %>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium"><%= message %></p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <main>
+      <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+        <%= yield %>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

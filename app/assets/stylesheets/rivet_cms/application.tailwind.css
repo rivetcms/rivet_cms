@@ -1,0 +1,25 @@
+@layer base {
+  :root {
+    /* Brand color variables will be set dynamically */
+    --color-brand-50: '';
+    --color-brand-100: '';
+    --color-brand-200: '';
+    --color-brand-300: '';
+    --color-brand-400: '';
+    --color-brand-500: '';
+    --color-brand-600: '';
+    --color-brand-700: '';
+    --color-brand-800: '';
+    --color-brand-900: '';
+    --color-brand-950: '';
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap');
+
+@import "tailwindcss";
+@import "./brand_colors";
+
+@theme {
+  --font-passion-one: "Passion One", sans-serif; 
+}

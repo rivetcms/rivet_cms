@@ -1,0 +1,14 @@
+---
+en:
+  rivet_cms:
+    shared:
+      navigation:
+        api_docs: Api Docs
+        components: Components
+        components_short: Comp
+        content: Content
+        content_types: Content Types
+        content_types_short: Types
+        dashboard: Dashboard
+        media: Media
+        users: Users
