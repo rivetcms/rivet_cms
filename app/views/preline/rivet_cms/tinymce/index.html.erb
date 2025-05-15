@@ -1,0 +1,9 @@
+
+<%= form_with url: "#", local: true do |f| %>
+  <div>
+    <%= f.label :body, "Body" %>
+    <%= f.text_area :body, class: "rich-text" %>
+  </div>
+  <%= f.submit "Submit" %>
+<% end %>
+

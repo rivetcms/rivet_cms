@@ -1,5 +1,6 @@
 RivetCms::Engine.routes.draw do
   RivetCms::Routes.add_routes do
+    get '/tinymce', to: "tinymce#index"
     get '/', to: "dashboard#index", as: :dashboard
 
     # Content Type Management

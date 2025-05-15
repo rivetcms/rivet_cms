@@ -1,5 +1,7 @@
 module RivetCms
   class ContentType < ApplicationRecord
+    include RivetCms::DefaultSite
+    
     has_prefix_id :ctype, minimum_length: RivetCms.configuration.prefixed_ids_length, salt: RivetCms.configuration.prefixed_ids_salt, alphabet: RivetCms.configuration.prefixed_ids_alphabet
 
     has_many :contents, dependent: :destroy

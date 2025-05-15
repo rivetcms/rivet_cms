@@ -1,4 +1,17 @@
-<div>
+<% content_for :breadcrumb do %>
+  <ol class="lg:hidden pt-3 md:pt-5 sm:pb-2 md:pb-0 px-2 sm:px-5 flex items-center whitespace-nowrap">
+    <li class="flex items-center text-sm text-gray-600 dark:text-neutral-500">
+      <%= link_to "Dashboard", dashboard_path, class: "text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100" %>
+      <svg class="shrink-0 overflow-visible size-4 ms-1.5 text-gray-400 dark:text-neutral-600" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M6 13L10 3" stroke="currentColor" stroke-linecap="round"></path>
+      </svg>
+    </li>
+    <li class="ps-1.5 flex items-center truncate font-semibold text-gray-800 dark:text-neutral-200 text-sm truncate">
+      <span class="truncate">Overview</span>
+    </li>
+  </ol>
+<% end %>
+
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8 p-6">
     <h1 class="text-2xl font-semibold text-gray-900">Welcome to RivetCMS</h1>
     <p class="mt-2 text-gray-500">Your headless CMS for structured content</p>
@@ -260,4 +273,4 @@
       </div>
     </div>
   </div>
-</div>
+

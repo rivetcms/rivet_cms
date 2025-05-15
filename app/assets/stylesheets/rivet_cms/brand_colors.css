@@ -79,32 +79,7 @@
 .hover\:border-brand-900:hover { border-color: var(--color-brand-900) !important; }
 .hover\:border-brand-950:hover { border-color: var(--color-brand-950) !important; }
 
-/* Focus states */
-.focus\:ring-brand-50:focus { --tw-ring-color: var(--color-brand-50) !important; }
-.focus\:ring-brand-100:focus { --tw-ring-color: var(--color-brand-100) !important; }
-.focus\:ring-brand-200:focus { --tw-ring-color: var(--color-brand-200) !important; }
-.focus\:ring-brand-300:focus { --tw-ring-color: var(--color-brand-300) !important; }
-.focus\:ring-brand-400:focus { --tw-ring-color: var(--color-brand-400) !important; }
-.focus\:ring-brand-500:focus { --tw-ring-color: var(--color-brand-500) !important; }
-.focus\:ring-brand-600:focus { --tw-ring-color: var(--color-brand-600) !important; }
-.focus\:ring-brand-700:focus { --tw-ring-color: var(--color-brand-700) !important; }
-.focus\:ring-brand-800:focus { --tw-ring-color: var(--color-brand-800) !important; }
-.focus\:ring-brand-900:focus { --tw-ring-color: var(--color-brand-900) !important; }
-.focus\:ring-brand-950:focus { --tw-ring-color: var(--color-brand-950) !important; }
-
-.focus\:border-brand-50:focus { border-color: var(--color-brand-50) !important; }
-.focus\:border-brand-100:focus { border-color: var(--color-brand-100) !important; }
-.focus\:border-brand-200:focus { border-color: var(--color-brand-200) !important; }
-.focus\:border-brand-300:focus { border-color: var(--color-brand-300) !important; }
-.focus\:border-brand-400:focus { border-color: var(--color-brand-400) !important; }
-.focus\:border-brand-500:focus { border-color: var(--color-brand-500) !important; }
-.focus\:border-brand-600:focus { border-color: var(--color-brand-600) !important; }
-.focus\:border-brand-700:focus { border-color: var(--color-brand-700) !important; }
-.focus\:border-brand-800:focus { border-color: var(--color-brand-800) !important; }
-.focus\:border-brand-900:focus { border-color: var(--color-brand-900) !important; }
-.focus\:border-brand-950:focus { border-color: var(--color-brand-950) !important; } 
-
-
+/* Form input focus states - modified for simple 1px border */
 [type='text']:focus,
 [type='email']:focus,
 [type='url']:focus,
@@ -120,11 +95,14 @@
 [multiple]:focus,
 textarea:focus,
 select:focus {
-  --tw-ring-color: var(--color-brand-500) !important;
-  --tw-ring-opacity: 0.5 !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-opacity: 0 !important;
   border-color: var(--color-brand-500) !important;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
+  border-width: 1px !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease-in-out !important;
 }
 
 /* Override focus styles for checkboxes and radio buttons */
@@ -158,7 +136,17 @@ select:focus {
 [type='week']:focus-visible,
 [multiple]:focus-visible,
 textarea:focus-visible,
-select:focus-visible,
+select:focus-visible {
+  --tw-ring-shadow: none !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-opacity: 0 !important;
+  border-color: var(--color-brand-500) !important;
+  border-width: 1px !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep the checkbox and radio button focus styles */
 [type='checkbox']:focus-visible,
 [type='radio']:focus-visible {
   --tw-ring-color: var(--color-brand-500) !important;

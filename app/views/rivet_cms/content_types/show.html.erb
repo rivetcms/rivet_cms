@@ -1,147 +1,186 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-  <div class="sm:flex sm:items-center">
-    <div class="sm:flex-auto">
+<% content_for :breadcrumb do %>
+  <nav class="mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <%= link_to dashboard_path, class: "inline-flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home mr-2">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Dashboard
+        <% end %>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right mx-1 text-gray-400">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+          <%= link_to "Content Types", content_types_path, class: "ml-1 text-sm font-medium text-gray-700 hover:text-gray-900 md:ml-2 dark:text-gray-400 dark:hover:text-white" %>
+        </div>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right mx-1 text-gray-400">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+          <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400"><%= @content_type.name %></span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+<% end %>
+
+<div class="mb-6">
+  <div class="flex items-center justify-between">
+    <div>
       <div class="flex items-center">
-        <h1 class="text-2xl font-bold text-gray-900"><%= @content_type.name %></h1>
-        <span class="ml-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= @content_type.is_single ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-teal-100 text-teal-800 border border-teal-200' %>">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= @content_type.name %></h1>
+        <span class="ml-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= @content_type.is_single ? 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' : 'bg-teal-100 text-teal-800 border border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-800' %>">
           <%= @content_type.is_single ? "Single Type" : "Collection" %>
         </span>
       </div>
-      <p class="mt-2 text-sm text-gray-700">
-        API Endpoint: <code class="bg-gray-50 px-3 py-1 rounded font-mono text-sm border border-gray-100"><%= @content_type.is_single ? "/api/v1/#{@content_type.slug}" : "/api/v1/#{@content_type.slug}" %></code>
+      <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+        API Endpoint: <span class="api-endpoint inline-block px-3 py-1 rounded font-mono text-sm text-black dark:text-white border-1 border-gray-300 dark:border-neutral-700">/api/v1/<%= @content_type.slug %></span>
       </p>
       <% if @content_type.description.present? %>
-        <p class="mt-2 text-sm text-gray-500"><%= @content_type.description %></p>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"><%= @content_type.description %></p>
       <% end %>
     </div>
-    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-      <div class="flex space-x-3">
-        <%= link_to content_types_path, class: "inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-all duration-200" do %>
-          <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+    <div class="flex space-x-3">
+      <%= link_to edit_content_type_path(@content_type), class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all duration-200 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil mr-2 -ml-1 text-gray-500 dark:text-neutral-400">
+          <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          <path d="m15 5 4 4"/>
+        </svg>
+        Edit Content Type
+      <% end %>
+      
+      <% if @content_type.fields.any? %>
+        <%= link_to "#", class: "inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none transition-all duration-200" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus mr-2 -ml-1">
+            <path d="M5 12h14"/>
+            <path d="M12 5v14"/>
           </svg>
-          Back
+          New <%= @content_type.name.singularize %>
         <% end %>
-        <%= link_to edit_content_type_path(@content_type), class: "inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-all duration-200" do %>
-          <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Content Items -->
+<div class="bg-white rounded-lg border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
+  <div class="px-6 py-5 border-b border-gray-200 dark:border-neutral-700">
+    <div class="flex justify-between items-center">
+      <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <%= @content_type.is_single ? @content_type.name : "#{@content_type.name} Items" %>
+      </h2>
+      <span class="bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-neutral-600"><%= pluralize(@contents.count, 'item') %></span>
+    </div>
+  </div>
+  
+  <% if @contents.any? %>
+    <div class="overflow-x-auto p-6">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
+        <thead>
+          <tr>
+            <th scope="col" class="py-3.5 pl-0 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated</th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-0 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-neutral-700 bg-white dark:bg-neutral-800">
+          <% @contents.each do |content| %>
+            <tr class="hover:bg-gray-50 dark:hover:bg-neutral-700 transition-all duration-150">
+              <td class="whitespace-nowrap py-4 pl-0 pr-3 text-sm font-medium text-gray-900 dark:text-white"><%= content.title %></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                <% if content.status == 'published' %>
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-brand-100 text-brand-800 border border-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:border-brand-800">
+                    Published
+                  </span>
+                <% elsif content.status == 'draft' %>
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
+                    Draft
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 dark:bg-neutral-700 dark:text-gray-300 dark:border-neutral-600">
+                    <%= content.status.capitalize %>
+                  </span>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400"><%= content.created_at.strftime("%b %d, %Y") %></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400"><%= content.updated_at.strftime("%b %d, %Y") %></td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-0 text-right text-sm font-medium">
+                <div class="flex justify-end space-x-2">
+                  <%= link_to "#", class: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-150 p-1 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-full", title: "Edit" do %>
+                    <span class="sr-only">Edit</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil h-5 w-5">
+                      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                      <path d="m15 5 4 4"/>
+                    </svg>
+                  <% end %>
+                  <%= button_to "#", method: :delete, class: "text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-150 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full", title: "Delete", form: { data: { turbo_confirm: "Are you sure? This will permanently delete this content." } } do %>
+                    <span class="sr-only">Delete</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 h-5 w-5">
+                      <path d="M3 6h18"/>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                      <line x1="10" x2="10" y1="11" y2="17"/>
+                      <line x1="14" x2="14" y1="11" y2="17"/>
+                    </svg>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="text-center py-16 px-6">
+      <div class="relative mx-auto h-24 w-24 text-gray-400 bg-gray-50 dark:bg-neutral-900 rounded-full border border-gray-100 dark:border-neutral-600 dark:text-neutral-300 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text h-12 w-12">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" x2="8" y1="13" y2="13"/>
+          <line x1="16" x2="8" y1="17" y2="17"/>
+          <line x1="10" x2="8" y1="9" y2="9"/>
+        </svg>
+        <div class="absolute -top-1 -right-1 h-6 w-6 bg-brand-100 dark:bg-brand-900/30 rounded-full border border-brand-200 dark:border-brand-800 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus h-4 w-4 text-brand-600 dark:text-brand-400">
+            <path d="M5 12h14"/>
+            <path d="M12 5v14"/>
           </svg>
-          Edit Content Type
-        <% end %>
-        <% if @content_type.fields.any? %>
-          <%= link_to "#", class: "inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-all duration-200" do %>
-            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </div>
+      </div>
+      <h3 class="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">No content</h3>
+      <% if @content_type.fields.any? %>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating content for this content type.</p>
+        <div class="mt-6">
+          <%= link_to "#", class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none transition-all duration-200" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus -ml-1 mr-2 h-5 w-5">
+              <path d="M5 12h14"/>
+              <path d="M12 5v14"/>
             </svg>
             New <%= @content_type.name.singularize %>
           <% end %>
-        <% end %>
-      </div>
-    </div>
-  </div>
-
-  <!-- Content Items -->
-  <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
-    <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-medium text-gray-900">
-          <%= @content_type.is_single ? @content_type.name : "#{@content_type.name} Items" %>
-        </h2>
-        <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-medium border border-gray-200"><%= pluralize(@contents.count, 'item') %></span>
-      </div>
-    </div>
-    
-    <% if @contents.any? %>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="py-3.5 pl-6 pr-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
-              <th scope="col" class="relative py-3.5 pl-3 pr-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 bg-white">
-            <% @contents.each do |content| %>
-              <tr class="hover:bg-gray-50 transition-all duration-150">
-                <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900"><%= content.title %></td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  <% if content.status == 'published' %>
-                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-brand-100 text-brand-800 border border-brand-200">
-                      Published
-                    </span>
-                  <% elsif content.status == 'draft' %>
-                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
-                      Draft
-                    </span>
-                  <% else %>
-                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                      <%= content.status.capitalize %>
-                    </span>
-                  <% end %>
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= content.created_at.strftime("%b %d, %Y") %></td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= content.updated_at.strftime("%b %d, %Y") %></td>
-                <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
-                  <div class="flex justify-end space-x-2">
-                    <%= link_to "#", class: "text-brand-600 hover:text-brand-900 transition-colors duration-150 p-1 hover:bg-brand-50 rounded-full" do %>
-                      <span class="sr-only">Edit</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
-                    <% end %>
-                    <%= button_to "#", method: :delete, class: "text-red-600 hover:text-red-900 transition-colors duration-150 p-1 hover:bg-red-50 rounded-full", form: { data: { turbo_confirm: "Are you sure? This will permanently delete this content." } } do %>
-                      <span class="sr-only">Delete</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                      </svg>
-                    <% end %>
-                  </div>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <div class="text-center py-16 px-6">
-        <div class="relative mx-auto h-24 w-24 text-gray-400 bg-gray-50 rounded-full border border-gray-100 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <div class="absolute -top-1 -right-1 h-6 w-6 bg-brand-100 rounded-full border border-brand-200 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-brand-600" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-          </div>
         </div>
-        <h3 class="mt-4 text-sm font-medium text-gray-900">No content</h3>
-        <% if @content_type.fields.any? %>
-          <p class="mt-1 text-sm text-gray-500">Get started by creating content for this content type.</p>
-          <div class="mt-6">
-            <%= link_to "#", class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all duration-200" do %>
-              <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              New <%= @content_type.name.singularize %>
-            <% end %>
-          </div>
-        <% else %>
-          <p class="mt-1 text-sm text-gray-500">You must add at least one field to this content type before you can create any content.</p>
+      <% else %>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">You must add at least one field to this content type before you can create any content.</p>
         <div class="mt-6">
-          <%= link_to "#", class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all duration-200" do %>
-            <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          <%= link_to "#", class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none transition-all duration-200" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus -ml-1 mr-2 h-5 w-5">
+              <path d="M5 12h14"/>
+              <path d="M12 5v14"/>
             </svg>
             Add Field
           <% end %>
         </div>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
+      <% end %>
+    </div>
+  <% end %>
 </div> 

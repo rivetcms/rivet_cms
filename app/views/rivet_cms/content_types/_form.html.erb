@@ -1,98 +1,91 @@
-<%= form_with(model: content_type, class: "space-y-8", id: "content_type_form", data: { controller: "content-type-form" }) do |form| %>
-  <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
-    <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-      <h3 class="text-lg font-medium leading-6 text-gray-900">Content Type Details</h3>
-      <p class="mt-1 text-sm text-gray-500">
-        Define the basic information for your content type.
-      </p>
-    </div>
-    
-    <div class="px-6 py-6 space-y-8">
+<%= form_with(model: content_type, class: "space-y-6", id: "content_type_form", data: { controller: "content-type-form" }) do |form| %>
+  <div class="p-6">
+    <div class="space-y-6">
       <div>
-        <%= form.label :name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.label :name, class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
         <div class="relative mt-1 group">
-        <%= form.text_field :name, 
-            class: "block w-full pl-10 px-4 py-3 rounded-md #{content_type.errors[:name].any? ? 'text-red-800 placeholder-red-300 focus:ring-1 focus:ring-red-500 focus:outline-none' : 'focus:ring-1 border-gray-300 focus:ring-gray-500 focus:outline-none'} shadow-sm sm:text-sm transition-all duration-200", 
-            placeholder: "e.g. Article, Product, Homepage",
-            data: { content_type_form_target: "name" } %>
+          <%= form.text_field :name, 
+              class: "block w-full pl-10 px-4 py-2.5 rounded-md #{content_type.errors[:name].any? ? 'text-red-800 dark:text-red-300 placeholder-red-300 dark:placeholder-red-400 border-red-300 dark:border-red-500 bg-white dark:bg-neutral-800' : 'border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white'} sm:text-sm transition-all duration-200", 
+              placeholder: "e.g. Article, Product, Homepage",
+              data: { content_type_form_target: "name" } %>
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 #{content_type.errors[:name].any? ? 'text-red-400' : 'text-gray-400 group-hover:text-brand-500'} transition-colors duration-200" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 #{content_type.errors[:name].any? ? 'text-red-400 dark:text-red-400' : 'text-gray-400 group-hover:text-brand-500 dark:text-neutral-500 dark:group-hover:text-brand-400'} transition-colors duration-200" viewBox="0 0 20 20" fill="currentColor">
               <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
               <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
             </svg>
           </div>
         </div>
         <% if content_type.errors[:name].any? %>
-          <p class="mt-2 text-sm text-red-600">Name <%= content_type.errors[:name].join(", ") %></p>
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">Name <%= content_type.errors[:name].join(", ") %></p>
         <% else %>
-          <p class="mt-2 text-sm text-gray-500">A human-readable name for your content type.</p>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">A human-readable name for your content type</p>
         <% end %>
       </div>
 
       <div>
-        <%= form.label :slug, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.label :slug, class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
         <div class="relative mt-1 group">
           <%= form.text_field :slug, 
-              class: "block w-full pl-10 px-4 py-3 rounded-md #{content_type.errors[:slug].any? ? 'text-red-800 placeholder-red-300 focus:ring-1 focus:ring-red-500 focus:outline-none' : 'focus:ring-1 focus:ring-gray-500 focus:outline-none'} shadow-sm sm:text-sm font-mono transition-all duration-200", 
+              class: "block w-full pl-10 px-4 py-2.5 rounded-md #{content_type.errors[:slug].any? ? 'text-red-800 dark:text-red-300 placeholder-red-300 dark:placeholder-red-400 border-red-300 dark:border-red-500 bg-white dark:bg-neutral-800' : 'border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white'} sm:text-sm font-mono transition-all duration-200", 
               placeholder: "e.g. article, product, homepage",
               data: { content_type_form_target: "slug" } %>
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 #{content_type.errors[:slug].any? ? 'text-red-400' : 'text-gray-400 group-hover:text-brand-500'} transition-colors duration-200" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 #{content_type.errors[:slug].any? ? 'text-red-400 dark:text-red-400' : 'text-gray-400 group-hover:text-brand-500 dark:text-neutral-500 dark:group-hover:text-brand-400'} transition-colors duration-200" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
             </svg>
           </div>
         </div>
         <% if content_type.errors[:slug].any? %>
-          <p class="mt-2 text-sm text-red-600">Slug <%= content_type.errors[:slug].join(", ") %></p>
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">Slug <%= content_type.errors[:slug].join(", ") %></p>
         <% else %>
-          <p class="mt-2 text-sm text-gray-500">The API identifier for this content type. Used in API routes.</p>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">The API identifier used in routes</p>
         <% end %>
       </div>
 
       <div>
-        <%= form.label :description, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <div class="relative mt-1 group">
+        <%= form.label :description, class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <div class="relative mt-1 group"> 
           <%= form.text_area :description, 
               rows: 3, 
-              class: "block w-full pl-10 px-4 py-3 rounded-md #{content_type.errors[:description].any? ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-brand-500 focus:border-brand-500'} shadow-sm sm:text-sm transition-all duration-200 group-hover:border-brand-300", 
+              class: "block w-full pl-10 px-4 py-2.5 rounded-md #{content_type.errors[:description].any? ? 'border-red-300 dark:border-red-500 text-red-900 dark:text-red-300 placeholder-red-300 dark:placeholder-red-400 bg-white dark:bg-neutral-800' : 'border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white'} sm:text-sm transition-all duration-200 group-hover:border-brand-300 dark:group-hover:border-brand-500", 
               placeholder: "Description of this content type" %>
           <div class="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 #{content_type.errors[:description].any? ? 'text-red-400' : 'text-gray-400 group-hover:text-brand-500'} transition-colors duration-200" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 #{content_type.errors[:description].any? ? 'text-red-400 dark:text-red-400' : 'text-gray-400 group-hover:text-brand-500 dark:text-neutral-500 dark:group-hover:text-brand-400'} transition-colors duration-200" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
             </svg>
           </div>
         </div>
         <% if content_type.errors[:description].any? %>
-          <p class="mt-2 text-sm text-red-600">Description <%= content_type.errors[:description].join(", ") %></p>
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">Description <%= content_type.errors[:description].join(", ") %></p>
         <% else %>
-          <p class="mt-2 text-sm text-gray-500">Optional description for this content type.</p>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Optional description</p>
         <% end %>
       </div>
 
-      <div class="pt-2">
+      <div class="pt-1">
         <div class="relative flex items-start">
           <div class="flex items-center h-5">
             <%= form.check_box :is_single, 
-                class: "h-5 w-5 rounded #{content_type.errors[:is_single].any? ? 'border-red-300 text-red-600 focus:ring-red-500' : 'border-gray-300 text-brand-600 focus:ring-brand-500'} transition-all duration-200",
+                class: "h-5 w-5 rounded #{content_type.errors[:is_single].any? ? 'border-red-300 dark:border-red-500 text-red-600 dark:text-red-400 bg-white dark:bg-neutral-800' : 'border-gray-300 text-brand-600 dark:border-neutral-600 dark:bg-neutral-800'} transition-all duration-200",
                 data: { content_type_form_target: "isSingle" } %>
           </div>
           <div class="ml-3 text-sm">
-            <%= form.label :is_single, "Single Type", class: "font-medium text-gray-700" %>
+            <%= form.label :is_single, "Single Type", class: "font-medium text-gray-700 dark:text-gray-300" %>
             <% if content_type.errors[:is_single].any? %>
-              <p class="text-red-600">Single Type <%= content_type.errors[:is_single].join(", ") %></p>
+              <p class="text-red-600 dark:text-red-400">Single Type <%= content_type.errors[:is_single].join(", ") %></p>
             <% else %>
-              <p class="text-gray-500">If checked, this will be a single type (one entry). If unchecked, it will be a collection type (multiple entries).</p>
+              <p class="text-gray-500 dark:text-gray-400">If checked, this will be a single type (one entry)</p>
             <% end %>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="flex justify-end pt-4">
-    <%= link_to content_types_path, class: "rounded-md border border-gray-300 bg-white py-3 px-5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-all duration-200" do %>
-      Cancel
-    <% end %>
-    <%= form.submit class: "ml-3 inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 cursor-pointer" %>
+    <div class="flex justify-end pt-6 mt-6 border-t border-gray-200 dark:border-neutral-700">
+      <%= link_to content_types_path, class: "rounded-md border border-gray-300 bg-white py-2.5 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition-all duration-200 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700" do %>
+        Cancel
+      <% end %>
+      <%= form.submit class: "ml-3 inline-flex items-center rounded-md bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 cursor-pointer transition-all duration-200" %>
+    </div>
   </div>
 <% end %> 

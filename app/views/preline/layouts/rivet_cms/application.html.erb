@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html class="relative min-h-full">
+<head>
+  <title>RivetCMS</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= yield :head %>
+  <script>
+    (function() {
+      const html = document.querySelector('html');
+      const isLightOrAuto = localStorage.getItem('hs_theme') === 'light' || (localStorage.getItem('hs_theme') === 'auto' && !window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const isDarkOrAuto = localStorage.getItem('hs_theme') === 'dark' || (localStorage.getItem('hs_theme') === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      if (isLightOrAuto && html.classList.contains('dark')) html.classList.remove('dark');
+      else if (isDarkOrAuto && html.classList.contains('light')) html.classList.remove('light');
+      else if (isDarkOrAuto && !html.classList.contains('dark')) html.classList.add('dark');
+      else if (isLightOrAuto && !html.classList.contains('light')) html.classList.add('light');
+    })();
+  </script>
+  <%= javascript_include_tag "rivet_cms", "data-turbo-track": "reload", type: "module" %>
+  <%= stylesheet_link_tag "rivet_cms", "data-turbo-track": "reload" %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap" rel="stylesheet">
+  <%= brand_color_css.html_safe %>
+</head>
+<body class="bg-gray-50 dark:bg-neutral-900" data-turbo="false">
+  <%= render "rivet_cms/shared/header" %>
+  <%= render "rivet_cms/shared/sidebar" %>
+
+  <!-- Toast notifications -->
+  <% if flash.any? %>
+    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-3 w-full max-w-md">
+      <% flash.each do |type, message| %>
+        <div 
+          data-controller="notification"
+          data-notification-delay-value="6000"
+          class="transition transform duration-300 bg-white dark:bg-neutral-800 shadow-xl rounded-lg border <%= flash_border_class_for(type) %> overflow-hidden"
+          data-transition-enter-from="opacity-0 scale-95"
+          data-transition-enter-to="opacity-100 scale-100"
+          data-transition-leave-from="opacity-100 scale-100"
+          data-transition-leave-to="opacity-0 scale-95"
+        >
+          <div class="relative px-5 py-4">
+            <!-- Colored accent line at top -->
+            <div class="absolute top-0 left-0 right-0 h-1 <%= flash_accent_class_for(type) %>"></div>
+            
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <%= flash_icon_for(type) %>
+              </div>
+              <div class="ml-3 w-full flex-1 pt-0.5">
+                <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= message %></p>
+              </div>
+              <div class="ml-4 flex-shrink-0 flex">
+                <button data-action="notification#hide" class="bg-white dark:bg-neutral-800 rounded-md inline-flex text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none">
+                  <span class="sr-only">Close</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x">
+                    <path d="M18 6 6 18"/>
+                    <path d="m6 6 12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <main id="content" class="lg:ps-65 pt-15 pb-10 sm:pb-16">
+    <div class="max-w-6xl mx-auto">
+      <%= yield :breadcrumb %>
+      <%= yield %>
+    </div>
+  </main>
+  <% if @rich_text %>
+    <%= javascript_include_tag "tinymce" %>
+  <% end %>
+</body>
+</html>

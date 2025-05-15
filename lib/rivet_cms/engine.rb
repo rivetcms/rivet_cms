@@ -15,9 +15,12 @@ module RivetCms
 
     initializer 'rivet_cms.configure_tenant_scoping' do
       ActiveSupport.on_load(:active_record) do
+        # Check if RivetCmsPro is defined in the Object namespace
+        rivet_cms_pro_defined = defined?(::RivetCmsPro) == "constant"
+        
         TENANT_SCOPED_MODELS.each do |model_name|
           model = "RivetCms::#{model_name}".constantize
-          model.include(RivetCms::DefaultSite) unless defined?(RivetCmsPro)
+          model.include(RivetCms::DefaultSite) unless rivet_cms_pro_defined
         end
       end
     end

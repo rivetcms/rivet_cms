@@ -13,12 +13,23 @@
     --color-brand-900: '';
     --color-brand-950: '';
   }
+
+  /* Ensure dark mode transitions are smooth */
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
 }
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @import url('https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&display=swap');
 
-@import "tailwindcss";
+@import "../../../../node_modules/preline/variants.css";
 @import "./brand_colors";
+@import "./tinymce/skin.min.css";
+@import "./tinymce/content.min.css";
+
+@plugin "@tailwindcss/forms";
 
 @theme {
   --font-passion-one: "Passion One", sans-serif; 
