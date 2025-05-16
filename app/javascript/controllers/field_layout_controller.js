@@ -56,7 +56,9 @@ export default class extends Controller {
     this.fieldTargets.forEach(field => {
       field.classList.add(
         'bg-gray-50', 
-        'hover:bg-gray-100', 
+        'hover:bg-gray-100',
+        'dark:bg-neutral-950',
+        'dark:hover:bg-neutral-900',
         'rounded-lg', 
         'transition-colors'
       );
@@ -182,7 +184,7 @@ export default class extends Controller {
    */
   clearDropIndicators() {
     this.fieldTargets.forEach(field => {
-      field.classList.remove('bg-gray-100');
+      field.classList.remove('bg-gray-100', 'dark:bg-neutral-800', 'dark:bg-neutral-700');
       const dropZone = field.querySelector('.drop-indicator');
       if (dropZone) dropZone.remove();
     });
@@ -292,7 +294,7 @@ export default class extends Controller {
         };
         
         const dropZone = document.createElement('div');
-        dropZone.className = 'drop-indicator absolute left-0 right-0 bg-gray-500 transition-all duration-200';
+        dropZone.className = 'drop-indicator absolute left-0 right-0 bg-gray-500 dark:bg-gray-400 transition-all duration-200';
         dropZone.style.height = '2px';
         
         const rowCenterY = rowRect.top + (rowRect.height / 2);
@@ -304,8 +306,8 @@ export default class extends Controller {
           this.dropPosition = 'below';
         }
         
-        closestField.classList.add('bg-gray-100');
-        pairedField.classList.add('bg-gray-100');
+        closestField.classList.add('bg-gray-100', 'dark:bg-neutral-700');
+        pairedField.classList.add('bg-gray-100', 'dark:bg-neutral-700');
         closestField.appendChild(dropZone);
         this.dropTarget = closestField;
         return true;
@@ -328,10 +330,10 @@ export default class extends Controller {
     const verticalDistance = Math.abs(mouseY - (rect.top + rect.height/2));
     
     if (verticalDistance < verticalThreshold) {
-      closestField.classList.add('bg-gray-100');
+      closestField.classList.add('bg-gray-100', 'dark:bg-neutral-700');
       
       const dropZone = document.createElement('div');
-      dropZone.className = 'drop-indicator absolute inset-y-0 bg-gray-500 transition-all duration-200';
+      dropZone.className = 'drop-indicator absolute inset-y-0 bg-gray-500 dark:bg-gray-400 transition-all duration-200';
       dropZone.style.width = '2px';
       
       // Determine if we're dragging left-to-right or right-to-left
@@ -372,7 +374,7 @@ export default class extends Controller {
    */
   handleVerticalIndicator(closestField, rect, mouseY) {
     const dropZone = document.createElement('div');
-    dropZone.className = 'drop-indicator absolute left-0 right-0 bg-gray-500 transition-all duration-200';
+    dropZone.className = 'drop-indicator absolute left-0 right-0 bg-gray-500 dark:bg-gray-400 transition-all duration-200';
     dropZone.style.height = '2px';
     
     const centerY = rect.top + (rect.height / 2);
@@ -385,7 +387,7 @@ export default class extends Controller {
     }
     
     closestField.style.position = 'relative';
-    closestField.classList.add('bg-gray-100');
+    closestField.classList.add('bg-gray-100', 'dark:bg-neutral-700');
     closestField.appendChild(dropZone);
     this.dropTarget = closestField;
   }
@@ -513,11 +515,12 @@ export default class extends Controller {
       field.classList.remove(
         'border-t-2', 'border-b-2', 'border-r-2', 'border-l-2',
         'border-t-4', 'border-b-4',
-        'border-gray-500', 'border-dashed', 'bg-gray-100'
+        'border-gray-500', 'border-dashed', 'bg-gray-100', 
+        'dark:bg-neutral-700'
       );
       
       // Add back the base background if it was removed
-      field.classList.add('bg-gray-50');
+      field.classList.add('bg-gray-50', 'dark:bg-neutral-950');
       
       // Remove any leftover drop zones
       const dropZones = field.querySelectorAll('.absolute');
@@ -558,7 +561,7 @@ export default class extends Controller {
       // Reset field styles
       field.style.gridColumn = "1 / -1";
       field.style.position = "relative";
-      field.classList.remove("border-l-2", "border-dashed", "border-gray-300");
+      field.classList.remove("border-l-2", "border-dashed", "border-gray-300", "dark:border-neutral-700");
       
       // Set consistent padding for all fields
       field.style.padding = padding;
@@ -578,7 +581,7 @@ export default class extends Controller {
           } else if (currentRowGroup === rowGroup) {
             // Second field in the row group
             field.style.gridColumn = "2 / 3";
-            field.classList.add("border-l-2", "border-dashed", "border-gray-300");
+            field.classList.add("border-l-2", "border-dashed", "border-gray-300", "dark:border-neutral-700");
             currentRowGroup = null;
           }
         } else {
