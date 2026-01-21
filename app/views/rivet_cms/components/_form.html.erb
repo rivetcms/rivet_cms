@@ -1,0 +1,67 @@
+<%= form_with model: @component, class: "space-y-6", data: { controller: "content-type-form" } do |f| %>
+  <div class="form-control w-full">
+    <%= f.label :name, class: "label" %>
+    <%= f.text_field :name, class: "input input-bordered w-full", required: true, data: { content_type_form_target: "name" } %>
+  </div>
+  <div class="form-control w-full">
+    <%= f.label :description, class: "label" %>
+    <%= f.text_area :description, class: "textarea textarea-bordered w-full", rows: 3 %>
+  </div>
+  <div class="form-control w-full">
+    <%= f.label :category_id, "Category", class: "label" %>
+    <div class="dropdown w-full" data-controller="category-combobox" data-category-combobox-create-url-value="<%= create_category_components_path %>">
+      <div tabindex="0" role="button" class="btn btn-outline justify-between w-full font-normal" id="category-combobox-trigger">
+        <span class="truncate" data-category-combobox-target="display"><%= @component.category&.name || "Select a category" %></span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-50">
+          <path d="m7 15 5 5 5-5" />
+          <path d="m7 9 5-5 5 5" />
+        </svg>
+      </div>
+      <div tabindex="0" class="dropdown-content bg-base-100 rounded-box z-10 w-full p-2 shadow-lg mt-1">
+        <div class="form-control mb-2">
+          <div class="input-group">
+            <span class="bg-base-200 px-3 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </span>
+            <input type="text" placeholder="Search or create category..." class="input input-bordered input-sm w-full" data-category-combobox-target="search" />
+          </div>
+        </div>
+        <ul class="menu menu-sm" data-category-combobox-target="listbox">
+          <% @categories.each do |category| %>
+            <li><a data-value="<%= category.id %>" data-action="click->category-combobox#select"><%= category.name %></a></li>
+          <% end %>
+          <li class="menu-title mt-2">
+            <span>Or create new</span>
+          </li>
+          <li>
+            <a data-action="click->category-combobox#create" class="text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 12h8" />
+                <path d="M12 8v8" />
+              </svg>
+              Create category
+            </a>
+          </li>
+        </ul>
+      </div>
+      <%= f.hidden_field :category_id, value: @component.category_id, data: { category_combobox_target: "hidden" } %>
+    </div>
+  </div>
+  <div class="form-control">
+    <label class="label cursor-pointer justify-start gap-4">
+      <%= f.check_box :repeatable, class: "checkbox checkbox-primary", data: { content_type_form_target: "repeatable" } %>
+      <span class="label-text">Repeatable</span>
+    </label>
+    <p class="text-base-content/60 text-sm ml-10">
+      If checked, this will be a repeatable component (multiple entries). If unchecked, it will be a single component (one entry).
+    </p>
+  </div>
+  <div class="flex justify-end gap-3 pt-6">
+    <%= link_to "Cancel", components_path, class: "btn btn-outline" %>
+    <%= f.submit class: "btn btn-primary" %>
+  </div>
+<% end %>

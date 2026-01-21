@@ -1,0 +1,17 @@
+<%= turbo_stream.append "fields-container" do %>
+  <div class="field-row flex gap-2 items-stretch" data-row="<%= @field.row %>" data-field-sortable-target="row">
+    <%= render "rivet_cms/fields/field_card", field: @field, content_type: @content_type %>
+  </div>
+<% end %>
+
+<%= turbo_stream.update "field-count" do %>
+  <%= @content_type.fields.kept.count %>
+<% end %>
+
+<%# Remove the empty state when first field is added %>
+<%= turbo_stream.remove "fields-empty-state" %>
+
+<%# Close the drawer by unchecking the toggle %>
+<%= turbo_stream.replace "field-drawer-toggle" do %>
+  <input id="field-drawer-toggle" type="checkbox" class="drawer-toggle" data-field-drawer-target="drawer" />
+<% end %>

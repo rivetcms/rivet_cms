@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html data-theme="lofi">
+  <head>
+    <title><%= content_for(:title) || "Rivet CMS" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="turbo-prefetch" content="false">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= javascript_include_tag "rivet_cms", "data-turbo-track": "reload", type: "module" %>
+    <%= stylesheet_link_tag "rivet_cms", "data-turbo-track": "reload", time: Time.now.to_i %>
+  </head>
+  <body class="bg-white">
+    <%= render 'layouts/rivet_cms/alert', alert: alert if alert %>
+    <div class="drawer lg:drawer-open" data-controller="theme">
+      <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content flex flex-col">
+        <%= render "layouts/rivet_cms/header" %>
+        <main class="py-8 px-4">
+          <%= turbo_frame_tag "main_content" do %>
+            <%= yield %>
+          <% end %>
+        </main>
+      </div>
+      <%= render "layouts/rivet_cms/aside" %>
+    </div>
+  </body>
+</html>

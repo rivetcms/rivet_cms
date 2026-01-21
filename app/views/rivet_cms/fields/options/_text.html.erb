@@ -1,0 +1,34 @@
+<%# Text field options: max_length, placeholder, rows %>
+<div class="space-y-4">
+  <div class="form-control">
+    <%= f.label "options[max_length]", "Maximum Length", class: "label" %>
+    <%= f.number_field "options[max_length]",
+                       value: @field.options&.dig("max_length"),
+                       class: "input input-bordered w-full",
+                       min: 1,
+                       placeholder: "No limit" %>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">Leave empty for no limit</span>
+    </label>
+  </div>
+
+  <div class="form-control">
+    <%= f.label "options[placeholder]", "Placeholder Text", class: "label" %>
+    <%= f.text_field "options[placeholder]",
+                     value: @field.options&.dig("placeholder"),
+                     class: "input input-bordered w-full",
+                     placeholder: "e.g., Write your content here..." %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label "options[rows]", "Default Rows", class: "label" %>
+    <%= f.number_field "options[rows]",
+                       value: @field.options&.dig("rows") || 4,
+                       class: "input input-bordered w-full",
+                       min: 2,
+                       max: 20 %>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">Height of the text area (2-20 rows)</span>
+    </label>
+  </div>
+</div>

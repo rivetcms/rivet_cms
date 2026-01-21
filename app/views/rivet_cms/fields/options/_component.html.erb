@@ -1,0 +1,54 @@
+<%# Component field options: which component to embed %>
+<div class="space-y-4">
+  <div class="form-control">
+    <%= f.label "options[component_id]", "Embed Component", class: "label" %>
+    <%= f.select "options[component_id]",
+                 options_from_collection_for_select(
+                   RivetCms::Component.order(:name),
+                   :id,
+                   :name,
+                   @field.options&.dig("component_id")
+                 ),
+                 { prompt: "Select a component..." },
+                 class: "select select-bordered w-full" %>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">Which component to embed in this field</span>
+    </label>
+  </div>
+
+  <div class="form-control">
+    <label class="label cursor-pointer justify-start gap-4 p-4 bg-base-200/50 rounded-lg hover:bg-base-200 transition-colors">
+      <input type="checkbox"
+             name="field[options][repeatable]"
+             value="true"
+             <%= "checked" if @field.options&.dig("repeatable") == "true" || @field.options&.dig("repeatable") == true %>
+             class="checkbox checkbox-primary" />
+      <div>
+        <span class="font-medium">Allow Repeating</span>
+        <p class="text-base-content/50 text-sm mt-0.5">Allow adding multiple instances of this component</p>
+      </div>
+    </label>
+  </div>
+
+  <% if @field.options&.dig("repeatable") == "true" || @field.options&.dig("repeatable") == true %>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label "options[min_items]", "Minimum Items", class: "label" %>
+        <%= f.number_field "options[min_items]",
+                           value: @field.options&.dig("min_items"),
+                           class: "input input-bordered w-full",
+                           min: 0,
+                           placeholder: "0" %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label "options[max_items]", "Maximum Items", class: "label" %>
+        <%= f.number_field "options[max_items]",
+                           value: @field.options&.dig("max_items"),
+                           class: "input input-bordered w-full",
+                           min: 1,
+                           placeholder: "Unlimited" %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,23 @@
+<%# Rich text field options: toolbar configuration %>
+<div class="space-y-4">
+  <div class="form-control">
+    <%= f.label "options[toolbar]", "Toolbar Style", class: "label" %>
+    <div class="grid grid-cols-3 gap-2">
+      <% [["minimal", "Minimal", "Bold, italic, links only"],
+          ["standard", "Standard", "Common formatting options"],
+          ["full", "Full", "All formatting features"]].each do |value, label, desc| %>
+        <label class="cursor-pointer">
+          <input type="radio"
+                 name="field[options][toolbar]"
+                 value="<%= value %>"
+                 <%= "checked" if (@field.options&.dig("toolbar") || "standard") == value %>
+                 class="peer hidden" />
+          <div class="border-2 border-base-300 rounded-lg p-3 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5">
+            <span class="text-sm font-medium block"><%= label %></span>
+            <span class="text-xs text-base-content/50"><%= desc %></span>
+          </div>
+        </label>
+      <% end %>
+    </div>
+  </div>
+</div>

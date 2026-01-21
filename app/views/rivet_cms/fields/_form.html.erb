@@ -1,0 +1,137 @@
+<%= form_with model: [@content_type, @field],
+              class: "space-y-6",
+              data: {
+                turbo: true,
+                action: "turbo:submit-end->field-drawer#handleSuccess"
+              } do |f| %>
+
+  <% if @field.errors.any? %>
+    <div class="alert alert-error text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+      <div>
+        <% @field.errors.full_messages.each do |msg| %>
+          <p><%= msg %></p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Field Type (only for new fields) -->
+  <% if @field.new_record? %>
+    <div class="form-control">
+      <%= f.label :field_type, "Field Type", class: "label font-medium" %>
+      <div class="grid grid-cols-2 gap-2">
+        <% RivetCms::Field.field_types_for_select.each do |label, value| %>
+          <label class="cursor-pointer">
+            <input type="radio"
+                   name="field[field_type]"
+                   value="<%= value %>"
+                   <%= "checked" if @field.field_type == value || (@field.field_type.nil? && value == "string") %>
+                   class="peer hidden" />
+            <div class="flex items-center gap-2.5 p-3 rounded-lg border-2 border-base-300 bg-base-100 transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-base-content/20">
+              <%= render "rivet_cms/fields/field_type_icon", field_type: value %>
+              <span class="text-sm font-medium"><%= label %></span>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <!-- Show field type badge for existing fields -->
+    <div class="flex items-center gap-3 p-4 bg-base-200 rounded-lg">
+      <div class="w-10 h-10 rounded-lg bg-base-100 flex items-center justify-center">
+        <%= render "rivet_cms/fields/field_type_icon", field_type: @field.field_type %>
+      </div>
+      <div>
+        <div class="font-medium"><%= @field.field_type_label %></div>
+        <div class="text-xs text-base-content/50">Field type cannot be changed</div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="divider my-2"></div>
+
+  <!-- Name -->
+  <div class="form-control">
+    <%= f.label :name, class: "label" %>
+    <%= f.text_field :name,
+                     class: "input input-bordered w-full",
+                     required: true,
+                     placeholder: "e.g., Title, Author, Featured Image",
+                     autofocus: @field.new_record? %>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">The label shown to content editors</span>
+    </label>
+  </div>
+
+  <!-- Description -->
+  <div class="form-control">
+    <%= f.label :description, "Help Text", class: "label" %>
+    <%= f.text_area :description,
+                    class: "textarea textarea-bordered w-full",
+                    rows: 2,
+                    placeholder: "Instructions or guidelines for editors" %>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">Shown below the field when editing content</span>
+    </label>
+  </div>
+
+  <!-- Width -->
+  <div class="form-control">
+    <%= f.label :width, "Layout Width", class: "label" %>
+    <div class="grid grid-cols-2 gap-3">
+      <label class="cursor-pointer">
+        <input type="radio"
+               name="field[width]"
+               value="full"
+               <%= "checked" if @field.width_full? || @field.new_record? %>
+               class="peer hidden" />
+        <div class="border-2 border-base-300 rounded-lg p-4 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5">
+          <div class="h-3 bg-base-300 rounded mb-3 peer-checked:bg-primary/30"></div>
+          <span class="text-sm font-medium">Full width</span>
+        </div>
+      </label>
+      <label class="cursor-pointer">
+        <input type="radio"
+               name="field[width]"
+               value="half"
+               <%= "checked" if @field.width_half? %>
+               class="peer hidden" />
+        <div class="border-2 border-base-300 rounded-lg p-4 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5">
+          <div class="flex gap-2 mb-3">
+            <div class="flex-1 h-3 bg-base-300 rounded peer-checked:bg-primary/30"></div>
+            <div class="flex-1 h-3 bg-base-200 rounded"></div>
+          </div>
+          <span class="text-sm font-medium">Half width</span>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- Required -->
+  <div class="form-control">
+    <label class="label cursor-pointer justify-start gap-4 p-4 bg-base-200/50 rounded-lg hover:bg-base-200 transition-colors">
+      <%= f.check_box :required, class: "checkbox checkbox-primary" %>
+      <div>
+        <span class="font-medium">Required field</span>
+        <p class="text-base-content/50 text-sm mt-0.5">Content cannot be saved without this field</p>
+      </div>
+    </label>
+  </div>
+
+  <!-- Field-specific options -->
+  <% if @field.persisted? %>
+    <div class="divider my-2">
+      <span class="text-xs text-base-content/40 uppercase tracking-wider">Options</span>
+    </div>
+    <%= render "rivet_cms/fields/options/#{@field.field_type}", f: f %>
+  <% end %>
+
+  <!-- Actions -->
+  <div class="flex justify-end gap-3 pt-4 border-t border-base-200">
+    <button type="button" class="btn btn-ghost" data-action="click->field-drawer#close">
+      Cancel
+    </button>
+    <%= f.submit @field.new_record? ? "Add Field" : "Save Changes", class: "btn btn-primary" %>
+  </div>
+<% end %>

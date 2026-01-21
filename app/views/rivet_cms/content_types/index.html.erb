@@ -1,0 +1,51 @@
+<%= render 'layouts/rivet_cms/notice', notice: notice if notice %>
+<div class="flex justify-between items-center mb-8">
+  <h1 class="text-xl font-semibold">Content Types</h1>
+  <%= link_to "New Content Type", new_content_type_path, class: "btn btn-primary", data: { turbo_action: "advance" } %>
+</div>
+
+<div class="overflow-x-auto" id="content-types">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Slug</th>
+        <th>Type</th>
+        <th>Items</th>
+        <th class="bg-base-100 sticky right-0">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @content_types.each do |content_type| %>
+        <tr class="hover">
+          <td><%= content_type.name %></td>
+          <td><%= content_type.slug %></td>
+          <td>
+            <span class="badge <%= content_type.single ? 'badge-primary' : 'badge-secondary' %>">
+              <%= content_type.single ? "Single" : "Collection" %>
+            </span>
+          </td>
+          <td></td>
+          <td class="bg-base-100 sticky right-0">
+            <div class="flex gap-1">
+              <%= link_to content_type, class: "btn btn-ghost btn-sm btn-square", data: { turbo_action: "advance" } do %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              <% end %>
+              <%= link_to edit_content_type_path(content_type), class: "btn btn-ghost btn-sm btn-square", data: { turbo_action: "advance" } do %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/>
+                </svg>
+              <% end %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @content_types.empty? %>
+  <%= render "rivet_cms/shared/empty", resource_name: "Content Types", new_path: new_content_type_path %>
+<% end %>

@@ -1,0 +1,104 @@
+<%= render "layouts/rivet_cms/notice" %>
+
+<div data-controller="field-drawer" data-action="keydown.esc@window->field-drawer#close">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold tracking-tight"><%= @content_type.name %></h1>
+        <span class="badge <%= @content_type.single? ? 'badge-warning' : 'badge-info' %> badge-sm font-medium">
+          <%= @content_type.single? ? "Single" : "Collection" %>
+        </span>
+      </div>
+      <div class="flex items-center gap-2 text-base-content/50 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <code class="text-xs bg-base-200 px-2 py-0.5 rounded font-mono"><%= @content_type.slug %></code>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <%= link_to edit_content_type_path(@content_type), class: "btn btn-outline btn-sm gap-2", data: { turbo_frame: "main_content" } do %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+        Settings
+      <% end %>
+      <button type="button"
+              class="btn btn-primary btn-sm gap-2"
+              data-action="click->field-drawer#open"
+              data-url="<%= new_content_type_field_path(@content_type) %>"
+              data-drawer-title="Add Field">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Add Field
+      </button>
+    </div>
+  </div>
+
+  <!-- Fields Section -->
+  <div class="bg-base-100 border border-base-300 rounded-xl">
+    <div class="p-5 border-b border-base-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+          </div>
+          <div>
+            <h2 class="font-semibold">Fields</h2>
+            <p class="text-xs text-base-content/50">Define the structure of your content</p>
+          </div>
+        </div>
+        <span id="field-count" class="badge badge-ghost font-mono text-xs"><%= @fields.count %></span>
+      </div>
+    </div>
+
+    <div class="p-5">
+      <%
+        # Group fields by row
+        rows = @fields.any? ? @fields.group_by(&:row).sort_by(&:first) : []
+      %>
+      <div data-controller="field-sortable"
+           data-field-sortable-url-value="<%= update_layout_content_type_fields_path(@content_type) %>"
+           data-field-sortable-content-type-id-value="<%= @content_type.id %>">
+        <div id="fields-container"
+             class="space-y-2"
+             data-field-sortable-target="rowList">
+          <% if rows.any? %>
+            <% rows.each do |row_num, fields_in_row| %>
+              <div class="field-row flex gap-2 items-stretch" data-row="<%= row_num %>" data-field-sortable-target="row">
+                <% fields_in_row.sort_by(&:position).each do |field| %>
+                  <%= render "rivet_cms/fields/field_card", field: field, content_type: @content_type %>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <% if @fields.empty? %>
+        <div id="fields-empty-state" class="py-16 text-center">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-base-200 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-base-content/40"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"/></svg>
+          </div>
+          <h3 class="font-medium text-base-content/80 mb-1">No fields yet</h3>
+          <p class="text-sm text-base-content/50 mb-5">Add fields to define what content editors can enter.</p>
+          <button type="button"
+                  class="btn btn-primary btn-sm gap-2"
+                  data-action="click->field-drawer#open"
+                  data-url="<%= new_content_type_field_path(@content_type) %>"
+                  data-drawer-title="Add Field">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Add your first field
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Drawer -->
+  <%= render "rivet_cms/fields/drawer" %>
+</div>
+
+<div class="mt-8">
+  <%= link_to content_types_path, class: "btn btn-ghost btn-sm gap-2", data: { turbo_frame: "main_content" } do %>
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    Back to Content Types
+  <% end %>
+</div>

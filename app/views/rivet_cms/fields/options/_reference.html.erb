@@ -1,0 +1,32 @@
+<%# Reference field options: target content type %>
+<div class="space-y-4">
+  <div class="form-control">
+    <%= f.label "options[content_type_id]", "Reference Content Type", class: "label" %>
+    <%= f.select "options[content_type_id]",
+                 options_from_collection_for_select(
+                   RivetCms::ContentType.where.not(id: @content_type.id).order(:name),
+                   :id,
+                   :name,
+                   @field.options&.dig("content_type_id")
+                 ),
+                 { prompt: "Select a content type..." },
+                 class: "select select-bordered w-full" %>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">Which content type can be referenced</span>
+    </label>
+  </div>
+
+  <div class="form-control">
+    <label class="label cursor-pointer justify-start gap-4 p-4 bg-base-200/50 rounded-lg hover:bg-base-200 transition-colors">
+      <input type="checkbox"
+             name="field[options][multiple]"
+             value="true"
+             <%= "checked" if @field.options&.dig("multiple") == "true" || @field.options&.dig("multiple") == true %>
+             class="checkbox checkbox-primary" />
+      <div>
+        <span class="font-medium">Allow Multiple References</span>
+        <p class="text-base-content/50 text-sm mt-0.5">Allow selecting more than one item</p>
+      </div>
+    </label>
+  </div>
+</div>

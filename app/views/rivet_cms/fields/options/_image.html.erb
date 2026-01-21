@@ -1,0 +1,49 @@
+<%# Image field options: max size, allowed types %>
+<div class="space-y-4">
+  <div class="form-control">
+    <%= f.label "options[max_size_mb]", "Maximum File Size (MB)", class: "label" %>
+    <%= f.number_field "options[max_size_mb]",
+                       value: @field.options&.dig("max_size_mb") || 10,
+                       class: "input input-bordered w-full",
+                       min: 1,
+                       max: 100 %>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">Default: 10 MB</span>
+    </label>
+  </div>
+
+  <div class="form-control">
+    <%= f.label "options[allowed_types]", "Allowed Image Types", class: "label" %>
+    <div class="flex flex-wrap gap-2">
+      <% ["jpg", "jpeg", "png", "gif", "webp", "svg"].each do |type| %>
+        <label class="cursor-pointer">
+          <input type="checkbox"
+                 name="field[options][allowed_types][]"
+                 value="<%= type %>"
+                 <%= "checked" if @field.options&.dig("allowed_types")&.include?(type) || @field.options&.dig("allowed_types").nil? %>
+                 class="peer hidden" />
+          <span class="badge badge-lg peer-checked:badge-primary peer-checked:text-primary-content transition-colors cursor-pointer">
+            .<%= type %>
+          </span>
+        </label>
+      <% end %>
+    </div>
+    <label class="label">
+      <span class="label-text-alt text-base-content/50">Select allowed image formats</span>
+    </label>
+  </div>
+
+  <div class="form-control">
+    <label class="label cursor-pointer justify-start gap-4 p-4 bg-base-200/50 rounded-lg hover:bg-base-200 transition-colors">
+      <input type="checkbox"
+             name="field[options][alt_required]"
+             value="true"
+             <%= "checked" if @field.options&.dig("alt_required") == "true" || @field.options&.dig("alt_required") == true %>
+             class="checkbox checkbox-primary" />
+      <div>
+        <span class="font-medium">Require Alt Text</span>
+        <p class="text-base-content/50 text-sm mt-0.5">Force editors to provide alt text for accessibility</p>
+      </div>
+    </label>
+  </div>
+</div>
