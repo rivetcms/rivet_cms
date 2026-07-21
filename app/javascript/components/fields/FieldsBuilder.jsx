@@ -28,7 +28,7 @@ function DropZone({ onDrop }) {
 
   return (
     <div
-      className={`flex min-h-[3rem] items-stretch rounded-lg border-2 border-dashed transition-colors ${over ? "border-primary bg-primary/5" : "border-base-300 bg-base-200/30"}`}
+      className={`flex min-h-10 items-stretch rounded-field border border-dashed transition-colors ${over ? "border-primary bg-primary/5" : "border-base-300 bg-base-200/30"}`}
       onDragOver={(e) => {
         e.preventDefault()
         setOver(true)
@@ -118,7 +118,7 @@ export default function FieldsBuilder({ contentType, fields, onEdit }) {
       {rows.map((rowFields, rowIndex) => (
         <div key={rowFields.map((f) => f.id).join("-")}>
           <div
-            className={`flex gap-2 items-stretch rounded-lg ${dragging && overRow === rowIndex && canDropInRow(rowFields, dragging) ? "ring-2 ring-primary/50" : ""}`}
+            className={`flex gap-2 items-stretch rounded-field ${dragging && overRow === rowIndex && canDropInRow(rowFields, dragging) ? "ring-2 ring-primary/50" : ""}`}
             onDragOver={(e) => {
               if (dragging && canDropInRow(rowFields, dragging)) {
                 e.preventDefault()

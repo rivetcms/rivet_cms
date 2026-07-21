@@ -1,10 +1,13 @@
+import PageHeader from "../../components/PageHeader"
 import ContentTypeForm from "../../components/ContentTypeForm"
 
 export default function Edit({ content_type: contentType }) {
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-xl font-semibold mb-8">Edit {contentType.name}</h1>
-      <ContentTypeForm contentType={contentType} submitLabel="Update Content type" />
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title={`Edit ${contentType.name}`} description="Update this content type's settings." />
+      <div className="rounded-box border border-base-300 bg-base-100 p-6">
+        <ContentTypeForm contentType={contentType} submitLabel="Save Changes" />
+      </div>
     </div>
   )
 }

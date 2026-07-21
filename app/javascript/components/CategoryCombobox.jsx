@@ -51,15 +51,15 @@ export default function CategoryCombobox({ categories: initialCategories, value,
 
   return (
     <div className="dropdown w-full">
-      <div ref={triggerRef} tabIndex={0} role="button" className="btn btn-outline justify-between w-full font-normal">
-        <span className="truncate">{selected?.name || "Select a category"}</span>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
+      <div ref={triggerRef} tabIndex={0} role="button" className="input input-bordered flex w-full cursor-pointer items-center justify-between gap-2">
+        <span className={`truncate ${selected ? "" : "text-base-content/40"}`}>{selected?.name || "Select a category"}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-50">
           <path d="m7 15 5 5 5-5" />
           <path d="m7 9 5-5 5 5" />
         </svg>
       </div>
-      <div tabIndex={0} className="dropdown-content bg-base-100 rounded-box z-10 w-full p-2 shadow-lg mt-1">
-        <div className="form-control mb-2">
+      <div tabIndex={0} className="dropdown-content z-10 mt-1 w-full rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg">
+        <div className="mb-1.5">
           <input
             type="text"
             placeholder="Search or create category..."
