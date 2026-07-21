@@ -57,7 +57,7 @@ module RivetCms
     end
 
     def self.field_types_for_select
-      FIELD_TYPE_LABELS.map { |value, label| [label, value] }
+      FIELD_TYPE_LABELS.map { |value, label| [ label, value ] }
     end
 
     def attachment?

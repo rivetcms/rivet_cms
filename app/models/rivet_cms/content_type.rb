@@ -11,7 +11,7 @@ module RivetCms
 
     validates :name, presence: true
     validates :slug, uniqueness: { scope: :organization_id }
-    validates :single, inclusion: { in: [true, false] }
+    validates :single, inclusion: { in: [ true, false ] }
 
     scope :singles, -> { where(single: true) }
     scope :collections, -> { where(single: false) }

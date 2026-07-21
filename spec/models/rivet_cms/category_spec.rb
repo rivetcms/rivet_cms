@@ -87,7 +87,7 @@ module RivetCms
           cat3 = create(:category, position: 3, organization: org)
           cat1 = create(:category, position: 1, organization: org)
           cat2 = create(:category, position: 2, organization: org)
-          expect(Category.ordered).to eq([cat1, cat2, cat3])
+          expect(Category.ordered).to eq([ cat1, cat2, cat3 ])
         end
       end
     end

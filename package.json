@@ -1,13 +1,13 @@
 {
-  "name": "app",
+  "name": "rivet_cms",
   "private": true,
   "dependencies": {
-    "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo-rails": "^8.0.20",
-    "basecoat-css": "^0.3.10",
+    "@inertiajs/react": "^2.0.0",
+    "axios": "^1.7.0",
     "daisyui": "^5.5.14",
     "pluralize": "^8.0.0",
-    "sortablejs": "^1.15.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0"
   },
   "devDependencies": {
@@ -15,7 +15,7 @@
     "esbuild": "^0.27.0"
   },
   "scripts": {
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets",
+    "build": "esbuild app/javascript/rivet_cms.jsx --bundle --minify --sourcemap --format=esm --jsx=automatic --outdir=app/assets/builds --public-path=/assets",
     "build:css": "npx @tailwindcss/cli -i ./app/assets/stylesheets/rivet_cms/application.tailwind.css -o ./app/assets/builds/rivet_cms.css --minify"
   }
 }

@@ -15,8 +15,8 @@ class CreateContentSystemTables < ActiveRecord::Migration[7.2]
       t.datetime :deleted_at
       t.timestamps
 
-      t.index [:content_type_id, :name], unique: true, where: "deleted_at IS NULL", name: "idx_fields_content_type_name_unique"
-      t.index [:component_id, :name], unique: true, where: "deleted_at IS NULL", name: "idx_fields_component_name_unique"
+      t.index [ :content_type_id, :name ], unique: true, where: "deleted_at IS NULL", name: "idx_fields_content_type_name_unique"
+      t.index [ :component_id, :name ], unique: true, where: "deleted_at IS NULL", name: "idx_fields_component_name_unique"
       t.index :deleted_at
       t.index :position
     end
@@ -31,7 +31,7 @@ class CreateContentSystemTables < ActiveRecord::Migration[7.2]
       t.datetime :unpublished_at
       t.timestamps
 
-      t.index [:organization_id, :slug], unique: true
+      t.index [ :organization_id, :slug ], unique: true
       t.index :status
     end
 
@@ -42,7 +42,7 @@ class CreateContentSystemTables < ActiveRecord::Migration[7.2]
       t.references :value, polymorphic: true, null: false
       t.timestamps
 
-      t.index [:content_id, :field_id], unique: true
+      t.index [ :content_id, :field_id ], unique: true
     end
 
     # Field value tables for different types

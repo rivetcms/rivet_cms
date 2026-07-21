@@ -123,7 +123,7 @@ module RivetCms
         field2 = create(:field, content_type: content_type, organization: org)
         field3 = create(:field, content_type: content_type, organization: org)
 
-        Field.reorder!([field3.id, field1.id, field2.id])
+        Field.reorder!([ field3.id, field1.id, field2.id ])
 
         expect(field3.reload.position).to eq(0)
         expect(field1.reload.position).to eq(1)

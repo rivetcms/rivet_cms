@@ -1,8 +1,0 @@
-<%= turbo_stream.replace @field do %>
-  <%= render "rivet_cms/fields/field_card", field: @field, content_type: @content_type %>
-<% end %>
-
-<%# Close the drawer by unchecking the toggle %>
-<%= turbo_stream.replace "field-drawer-toggle" do %>
-  <input id="field-drawer-toggle" type="checkbox" class="drawer-toggle" data-field-drawer-target="drawer" />
-<% end %>

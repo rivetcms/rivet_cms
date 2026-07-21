@@ -8,7 +8,7 @@ module RivetCms
 
     validates :name, presence: true
     validates :slug, presence: true, uniqueness: { scope: :organization_id }
-    validates :system, inclusion: { in: [true, false] }
+    validates :system, inclusion: { in: [ true, false ] }
 
     scope :system_categories, -> { where(system: true) }
     scope :custom_categories, -> { where(system: false) }

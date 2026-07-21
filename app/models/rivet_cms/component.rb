@@ -11,7 +11,7 @@ module RivetCms
 
     validates :name, presence: true
     validates :slug, uniqueness: { scope: :organization_id }
-    validates :repeatable, inclusion: { in: [true, false] }
+    validates :repeatable, inclusion: { in: [ true, false ] }
 
     scope :repeatable, -> { where(repeatable: true) }
     scope :single, -> { where(repeatable: false) }

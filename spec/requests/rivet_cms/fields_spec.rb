@@ -6,13 +6,6 @@ module RivetCms
     let(:organization) { Organization.find_or_create_by!(domain: "localhost") { |o| o.name = "Test Org"; o.subdomain = "test" } }
     let(:content_type) { create(:content_type, organization: organization) }
 
-    describe "GET /content_types/:content_type_id/fields/new" do
-      it "returns http success" do
-        get rivet_cms.new_content_type_field_path(content_type)
-        expect(response).to have_http_status(:success)
-      end
-    end
-
     describe "POST /content_types/:content_type_id/fields" do
       it "creates a field" do
         expect {
@@ -20,14 +13,6 @@ module RivetCms
             field: { name: "Title", field_type: "string", width: "full" }
           }
         }.to change(Field, :count).by(1)
-      end
-    end
-
-    describe "GET /content_types/:content_type_id/fields/:id/edit" do
-      it "returns http success" do
-        field = create(:field, content_type: content_type, organization: content_type.organization)
-        get rivet_cms.edit_content_type_field_path(content_type, field)
-        expect(response).to have_http_status(:success)
       end
     end
 
@@ -71,10 +56,10 @@ module RivetCms
 
         # Reorder: field3 alone, then field1 and field2 paired
         post rivet_cms.update_layout_content_type_fields_path(content_type),
-             params: { rows: [[field3.id], [field1.id, field2.id]] },
+             params: { rows: [ [ field3.id ], [ field1.id, field2.id ] ] },
              as: :json
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to redirect_to(rivet_cms.content_type_path(content_type))
         expect(field3.reload.row).to eq(0)
         expect(field3.reload.position).to eq(0)
         expect(field1.reload.row).to eq(1)

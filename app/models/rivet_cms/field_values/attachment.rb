@@ -72,8 +72,8 @@ module RivetCms
 
       def variant_url(size)
         variants = {
-          thumbnail: { resize_to_limit: [150, 150] },
-          medium: { resize_to_limit: [800, 800] }
+          thumbnail: { resize_to_limit: [ 150, 150 ] },
+          medium: { resize_to_limit: [ 800, 800 ] }
         }
 
         variant = file.variant(variants[size])
