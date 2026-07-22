@@ -38,12 +38,19 @@ module RivetCms
       redirect_to edit_content_type_document_path(@content_type, @document), notice: "Draft saved"
     end
 
+    # Publishes what's on screen: the submitted values are written to the
+    # draft first, so unsaved edits are validated instead of the stale draft.
     def publish
-      @document.draft_revision.publish!
+      draft = @document.draft_revision
+      if params.key?(:values)
+        draft.update!(author_attributes)
+        DraftWriter.new(draft).write(values_param)
+      end
+      draft.publish!
       redirect_to edit_content_type_document_path(@content_type, @document), notice: "Published"
     rescue ContentInvalidError => e
       redirect_to edit_content_type_document_path(@content_type, @document),
-                  inertia: { errors: { base: e.errors.map(&:message) } }
+                  inertia: { errors: e.errors.group_by(&:field_key).transform_values { |group| group.map(&:message) } }
     end
 
     def destroy

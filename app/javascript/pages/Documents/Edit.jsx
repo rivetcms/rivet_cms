@@ -33,7 +33,8 @@ export default function Edit({ content_type: contentType, fields, document, valu
     }
   }
 
-  const publish = () => router.post(document.paths.publish, {}, { preserveScroll: true })
+  // Publish saves the on-screen values first so unsaved edits are validated.
+  const publish = () => router.post(document.paths.publish, { values: form.data.values }, { preserveScroll: true, forceFormData: hasFile })
   const destroy = () => {
     if (confirm("Delete this entry? This cannot be undone.")) router.delete(document.paths.destroy)
   }
@@ -83,6 +84,7 @@ export default function Edit({ content_type: contentType, fields, document, valu
           values={form.data.values}
           setValue={setValue}
           referenceOptions={referenceOptions}
+          errors={form.errors}
         />
 
         <FormActions>

@@ -102,9 +102,11 @@ module RivetCms
     def field_schema(field)
       case field.field_type
       when "integer" then { type: "integer" }
+      when "decimal" then { type: "number" }
       when "boolean" then { type: "boolean" }
       when "date" then { type: "string", format: "date" }
       when "datetime" then { type: "string", format: "date-time" }
+      when "enumeration" then enumeration_schema(field)
       when "reference" then reference_schema(field)
       when "component" then component_schema(field)
       when "image", "video", "file"
@@ -112,8 +114,19 @@ module RivetCms
           id: { type: "integer" }, filename: { type: "string" }, content_type: { type: "string" },
           byte_size: { type: "integer" }, url: { type: "string" }
         } }
+      when "string", "text" then string_schema(field)
       else { type: "string" }
       end
+    end
+
+    def enumeration_schema(field)
+      choices = Array(field.config&.dig("choices"))
+      choices.any? ? { type: "string", enum: choices } : { type: "string" }
+    end
+
+    def string_schema(field)
+      pattern = field.config&.dig("pattern")
+      pattern.present? ? { type: "string", pattern: pattern } : { type: "string" }
     end
 
     # Shallow {id, slug} by default; when the field's configured target resolves,

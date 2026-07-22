@@ -22,7 +22,9 @@ module RivetCms
       reference: 9,
       component: 10,
       date: 11,
-      datetime: 12
+      datetime: 12,
+      decimal: 13,
+      enumeration: 14
     }
 
     enum :width, { full: "full", half: "half" }, prefix: true
@@ -34,6 +36,7 @@ module RivetCms
     validates :field_type, presence: true
     validate :belongs_to_one_owner
     validate :components_cannot_embed_components
+    validate :config_contents
 
     before_validation :derive_key_from_label, on: :create
     before_create :set_default_position
@@ -48,6 +51,8 @@ module RivetCms
       "rich_text" => "Rich text",
       "markdown" => "Markdown",
       "integer" => "Number",
+      "decimal" => "Decimal",
+      "enumeration" => "Select",
       "boolean" => "True/False",
       "image" => "Image",
       "video" => "Video",
@@ -140,6 +145,39 @@ module RivetCms
       return unless component_id.present? && field_type == "component"
 
       errors.add(:field_type, "component fields cannot be nested inside components")
+    end
+
+    def config_contents
+      validate_pattern_config
+      validate_choices_config
+    end
+
+    def validate_pattern_config
+      pattern = config&.dig("pattern")
+      return if pattern.blank?
+
+      unless field_type.in?(%w[string text])
+        return errors.add(:config, "pattern is only supported on text fields")
+      end
+
+      if pattern.length > SafePattern::MAX_LENGTH
+        errors.add(:config, "pattern must be #{SafePattern::MAX_LENGTH} characters or less")
+      elsif !SafePattern.valid?(pattern)
+        errors.add(:config, "pattern is not a valid regular expression")
+      end
+    end
+
+    def validate_choices_config
+      choices = config&.dig("choices")
+      return if choices.blank?
+      return errors.add(:config, "choices are only supported on select fields") unless enumeration?
+
+      unless choices.is_a?(Array) && choices.all? { |choice| choice.is_a?(::String) && choice.present? && choice.length <= 255 }
+        return errors.add(:config, "choices must be a list of short text values")
+      end
+
+      errors.add(:config, "choices must be unique") if choices.uniq.length != choices.length
+      errors.add(:config, "allows at most 100 choices") if choices.length > 100
     end
 
     def belongs_to_one_owner

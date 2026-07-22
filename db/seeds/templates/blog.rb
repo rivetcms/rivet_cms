@@ -12,7 +12,7 @@ RivetCms::Seeds.template "blog" do
 
   content_type "Author", slug: "authors", description: "People who write your content" do
     string    :name,    required: true, width: :half
-    string    :email,   width: :half
+    string    :email,   width: :half, config: { "pattern" => "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" }
     image     :avatar
     rich_text :bio
     string    :x_handle, label: "X (Twitter)", width: :half

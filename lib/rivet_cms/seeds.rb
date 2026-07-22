@@ -63,7 +63,7 @@ module RivetCms
 
     # Collects field definitions inside a content_type/component block.
     class FieldSet
-      SCALAR_TYPES = %i[string text rich_text markdown integer boolean image video file date datetime].freeze
+      SCALAR_TYPES = %i[string text rich_text markdown integer decimal enumeration boolean image video file date datetime].freeze
 
       attr_reader :definitions
 

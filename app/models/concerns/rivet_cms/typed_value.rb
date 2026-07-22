@@ -13,6 +13,8 @@ module RivetCms
       "rich_text" => :text_value,
       "markdown" => :text_value,
       "integer" => :integer_value,
+      "decimal" => :decimal_value,
+      "enumeration" => :string_value,
       "boolean" => :boolean_value,
       "date" => :date_value,
       "datetime" => :datetime_value

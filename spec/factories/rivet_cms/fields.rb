@@ -34,6 +34,15 @@ FactoryBot.define do
       field_type { :integer }
     end
 
+    trait :decimal do
+      field_type { :decimal }
+    end
+
+    trait :enumeration do
+      field_type { :enumeration }
+      config { { "choices" => [ "one", "two", "three" ] } }
+    end
+
     trait :boolean do
       field_type { :boolean }
     end

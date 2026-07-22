@@ -28,6 +28,19 @@ module RivetCms
       expect(props["starts_at"]).to eq({ type: "string", format: "date-time" })
     end
 
+    it "maps decimal, enumeration, and pattern to JSON schema" do
+      create(:field, :decimal, key: "price", content_type: content_type, organization: organization)
+      create(:field, :enumeration, key: "status", config: { "choices" => [ "draft", "live" ] },
+                                   content_type: content_type, organization: organization)
+      create(:field, :string, key: "email", config: { "pattern" => "^[^@\\s]+@[^@\\s]+$" },
+                              content_type: content_type, organization: organization)
+
+      props = spec.dig(:components, :schemas, "Articles", :properties, :data, :properties)
+      expect(props["price"]).to eq({ type: "number" })
+      expect(props["status"]).to eq({ type: "string", enum: [ "draft", "live" ] })
+      expect(props["email"]).to eq({ type: "string", pattern: "^[^@\\s]+@[^@\\s]+$" })
+    end
+
     it "documents populate and fields on both endpoints" do
       content_type
       doc = spec

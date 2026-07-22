@@ -132,6 +132,20 @@ module RivetCms
         get rivet_cms.content_index_path("articles"), headers: { "Authorization" => "bearer #{token.plaintext}" }
         expect(response).to have_http_status(:ok)
       end
+
+      it "serializes decimal values as JSON numbers" do
+        price_field = create(:field, :decimal, key: "price", content_type: content_type, organization: organization)
+        document = create(:document, slug: "priced", content_type: content_type, organization: organization)
+        draft = create(:document_revision, document: document, state: :draft)
+        document.update!(draft_revision: draft)
+        draft.content_values.create!(field: title_field, string_value: "T")
+        draft.content_values.create!(field: price_field, decimal_value: "19.99")
+        draft.publish!
+
+        get rivet_cms.content_show_path("articles", "priced")
+        expect(response.body).to include('"price":19.99')
+        expect(JSON.parse(response.body).dig("data", "price")).to eq(19.99)
+      end
     end
 
     describe "populate and fields" do

@@ -46,6 +46,46 @@ module RivetCms
         expect(field).to be_valid
       end
 
+      describe "config contents" do
+        it "accepts a valid pattern on a string field" do
+          field = build(:field, :string, config: { "pattern" => "^[a-z]+$" })
+          expect(field).to be_valid
+        end
+
+        it "rejects an invalid regular expression" do
+          field = build(:field, :string, config: { "pattern" => "([unclosed" })
+          expect(field).not_to be_valid
+          expect(field.errors[:config].join).to include("not a valid regular expression")
+        end
+
+        it "rejects a pattern on a non-text field" do
+          field = build(:field, :integer, config: { "pattern" => "^[a-z]+$" })
+          expect(field).not_to be_valid
+          expect(field.errors[:config].join).to include("only supported on text fields")
+        end
+
+        it "rejects an oversized pattern" do
+          field = build(:field, :string, config: { "pattern" => "a" * 201 })
+          expect(field).not_to be_valid
+          expect(field.errors[:config].join).to include("characters or less")
+        end
+
+        it "accepts valid enumeration choices" do
+          field = build(:field, :enumeration, config: { "choices" => [ "a", "b" ] })
+          expect(field).to be_valid
+        end
+
+        it "rejects non-string or duplicate choices" do
+          expect(build(:field, :enumeration, config: { "choices" => [ "a", 2 ] })).not_to be_valid
+          expect(build(:field, :enumeration, config: { "choices" => [ "a", "a" ] })).not_to be_valid
+        end
+
+        it "rejects choices on a non-select field" do
+          field = build(:field, :string, config: { "choices" => [ "a" ] })
+          expect(field).not_to be_valid
+        end
+      end
+
       it "requires either content_type or component" do
         subject.content_type = nil
         subject.component = nil

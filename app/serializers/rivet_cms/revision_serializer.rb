@@ -54,8 +54,13 @@ module RivetCms
       when "rich_text"
         sanitize(@preload.value(owner, field)&.value)
       else
-        @preload.value(owner, field)&.value
+        scalar_json(@preload.value(owner, field)&.value)
       end
+    end
+
+    # ActiveSupport encodes BigDecimal as a JSON string; the API promises a number.
+    def scalar_json(value)
+      value.is_a?(BigDecimal) ? value.to_f : value
     end
 
     def serialize_reference(owner, field, root:)

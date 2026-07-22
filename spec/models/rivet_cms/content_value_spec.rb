@@ -38,6 +38,17 @@ module RivetCms
         expect(cv.boolean_value).to be(true)
       end
 
+      it "stores a decimal string exactly, without float mangling" do
+        cv = value_for(:decimal, "12.50")
+        expect(cv.decimal_value).to eq(BigDecimal("12.5"))
+        expect(cv.value).to eq(BigDecimal("12.5"))
+      end
+
+      it "stores an enumeration choice in the string column" do
+        cv = value_for(:enumeration, "two")
+        expect(cv.string_value).to eq("two")
+      end
+
       it "stores rich text in the text column" do
         cv = value_for(:rich_text, "<p>hi</p>")
         expect(cv.text_value).to eq("<p>hi</p>")

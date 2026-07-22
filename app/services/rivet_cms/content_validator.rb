@@ -75,14 +75,38 @@ module RivetCms
     def validate_config_constraints(field, value)
       config = field.config || {}
 
-      if field.integer?
-        add(field, "is too small") if config["min"] && value < config["min"]
-        add(field, "is too large") if config["max"] && value > config["max"]
+      if field.integer? || field.decimal?
+        min = numeric_bound(config["min"])
+        max = numeric_bound(config["max"])
+        add(field, "is too small") if min && value < min
+        add(field, "is too large") if max && value > max
+      elsif field.enumeration?
+        add(field, "is not a valid choice") unless Array(config["choices"]).include?(value)
       else
         length = value.to_s.length
-        add(field, "is too short") if config["min_length"] && length < config["min_length"]
-        add(field, "is too long") if config["max_length"] && length > config["max_length"]
+        min_length = numeric_bound(config["min_length"])&.to_i
+        max_length = numeric_bound(config["max_length"])&.to_i
+        add(field, "is too short") if min_length && length < min_length
+        add(field, "is too long") if max_length && length > max_length
+        validate_pattern(field, value, config["pattern"])
       end
+    end
+
+    def validate_pattern(field, value, pattern)
+      return if pattern.blank?
+      return unless field.string? || field.text?
+
+      add(field, "does not match the required format") unless SafePattern.match?(pattern, value)
+    end
+
+    # Config values arrive from the admin UI as strings; comparing them
+    # against typed values directly would raise.
+    def numeric_bound(raw)
+      return nil if raw.blank?
+
+      Float(raw)
+    rescue ArgumentError, TypeError
+      nil
     end
 
     def validate_media(field, asset)

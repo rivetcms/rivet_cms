@@ -1,5 +1,6 @@
 require "rivet_cms/version"
 require "rivet_cms/engine"
+require "rivet_cms/safe_pattern"
 require "image_processing"
 require "prefixed_ids"
 require "kaminari"

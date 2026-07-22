@@ -4,6 +4,8 @@ const ICONS = {
   rich_text: { className: "text-violet-600", paths: <><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></> },
   markdown: { className: "text-violet-600", paths: <><path d="M2 4v16h20V4H2z"/><path d="M6 9v6"/><path d="M6 12h3l2-3v6"/><path d="M18 9l-3 3 3 3"/><path d="M15 12h3"/></> },
   integer: { className: "text-blue-600", paths: <><path d="M5 10V7c0-1.1.9-2 2-2h1"/><path d="M9 12h6"/><path d="M19 12h-1"/><path d="M14 7h1c1.1 0 2 .9 2 2v1"/><path d="M5 14v3c0 1.1.9 2 2 2h1"/><path d="M14 19h1c1.1 0 2-.9 2-2v-1"/></> },
+  decimal: { className: "text-blue-600", paths: <><circle cx="5" cy="18" r="1"/><path d="M9 14v-3a2.5 2.5 0 0 1 5 0v3a2.5 2.5 0 0 1-5 0Z"/><path d="M17 14v-3a2.5 2.5 0 0 1 5 0v3a2.5 2.5 0 0 1-5 0Z"/></> },
+  enumeration: { className: "text-teal-600", paths: <><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="m3 5 1 1 2-2"/><path d="m3 11 1 1 2-2"/><path d="m3 17 1 1 2-2"/></> },
   boolean: { className: "text-amber-600", paths: <><rect width="14" height="8" x="5" y="8" rx="4"/><circle cx="15" cy="12" r="2"/></> },
   image: { className: "text-pink-600", paths: <><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></> },
   video: { className: "text-pink-600", paths: <><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></> },

@@ -79,6 +79,30 @@ module RivetCms
       expect(document.reload.published_revision).to be_nil
     end
 
+    it "validates and saves on-screen values submitted with publish" do
+      create(:field, :string, key: "email", content_type: content_type, organization: organization,
+                              config: { "pattern" => "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" })
+      post rivet_cms.content_type_documents_path(content_type), params: { slug: "about" }
+      document = Document.last
+
+      # Unsaved edit arrives with publish: it must be validated AND persisted.
+      post rivet_cms.publish_content_type_document_path(content_type, document), params: { values: { email: "bad" } }
+      expect(document.reload.published_revision).to be_nil
+      expect(document.draft_revision.content_values.first.value).to eq("bad")
+
+      post rivet_cms.publish_content_type_document_path(content_type, document), params: { values: { email: "a@b.co" } }
+      expect(document.reload.published_revision).to be_present
+    end
+
+    it "does not publish a select value outside the configured choices" do
+      create(:field, :enumeration, key: "status", content_type: content_type, organization: organization)
+      post rivet_cms.content_type_documents_path(content_type), params: { slug: "about", values: { status: "bogus" } }
+      document = Document.last
+
+      post rivet_cms.publish_content_type_document_path(content_type, document)
+      expect(document.reload.published_revision).to be_nil
+    end
+
     it "deletes an entry" do
       post rivet_cms.content_type_documents_path(content_type), params: { slug: "gone" }
       document = Document.last

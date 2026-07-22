@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Field, TextInput, SelectInput, ToggleField, RadioTile } from "../forms"
 
 const isTrue = (value) => value === true || value === "true"
@@ -34,6 +35,61 @@ function TypeBadges({ label, allTypes, selected, onChange, hint }) {
   )
 }
 
+// Raw text is local state so typing a newline isn't swallowed by the
+// join/split round-trip; config gets the cleaned array.
+function ChoicesInput({ config, setConfig }) {
+  const [raw, setRaw] = useState((config.choices || []).join("\n"))
+
+  const update = (text) => {
+    setRaw(text)
+    setConfig("choices", text.split("\n").map((line) => line.trim()).filter(Boolean))
+  }
+
+  return (
+    <Field label="Choices" hint="One choice per line; editors pick from these values">
+      <textarea
+        className="textarea w-full font-mono text-[13px]"
+        rows={5}
+        placeholder={"draft\nreview\nlive"}
+        value={raw}
+        onChange={(e) => update(e.target.value)}
+      />
+    </Field>
+  )
+}
+
+const PATTERN_PRESETS = [
+  ["Email", "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"],
+  ["URL", "^https?://\\S+$"],
+]
+
+function PatternInput({ config, setConfig }) {
+  return (
+    <div>
+      <OptionInput
+        label="Pattern (regex)"
+        placeholder="e.g., ^[A-Z]{2}-\d{4}$"
+        hint="Values must match this regular expression to publish"
+        value={config.pattern}
+        onChange={(v) => setConfig("pattern", v)}
+      />
+      <div className="mt-1.5 flex items-center gap-1.5">
+        <span className="text-[11px] text-base-content/40">Presets:</span>
+        {PATTERN_PRESETS.map(([label, pattern]) => (
+          <button
+            key={label}
+            type="button"
+            className={`badge cursor-pointer border-base-300 text-xs transition-colors ${config.pattern === pattern ? "badge-primary" : "badge-ghost"}`}
+            onClick={() => setConfig("pattern", pattern)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function FieldOptions({ fieldType, config, setConfig, minItems, maxItems, setCardinality, referenceTargets, embeddableComponents }) {
   const toNumberOrNull = (v) => (v === "" || v == null ? null : Number(v))
   const multiple = maxItems !== 1
@@ -44,6 +100,7 @@ export default function FieldOptions({ fieldType, config, setConfig, minItems, m
         <div className="space-y-4">
           <OptionInput label="Maximum Length" type="number" min={1} placeholder="No limit" hint="Leave empty for no limit" value={config.max_length} onChange={(v) => setConfig("max_length", v)} />
           <OptionInput label="Placeholder Text" placeholder="e.g., Enter a title..." value={config.placeholder} onChange={(v) => setConfig("placeholder", v)} />
+          <PatternInput config={config} setConfig={setConfig} />
         </div>
       )
     case "text":
@@ -52,6 +109,7 @@ export default function FieldOptions({ fieldType, config, setConfig, minItems, m
           <OptionInput label="Maximum Length" type="number" min={1} placeholder="No limit" hint="Leave empty for no limit" value={config.max_length} onChange={(v) => setConfig("max_length", v)} />
           <OptionInput label="Placeholder Text" placeholder="e.g., Write your content here..." value={config.placeholder} onChange={(v) => setConfig("placeholder", v)} />
           <OptionInput label="Default Rows" type="number" min={2} max={20} hint="Height of the text area (2-20 rows)" value={config.rows ?? 4} onChange={(v) => setConfig("rows", v)} />
+          <PatternInput config={config} setConfig={setConfig} />
         </div>
       )
     case "rich_text":
@@ -95,6 +153,19 @@ export default function FieldOptions({ fieldType, config, setConfig, minItems, m
           <OptionInput label="Default Value" type="number" placeholder="No default" value={config.default} onChange={(v) => setConfig("default", v)} />
         </div>
       )
+    case "decimal":
+      return (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <OptionInput label="Minimum Value" type="number" placeholder="No minimum" value={config.min} onChange={(v) => setConfig("min", v)} />
+            <OptionInput label="Maximum Value" type="number" placeholder="No maximum" value={config.max} onChange={(v) => setConfig("max", v)} />
+          </div>
+          <OptionInput label="Step Increment" type="number" hint="Increment when using arrows (default: any)" value={config.step} onChange={(v) => setConfig("step", v)} />
+          <OptionInput label="Placeholder Text" placeholder="e.g., 19.99" value={config.placeholder} onChange={(v) => setConfig("placeholder", v)} />
+        </div>
+      )
+    case "enumeration":
+      return <ChoicesInput config={config} setConfig={setConfig} />
     case "boolean":
       return (
         <Field label="Default Value" hint="Initial value when creating new content">

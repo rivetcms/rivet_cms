@@ -2,7 +2,7 @@ import EntryField from "./EntryField"
 
 // Renders fields respecting the schema layout: half-width fields share a
 // two-column row, full-width fields span it.
-export default function FieldGrid({ fields, values, setValue, referenceOptions }) {
+export default function FieldGrid({ fields, values, setValue, referenceOptions, errors = {} }) {
   const rows = []
   for (const field of fields) {
     const last = rows[rows.length - 1]
@@ -19,6 +19,7 @@ export default function FieldGrid({ fields, values, setValue, referenceOptions }
             value={values[field.key]}
             onChange={(value) => setValue(field.key, value)}
             referenceOptions={referenceOptions}
+            error={errors[field.key]}
           />
         </div>
       ))}

@@ -15,7 +15,7 @@ RivetCms::Seeds.template "site_settings" do
     image     :favicon, width: :half
     text      :description
     component :social_links, use: "Social Link"
-    string    :contact_email, width: :half
+    string    :contact_email, width: :half, config: { "pattern" => "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" }
     string    :contact_phone, width: :half
     text      :footer_text
   end

@@ -26,6 +26,30 @@ module RivetCms
         expect(field.max_items).to eq(5)
         expect(field.config["component_id"]).to eq("comp_x")
       end
+
+      it "creates a select field with an array of choices" do
+        post rivet_cms.content_type_fields_path(content_type), params: {
+          field: { label: "Status", field_type: "enumeration", config: { choices: [ "draft", "live" ] } }
+        }
+        field = Field.last
+        expect(field.field_type).to eq("enumeration")
+        expect(field.config["choices"]).to eq([ "draft", "live" ])
+      end
+
+      it "creates a string field with a pattern" do
+        post rivet_cms.content_type_fields_path(content_type), params: {
+          field: { label: "Email", field_type: "string", config: { pattern: "^[^@\\s]+@[^@\\s]+$" } }
+        }
+        expect(Field.last.config["pattern"]).to eq("^[^@\\s]+@[^@\\s]+$")
+      end
+
+      it "rejects an invalid pattern" do
+        expect {
+          post rivet_cms.content_type_fields_path(content_type), params: {
+            field: { label: "Email", field_type: "string", config: { pattern: "([unclosed" } }
+          }
+        }.not_to change(Field, :count)
+      end
     end
 
     describe "PATCH /content_types/:content_type_id/fields/:id" do
