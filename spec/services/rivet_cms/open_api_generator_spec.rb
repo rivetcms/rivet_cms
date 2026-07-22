@@ -47,6 +47,21 @@ module RivetCms
       expect(schema[:oneOf]).to include({ "$ref" => "#/components/schemas/Authors" })
     end
 
+    it "dedupes schema names when distinct slugs camelize identically" do
+      create(:content_type, name: "Top Ten", slug: "top-10", organization: organization)
+      second = create(:content_type, name: "TopTen", slug: "top10", organization: organization)
+      create(:field, field_type: :reference, key: "pick", max_items: 1,
+                     config: { "content_type_id" => second.id }, content_type: content_type, organization: organization)
+
+      schemas = spec[:components][:schemas]
+      expect(schemas.keys).to include("Top10", "Top10_2")
+
+      # Names assign in id order, so the later type gets the suffix and
+      # the reference must point at it, not the shadowing name.
+      ref = schemas.dig("Articles", :properties, :data, :properties)["pick"][:oneOf].last
+      expect(ref).to eq({ "$ref" => "#/components/schemas/Top10_2" })
+    end
+
     it "falls back to the shallow shape when the reference target is unresolvable" do
       create(:field, field_type: :reference, key: "author", max_items: 1,
                      config: { "content_type_id" => 999_999 }, content_type: content_type, organization: organization)

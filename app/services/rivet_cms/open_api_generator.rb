@@ -143,8 +143,23 @@ module RivetCms
       { "application/json" => { schema: schema } }
     end
 
+    # Distinct slugs can produce the same camelized name (top-10 and top10
+    # both yield Top10), so names are deduped once per generation.
     def schema_name(content_type)
-      content_type.slug.split(/[-_]/).map(&:capitalize).join
+      schema_names.fetch(content_type.id)
+    end
+
+    def schema_names
+      @schema_names ||= @organization.content_types.order(:id).each_with_object({}) do |ct, map|
+        base = ct.slug.split("-").map(&:capitalize).join
+        name = base
+        suffix = 2
+        while map.value?(name)
+          name = "#{base}_#{suffix}"
+          suffix += 1
+        end
+        map[ct.id] = name
+      end
     end
   end
 end
