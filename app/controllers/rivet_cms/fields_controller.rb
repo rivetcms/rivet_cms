@@ -1,30 +1,30 @@
 module RivetCms
   class FieldsController < ApplicationController
-    before_action :set_content_type
+    before_action :set_owner
     before_action :set_field, only: [ :update, :destroy, :toggle_width, :unpair, :pair ]
 
     def create
-      field = @content_type.fields.build(field_params)
-      field.organization = @content_type.organization
+      field = @owner.fields.build(field_params)
+      field.organization = @owner.organization
 
       if field.save
-        redirect_to content_type_path(@content_type), notice: "Field created"
+        redirect_to owner_path, notice: "Field created"
       else
-        redirect_to content_type_path(@content_type), inertia: { errors: field.errors }
+        redirect_to owner_path, inertia: { errors: field.errors }
       end
     end
 
     def update
       if @field.update(field_params)
-        redirect_to content_type_path(@content_type), notice: "Field updated"
+        redirect_to owner_path, notice: "Field updated"
       else
-        redirect_to content_type_path(@content_type), inertia: { errors: @field.errors }
+        redirect_to owner_path, inertia: { errors: @field.errors }
       end
     end
 
     def destroy
       @field.discard
-      redirect_to content_type_path(@content_type), notice: "Field removed"
+      redirect_to owner_path, notice: "Field removed"
     end
 
     def toggle_width
@@ -34,48 +34,56 @@ module RivetCms
 
       # If changed to full width, ensure it's on its own row
       if new_width == "full"
-        other_fields_on_row = @content_type.fields.kept.where(row: @field.row).where.not(id: @field.id)
+        other_fields_on_row = @owner.fields.kept.where(row: @field.row).where.not(id: @field.id)
         if other_fields_on_row.exists?
           @field.move_to_own_row!
         end
       end
 
-      redirect_to content_type_path(@content_type)
+      redirect_to owner_path
     end
 
     def unpair
       @field.unpair!
-      redirect_to content_type_path(@content_type)
+      redirect_to owner_path
     end
 
     def pair
-      other_field = @content_type.fields.find(params[:pair_with])
+      other_field = @owner.fields.find(params[:pair_with])
 
       # Both fields must be half-width and not already paired
       if @field.width_half? && other_field.width_half? && !@field.paired? && !other_field.paired?
         @field.pair_with!(other_field)
       end
 
-      redirect_to content_type_path(@content_type)
+      redirect_to owner_path
     end
 
     def update_layout
-      Field.update_layout!(params[:rows])
-      redirect_to content_type_path(@content_type)
+      @owner.fields.update_layout!(params[:rows])
+      redirect_to owner_path
     end
 
     private
 
-    def set_content_type
-      @content_type = ContentType.find(params[:content_type_id])
+    def set_owner
+      @owner = if params[:component_id]
+        Current.organization.components.find(params[:component_id])
+      else
+        Current.organization.content_types.find(params[:content_type_id])
+      end
+    end
+
+    def owner_path
+      @owner.is_a?(Component) ? component_path(@owner) : content_type_path(@owner)
     end
 
     def set_field
-      @field = @content_type.fields.find(params[:id])
+      @field = @owner.fields.find(params[:id])
     end
 
     def field_params
-      params.require(:field).permit(:name, :field_type, :description, :required, :width, options: {})
+      params.require(:field).permit(:key, :label, :field_type, :description, :required, :width, :min_items, :max_items, config: {})
     end
   end
 end

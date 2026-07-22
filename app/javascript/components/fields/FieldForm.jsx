@@ -3,16 +3,18 @@ import FieldTypeIcon from "./FieldTypeIcon"
 import FieldOptions from "./FieldOptions"
 import { Field, TextInput, TextArea, ToggleField, RadioTile, FormActions } from "../forms"
 
-export default function FieldForm({ contentType, field, fieldTypes, referenceTargets, embeddableComponents, onClose }) {
+export default function FieldForm({ owner, field, fieldTypes, referenceTargets, embeddableComponents, onClose }) {
   const isNew = !field
 
   const form = useForm({
     field_type: field?.field_type || "string",
-    name: field?.name || "",
+    label: field?.label || "",
     description: field?.description || "",
     width: field?.width || "full",
     required: field?.required || false,
-    options: field?.options || {},
+    min_items: field?.min_items ?? null,
+    max_items: field?.max_items ?? null,
+    config: field?.config || {},
   })
 
   const errorMessages = Object.entries(form.errors).flatMap(([attr, messages]) => {
@@ -25,7 +27,7 @@ export default function FieldForm({ contentType, field, fieldTypes, referenceTar
     form.transform((data) => ({ field: data }))
     const opts = { preserveScroll: true, onSuccess: onClose }
     if (isNew) {
-      form.post(contentType.paths.fields, opts)
+      form.post(owner.paths.fields, opts)
     } else {
       form.put(field.paths.update, opts)
     }
@@ -72,14 +74,14 @@ export default function FieldForm({ contentType, field, fieldTypes, referenceTar
       )}
 
       <TextInput
-        id="field_name"
-        label="Name"
+        id="field_label"
+        label="Label"
         required
         autoFocus={isNew}
         placeholder="e.g., Title, Author, Featured Image"
-        hint="The label shown to content editors"
-        value={form.data.name}
-        onChange={(e) => form.setData("name", e.target.value)}
+        hint="The label shown to content editors; the API key is derived from it"
+        value={form.data.label}
+        onChange={(e) => form.setData("label", e.target.value)}
       />
 
       <TextArea
@@ -132,8 +134,11 @@ export default function FieldForm({ contentType, field, fieldTypes, referenceTar
           </div>
           <FieldOptions
             fieldType={field.field_type}
-            options={form.data.options}
-            setOption={(key, value) => form.setData("options", { ...form.data.options, [key]: value })}
+            config={form.data.config}
+            setConfig={(key, value) => form.setData("config", { ...form.data.config, [key]: value })}
+            minItems={form.data.min_items}
+            maxItems={form.data.max_items}
+            setCardinality={(key, value) => form.setData(key, value)}
             referenceTargets={referenceTargets}
             embeddableComponents={embeddableComponents}
           />

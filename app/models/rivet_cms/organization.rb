@@ -1,9 +1,14 @@
 module RivetCms
   class Organization < ApplicationRecord
+    # Organization has no prefix id, so prefixed_ids does not patch its
+    # has_many finders; extend explicitly so find accepts prefixed ids.
+    PREFIXED_FINDERS = PrefixedIds::Finder::ClassMethods
+
     has_many :users, dependent: :destroy
-    has_many :content_types, dependent: :destroy
-    has_many :categories, dependent: :destroy
-    has_many :components, dependent: :destroy
+    has_many :content_types, dependent: :destroy, extend: PREFIXED_FINDERS
+    has_many :components, dependent: :destroy, extend: PREFIXED_FINDERS
+    has_many :categories, dependent: :destroy, extend: PREFIXED_FINDERS
+    has_many :media_assets, dependent: :destroy, extend: PREFIXED_FINDERS
 
     validates :name, presence: true
     validates :domain, presence: true, uniqueness: true

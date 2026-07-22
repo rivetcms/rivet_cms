@@ -3,10 +3,15 @@ import { Link, useForm, usePage } from "@inertiajs/react"
 import { slugFromName, cleanSlug } from "../lib/slug"
 import { TextInput, TextArea, ToggleField, FormActions } from "./forms"
 
-export default function ContentTypeForm({ contentType, submitLabel }) {
+export default function ContentTypeForm({ contentType, submitLabel, onCancel }) {
   const { paths } = usePage().props
   // Once the user edits the slug by hand, stop auto-generating it from the name
   const slugTouched = useRef(false)
+
+  // In modal mode, keep the modal open when validation fails and close on success
+  const modalOpts = onCancel
+    ? { preserveScroll: true, preserveState: (page) => Object.keys(page.props.errors || {}).length > 0, onSuccess: onCancel }
+    : {}
 
   const form = useForm({
     name: contentType?.name || "",
@@ -24,9 +29,9 @@ export default function ContentTypeForm({ contentType, submitLabel }) {
     e.preventDefault()
     form.transform((data) => ({ content_type: data }))
     if (contentType?.paths?.update) {
-      form.put(contentType.paths.update)
+      form.put(contentType.paths.update, modalOpts)
     } else {
-      form.post(paths.content_types)
+      form.post(paths.content_types, modalOpts)
     }
   }
 
@@ -75,7 +80,11 @@ export default function ContentTypeForm({ contentType, submitLabel }) {
         }}
       />
       <FormActions>
-        <Link href={paths.content_types} className="btn btn-ghost">Cancel</Link>
+        {onCancel ? (
+          <button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button>
+        ) : (
+          <Link href={paths.content_types} className="btn btn-ghost">Cancel</Link>
+        )}
         <button type="submit" className="btn btn-primary" disabled={form.processing}>
           {submitLabel}
         </button>

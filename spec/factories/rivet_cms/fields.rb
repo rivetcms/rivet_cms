@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :field, class: "RivetCms::Field" do
-    sequence(:name) { |n| "field_#{n}" }
+    sequence(:label) { |n| "Field #{n}" }
+    sequence(:key) { |n| "field_#{n}" }
     field_type { :string }
     required { false }
     position { 0 }

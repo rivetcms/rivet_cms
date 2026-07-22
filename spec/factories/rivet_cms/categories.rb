@@ -13,9 +13,5 @@ FactoryBot.define do
     trait :with_position do
       sequence(:position) { |n| n }
     end
-
-    trait :without_organization do
-      organization { nil }
-    end
   end
 end

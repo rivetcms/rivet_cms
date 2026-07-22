@@ -2,7 +2,7 @@ module RivetCms
   class ApplicationController < ActionController::Base
     layout "rivet_cms/application"
 
-    before_action :set_current_tenant
+    before_action :set_current_organization
     after_action :set_csrf_cookie
 
     inertia_config version: -> { RivetCms.asset_version }
@@ -12,6 +12,8 @@ module RivetCms
                   paths: -> {
                     {
                       root: root_path,
+                      content: content_path,
+                      media: media_assets_path,
                       content_types: content_types_path,
                       new_content_type: new_content_type_path,
                       components: components_path,
@@ -26,27 +28,19 @@ module RivetCms
       cookies["XSRF-TOKEN"] = form_authenticity_token
     end
 
-    # TODO: Replace with proper tenant selection based on authentication
-    # This is a temporary solution for development
-    def set_current_tenant
-      # Try to find organization by domain or use the first one
-      organization = Organization.find_by(domain: request.host) ||
-                     Organization.find_by(domain: "localhost") ||
-                     Organization.first
+    # TODO: Pro replaces this with host/subdomain resolution and authentication.
+    def set_current_organization
+      RivetCms::Current.organization =
+        Organization.find_by(domain: request.host) ||
+        Organization.find_by(domain: "localhost") ||
+        Organization.first ||
+        default_organization
+    end
 
-      if organization
-        ActsAsTenant.current_tenant = organization
-      else
-        # In development, create a default org if none exists
-        if Rails.env.development? || Rails.env.test?
-          organization = Organization.create!(
-            name: "Development Org",
-            domain: "localhost",
-            subdomain: "dev"
-          )
-          ActsAsTenant.current_tenant = organization
-        end
-      end
+    def default_organization
+      return unless Rails.env.development? || Rails.env.test?
+
+      Organization.create!(name: "Development Org", domain: "localhost", subdomain: "dev")
     end
   end
 end

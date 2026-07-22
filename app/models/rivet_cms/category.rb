@@ -1,9 +1,8 @@
 module RivetCms
   class Category < ApplicationRecord
     has_prefix_id :cat
-    acts_as_tenant :organization
+    include OrganizationScoped
 
-    belongs_to :organization, optional: true
     has_many :components, dependent: :restrict_with_error
 
     validates :name, presence: true

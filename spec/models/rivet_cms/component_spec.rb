@@ -42,12 +42,6 @@ module RivetCms
         expect(component).to be_valid
       end
 
-      it "validates repeatable inclusion" do
-        subject.repeatable = nil
-        expect(subject).not_to be_valid
-        expect(subject.errors[:repeatable]).to include("is not included in the list")
-      end
-
       it "requires category" do
         subject.category = nil
         expect(subject).not_to be_valid
@@ -63,27 +57,6 @@ module RivetCms
       end
     end
 
-    describe "scopes" do
-      let(:org) { create(:organization) }
-      let(:category) { create(:category, organization: org) }
-
-      describe ".repeatable" do
-        it "returns only repeatable components" do
-          repeatable = create(:component, :repeatable, organization: org, category: category)
-          create(:component, :single, organization: org, category: category)
-          expect(Component.repeatable).to contain_exactly(repeatable)
-        end
-      end
-
-      describe ".single" do
-        it "returns only single components" do
-          create(:component, :repeatable, organization: org, category: category)
-          single = create(:component, :single, organization: org, category: category)
-          expect(Component.single).to contain_exactly(single)
-        end
-      end
-    end
-
     describe "prefix_id" do
       it "generates prefixed id" do
         component = create(:component)
@@ -94,14 +67,6 @@ module RivetCms
     describe "factory" do
       it "creates a valid component" do
         expect(create(:component)).to be_persisted
-      end
-
-      it "creates repeatable component with trait" do
-        expect(create(:component, :repeatable).repeatable?).to be true
-      end
-
-      it "creates single component with trait" do
-        expect(create(:component, :single).repeatable?).to be false
       end
     end
   end

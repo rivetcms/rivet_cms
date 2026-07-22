@@ -1,24 +1,28 @@
 import { Link, useForm, usePage } from "@inertiajs/react"
 import CategoryCombobox from "./CategoryCombobox"
-import { Field, TextInput, TextArea, ToggleField, FormActions } from "./forms"
+import { Field, TextInput, TextArea, FormActions } from "./forms"
 
-export default function ComponentForm({ component, categories, createCategoryPath, submitLabel }) {
+export default function ComponentForm({ component, categories, createCategoryPath, submitLabel, onCancel }) {
   const { paths } = usePage().props
 
   const form = useForm({
     name: component?.name || "",
     description: component?.description || "",
     category_id: component?.category_id || null,
-    repeatable: component?.repeatable || false,
   })
+
+  // In modal mode, keep the modal open when validation fails and close on success
+  const modalOpts = onCancel
+    ? { preserveScroll: true, preserveState: (page) => Object.keys(page.props.errors || {}).length > 0, onSuccess: onCancel }
+    : {}
 
   const submit = (e) => {
     e.preventDefault()
     form.transform((data) => ({ component: data }))
     if (component?.paths?.update) {
-      form.put(component.paths.update)
+      form.put(component.paths.update, modalOpts)
     } else {
-      form.post(paths.components)
+      form.post(paths.components, modalOpts)
     }
   }
 
@@ -48,14 +52,12 @@ export default function ComponentForm({ component, categories, createCategoryPat
           createPath={createCategoryPath}
         />
       </Field>
-      <ToggleField
-        label="Repeatable"
-        description="A repeatable component can be added multiple times; otherwise it appears once."
-        checked={form.data.repeatable}
-        onChange={(repeatable) => form.setData("repeatable", repeatable)}
-      />
       <FormActions>
-        <Link href={paths.components} className="btn btn-ghost">Cancel</Link>
+        {onCancel ? (
+          <button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button>
+        ) : (
+          <Link href={paths.components} className="btn btn-ghost">Cancel</Link>
+        )}
         <button type="submit" className="btn btn-primary" disabled={form.processing}>
           {submitLabel}
         </button>

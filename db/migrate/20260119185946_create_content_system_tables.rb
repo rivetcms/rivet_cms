@@ -1,75 +1,94 @@
-class CreateContentSystemTables < ActiveRecord::Migration[7.2]
+class CreateContentSystemTables < ActiveRecord::Migration[7.0]
   def change
-    # Fields define the schema for content types and components
     create_table :rivet_cms_fields do |t|
-      t.references :organization, foreign_key: { to_table: :rivet_cms_organizations }
+      t.references :organization, null: false, foreign_key: { to_table: :rivet_cms_organizations }
       t.references :content_type, foreign_key: { to_table: :rivet_cms_content_types }
       t.references :component, foreign_key: { to_table: :rivet_cms_components }
-      t.string :name, null: false
+      t.string :key, null: false
+      t.string :label, null: false
       t.integer :field_type, null: false, default: 0
       t.text :description
       t.boolean :required, default: false, null: false
-      t.json :options, default: {}
+      t.integer :min_items
+      t.integer :max_items
+      t.json :config, default: {}
       t.integer :position, default: 0, null: false
+      t.integer :row, default: 0, null: false
       t.string :width, default: "full", null: false
       t.datetime :deleted_at
       t.timestamps
 
-      t.index [ :content_type_id, :name ], unique: true, where: "deleted_at IS NULL", name: "idx_fields_content_type_name_unique"
-      t.index [ :component_id, :name ], unique: true, where: "deleted_at IS NULL", name: "idx_fields_component_name_unique"
+      t.index [ :content_type_id, :key ]
+      t.index [ :component_id, :key ]
       t.index :deleted_at
       t.index :position
     end
 
-    # Content entries (instances of content types)
-    create_table :rivet_cms_contents do |t|
-      t.references :organization, foreign_key: { to_table: :rivet_cms_organizations }
+    create_table :rivet_cms_documents do |t|
+      t.references :organization, null: false, foreign_key: { to_table: :rivet_cms_organizations }
       t.references :content_type, null: false, foreign_key: { to_table: :rivet_cms_content_types }
       t.string :slug, null: false
-      t.integer :status, null: false, default: 0
+      t.string :singleton_key
+      t.bigint :published_revision_id
+      t.bigint :draft_revision_id
+      t.timestamps
+
+      t.index [ :content_type_id, :slug ], unique: true
+      t.index [ :content_type_id, :singleton_key ], unique: true
+      t.index :published_revision_id
+      t.index :draft_revision_id
+    end
+
+    create_table :rivet_cms_document_revisions do |t|
+      t.references :document, null: false, foreign_key: { to_table: :rivet_cms_documents }
+      t.string :locale, null: false, default: "en"
+      t.integer :schema_version, null: false, default: 1
+      t.references :author, foreign_key: { to_table: :rivet_cms_users }
+      t.integer :state, null: false, default: 0
       t.datetime :published_at
-      t.datetime :unpublished_at
       t.timestamps
 
-      t.index [ :organization_id, :slug ], unique: true
-      t.index :status
+      t.index [ :document_id, :state ]
+      t.index [ :document_id, :locale ]
     end
 
-    # Content values join content + field + polymorphic value
+    add_foreign_key :rivet_cms_documents, :rivet_cms_document_revisions, column: :published_revision_id
+    add_foreign_key :rivet_cms_documents, :rivet_cms_document_revisions, column: :draft_revision_id
+
     create_table :rivet_cms_content_values do |t|
-      t.references :content, null: false, foreign_key: { to_table: :rivet_cms_contents }
+      t.references :owner, polymorphic: true, null: false, index: false
       t.references :field, null: false, foreign_key: { to_table: :rivet_cms_fields }
-      t.references :value, polymorphic: true, null: false
+      t.string :string_value
+      t.text :text_value
+      t.integer :integer_value
+      t.boolean :boolean_value
+      t.decimal :decimal_value, precision: 19, scale: 6
+      t.datetime :datetime_value
+      t.date :date_value
+      t.json :json_value
       t.timestamps
 
-      t.index [ :content_id, :field_id ], unique: true
+      t.index [ :owner_type, :owner_id, :field_id ], unique: true, name: "idx_content_values_owner_field"
     end
 
-    # Field value tables for different types
-    create_table :rivet_cms_field_values_strings do |t|
-      t.string :value, null: false, default: ""
+    create_table :rivet_cms_relations do |t|
+      t.references :owner, polymorphic: true, null: false, index: false
+      t.references :field, null: false, foreign_key: { to_table: :rivet_cms_fields }
+      t.references :target_document, null: false, foreign_key: { to_table: :rivet_cms_documents }
+      t.integer :position, null: false, default: 0
       t.timestamps
+
+      t.index [ :owner_type, :owner_id, :field_id, :position ], name: "idx_relations_owner_field_pos"
     end
 
-    create_table :rivet_cms_field_values_texts do |t|
-      t.text :value, null: false, default: ""
+    create_table :rivet_cms_component_instances do |t|
+      t.references :owner, polymorphic: true, null: false, index: false
+      t.references :field, null: false, foreign_key: { to_table: :rivet_cms_fields }
+      t.references :component, null: false, foreign_key: { to_table: :rivet_cms_components }
+      t.integer :position, null: false, default: 0
       t.timestamps
-    end
 
-    create_table :rivet_cms_field_values_integers do |t|
-      t.integer :value, null: false, default: 0
-      t.timestamps
-    end
-
-    create_table :rivet_cms_field_values_booleans do |t|
-      t.boolean :value, null: false, default: false
-      t.timestamps
-    end
-
-    # Unified attachment table for images, videos, and files
-    create_table :rivet_cms_field_values_attachments do |t|
-      t.integer :attachment_type, null: false, default: 0
-      t.timestamps
+      t.index [ :owner_type, :owner_id, :field_id, :position ], name: "idx_cmpi_owner_field_pos"
     end
   end
 end

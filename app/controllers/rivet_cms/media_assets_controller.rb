@@ -1,0 +1,52 @@
+module RivetCms
+  class MediaAssetsController < ApplicationController
+    include InertiaProps
+
+    def index
+      page = media_assets.recent.page(params[:page]).per(48)
+      assets = page.map { |asset| media_asset_json(asset) }
+
+      respond_to do |format|
+        format.json { render json: assets }
+        format.html do
+          render inertia: "Media/Index", props: {
+            assets: assets,
+            pagination: { page: page.current_page, total_pages: page.total_pages }
+          }
+        end
+      end
+    end
+
+    def create
+      unless params[:file].respond_to?(:tempfile)
+        return render json: { errors: [ "file is required" ] }, status: :unprocessable_entity
+      end
+
+      asset = MediaAsset.new(file: params[:file])
+
+      if asset.save
+        render json: media_asset_json(asset), status: :created
+      else
+        render json: { errors: asset.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
+    def destroy
+      asset = media_assets.find(params[:id])
+      if asset.embedded_in_content?
+        return redirect_to media_assets_path, alert: "Media is embedded in content and cannot be deleted"
+      end
+
+      asset.destroy
+      redirect_to media_assets_path, notice: "Media deleted"
+    rescue ActiveRecord::InvalidForeignKey
+      redirect_to media_assets_path, alert: "Media is in use by content and cannot be deleted"
+    end
+
+    private
+
+    def media_assets
+      Current.organization.media_assets
+    end
+  end
+end

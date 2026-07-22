@@ -1,10 +1,9 @@
 module RivetCms
   class User < ApplicationRecord
-    acts_as_tenant :organization
+    include OrganizationScoped
 
     has_secure_password
 
-    belongs_to :organization, optional: true
     belongs_to :invited_by, class_name: "RivetCms::User", optional: true
     belongs_to :deleted_by, class_name: "RivetCms::User", optional: true
 

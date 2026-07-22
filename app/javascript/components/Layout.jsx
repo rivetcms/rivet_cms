@@ -18,6 +18,11 @@ const NAV_ICONS = {
       <path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" />
     </svg>
   ),
+  media: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+    </svg>
+  ),
 }
 
 function NavLink({ href, icon, active, children }) {
@@ -25,7 +30,7 @@ function NavLink({ href, icon, active, children }) {
     <li>
       <Link
         href={href}
-        className={`gap-2.5 rounded-field px-2.5 py-2 text-[13px] font-medium ${active ? "bg-primary/10 text-primary hover:bg-primary/15" : "text-base-content/70"}`}
+        className={`flex items-center gap-2.5 rounded-field px-2.5 py-2 text-[13px] font-medium transition-colors ${active ? "bg-primary/10 text-primary" : "text-base-content/70 hover:bg-base-200"}`}
       >
         <span className={active ? "" : "text-base-content/50"}>{icon}</span>
         {children}
@@ -35,6 +40,8 @@ function NavLink({ href, icon, active, children }) {
 }
 
 function Aside({ paths, appVersion, url }) {
+  const isActive = (path) => url === path || url.startsWith(`${path}/`)
+
   return (
     <div className="drawer-side z-20 border-r border-base-300 bg-base-100">
       <label htmlFor="sidebar-drawer" aria-label="Close sidebar" className="drawer-overlay"></label>
@@ -49,20 +56,19 @@ function Aside({ paths, appVersion, url }) {
           </div>
         </Link>
 
-        <div className="menu-title px-2.5 text-[11px] font-semibold uppercase tracking-wider">Manage</div>
-        <ul className="menu w-full gap-0.5 p-0">
-          <NavLink href="#" icon={NAV_ICONS.content} active={false}>
+        <div className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-base-content/40">Manage</div>
+        <ul className="flex w-full list-none flex-col gap-0.5 p-0">
+          <NavLink href={paths.content} icon={NAV_ICONS.content} active={isActive(paths.content)}>
             Content
           </NavLink>
-          <NavLink
-            href={paths.content_types}
-            icon={NAV_ICONS.contentTypes}
-            active={url.startsWith(paths.content_types)}
-          >
+          <NavLink href={paths.content_types} icon={NAV_ICONS.contentTypes} active={isActive(paths.content_types)}>
             Content Types
           </NavLink>
-          <NavLink href={paths.components} icon={NAV_ICONS.components} active={url.startsWith(paths.components)}>
+          <NavLink href={paths.components} icon={NAV_ICONS.components} active={isActive(paths.components)}>
             Components
+          </NavLink>
+          <NavLink href={paths.media} icon={NAV_ICONS.media} active={isActive(paths.media)}>
+            Media
           </NavLink>
         </ul>
       </aside>

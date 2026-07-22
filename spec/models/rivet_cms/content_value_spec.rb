@@ -2,127 +2,82 @@ require 'rails_helper'
 
 module RivetCms
   RSpec.describe ContentValue, type: :model do
-    describe "validations" do
-      it "requires content" do
-        cv = ContentValue.new(content: nil)
-        cv.valid?
-        expect(cv.errors[:content]).to include("can't be blank")
+    let(:document) { create(:document) }
+    let(:org) { document.organization }
+    let(:content_type) { document.content_type }
+    let(:revision) { create(:document_revision, document: document) }
+
+    def value_for(field_type, raw)
+      field = create(:field, field_type: field_type, content_type: content_type, organization: org)
+      cv = revision.content_values.create!(field: field)
+      cv.value = raw
+      cv.save!
+      cv.reload
+    end
+
+    describe "typed storage" do
+      it "stores a string in the string column" do
+        cv = value_for(:string, "hello")
+        expect(cv.string_value).to eq("hello")
+        expect(cv.value).to eq("hello")
       end
 
-      it "requires field" do
-        cv = ContentValue.new(field: nil)
-        cv.valid?
-        expect(cv.errors[:field]).to include("can't be blank")
+      it "stores an integer in the integer column" do
+        cv = value_for(:integer, "42")
+        expect(cv.integer_value).to eq(42)
+        expect(cv.value).to eq(42)
       end
 
-      it "requires value" do
-        cv = ContentValue.new(value: nil)
-        cv.valid?
-        expect(cv.errors[:value]).to include("can't be blank")
+      it "leaves a blank integer as nil rather than coercing to zero" do
+        cv = value_for(:integer, "")
+        expect(cv.integer_value).to be_nil
+      end
+
+      it "stores a boolean in the boolean column" do
+        cv = value_for(:boolean, "true")
+        expect(cv.boolean_value).to be(true)
+      end
+
+      it "stores rich text in the text column" do
+        cv = value_for(:rich_text, "<p>hi</p>")
+        expect(cv.text_value).to eq("<p>hi</p>")
+      end
+
+      it "stores a date in the date column" do
+        cv = value_for(:date, "2026-08-01")
+        expect(cv.date_value).to eq(Date.new(2026, 8, 1))
+        expect(cv.value).to eq(Date.new(2026, 8, 1))
+      end
+
+      it "stores a datetime in the datetime column" do
+        cv = value_for(:datetime, "2026-08-01T14:30")
+        expect(cv.datetime_value).to eq(Time.zone.parse("2026-08-01 14:30"))
       end
     end
 
-    describe ".value_class_for" do
-      it "maps string to FieldValues::String" do
-        expect(ContentValue.value_class_for("string")).to eq(FieldValues::String)
-      end
-
-      it "maps text to FieldValues::Text" do
-        expect(ContentValue.value_class_for("text")).to eq(FieldValues::Text)
-      end
-
-      it "maps rich_text to FieldValues::Text" do
-        expect(ContentValue.value_class_for("rich_text")).to eq(FieldValues::Text)
-      end
-
-      it "maps markdown to FieldValues::Text" do
-        expect(ContentValue.value_class_for("markdown")).to eq(FieldValues::Text)
-      end
-
-      it "maps integer to FieldValues::Integer" do
-        expect(ContentValue.value_class_for("integer")).to eq(FieldValues::Integer)
-      end
-
-      it "maps boolean to FieldValues::Boolean" do
-        expect(ContentValue.value_class_for("boolean")).to eq(FieldValues::Boolean)
-      end
-
-      it "maps image to FieldValues::Attachment" do
-        expect(ContentValue.value_class_for("image")).to eq(FieldValues::Attachment)
-      end
-
-      it "maps video to FieldValues::Attachment" do
-        expect(ContentValue.value_class_for("video")).to eq(FieldValues::Attachment)
-      end
-
-      it "maps file to FieldValues::Attachment" do
-        expect(ContentValue.value_class_for("file")).to eq(FieldValues::Attachment)
-      end
-
-      it "raises for unsupported types" do
-        expect { ContentValue.value_class_for("unknown") }.to raise_error(ArgumentError)
+    describe "uniqueness" do
+      it "allows one value per field per owner" do
+        field = create(:field, content_type: content_type, organization: org)
+        revision.content_values.create!(field: field, string_value: "a")
+        dup = revision.content_values.build(field: field, string_value: "b")
+        expect(dup).not_to be_valid
       end
     end
 
-    describe ".set_value" do
-      let(:org) { create(:organization) }
-      let(:content_type) { create(:content_type, organization: org) }
-      let(:content) { create(:content, content_type: content_type, organization: org) }
-
-      it "creates a string value" do
-        field = create(:field, :string, content_type: content_type, organization: org)
-        cv = ContentValue.set_value(content, field, "Hello World")
-
-        expect(cv).to be_persisted
-        expect(cv.field_value).to eq("Hello World")
+    describe "media tenant integrity" do
+      it "rejects a media asset from another organization" do
+        field = create(:field, :image, content_type: content_type, organization: org)
+        value = revision.content_values.build(field: field, media_asset: create(:media_asset))
+        expect(value).not_to be_valid
+        expect(value.errors[:media_asset]).to be_present
       end
 
-      it "creates an integer value" do
-        field = create(:field, :integer, content_type: content_type, organization: org)
-        cv = ContentValue.set_value(content, field, "42")
-
-        expect(cv).to be_persisted
-        expect(cv.field_value).to eq(42)
-      end
-
-      it "creates a boolean value" do
-        field = create(:field, :boolean, content_type: content_type, organization: org)
-        cv = ContentValue.set_value(content, field, "true")
-
-        expect(cv).to be_persisted
-        expect(cv.field_value).to eq(true)
-      end
-
-      it "updates existing value" do
-        field = create(:field, :string, content_type: content_type, organization: org)
-        cv1 = ContentValue.set_value(content, field, "First")
-        cv2 = ContentValue.set_value(content, field, "Second")
-
-        expect(cv1.id).to eq(cv2.id)
-        expect(cv2.field_value).to eq("Second")
-      end
-    end
-
-    describe "#field_value" do
-      it "returns the value from the associated value object" do
-        string_value = FieldValues::String.create!(value: "Test")
-        content_type = create(:content_type)
-        field = create(:field, content_type: content_type, organization: content_type.organization)
-        content = create(:content, content_type: content_type, organization: content_type.organization)
-        cv = ContentValue.create!(content: content, field: field, value: string_value)
-
-        expect(cv.field_value).to eq("Test")
-      end
-
-      it "sanitizes HTML for rich_text fields" do
-        text_value = FieldValues::Text.create!(value: "<script>alert('xss')</script><p>Safe</p>")
-        content_type = create(:content_type)
-        field = create(:field, :rich_text, content_type: content_type, organization: content_type.organization)
-        content = create(:content, content_type: content_type, organization: content_type.organization)
-        cv = ContentValue.create!(content: content, field: field, value: text_value)
-
-        expect(cv.field_value).not_to include("<script>")
-        expect(cv.field_value).to include("<p>Safe</p>")
+      it "ignores an unknown media asset id instead of erroring" do
+        field = create(:field, :image, content_type: content_type, organization: org)
+        value = revision.content_values.build(field: field)
+        value.value = "999999"
+        expect { value.save! }.not_to raise_error
+        expect(value.media_asset).to be_nil
       end
     end
   end

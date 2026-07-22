@@ -30,9 +30,5 @@ FactoryBot.define do
       deleted_at { 1.day.ago }
       association :deleted_by, factory: :user
     end
-
-    trait :without_organization do
-      organization { nil }
-    end
   end
 end

@@ -1,4 +1,4 @@
-class CreateRivetCmsOrganizations < ActiveRecord::Migration[7.2]
+class CreateRivetCmsOrganizations < ActiveRecord::Migration[7.0]
   def change
     create_table :rivet_cms_organizations do |t|
       t.string :name, null: false

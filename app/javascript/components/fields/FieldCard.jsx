@@ -26,7 +26,7 @@ export default function FieldCard({ field, onEdit, onDragStart, onDragEnd, dragg
   }
 
   const remove = () => {
-    if (confirm(`Remove "${field.name}"? This cannot be undone.`)) {
+    if (confirm(`Remove "${field.label}"? This cannot be undone.`)) {
       router.delete(field.paths.destroy, { preserveScroll: true })
     }
   }
@@ -49,7 +49,7 @@ export default function FieldCard({ field, onEdit, onDragStart, onDragEnd, dragg
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="truncate text-[13px] font-medium">{field.name}</span>
+          <span className="truncate text-[13px] font-medium">{field.label}</span>
           {field.required && <span className="badge badge-warning badge-soft badge-xs font-medium">Required</span>}
         </div>
         <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-base-content/50">

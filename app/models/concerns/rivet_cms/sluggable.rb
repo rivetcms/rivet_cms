@@ -21,7 +21,6 @@ module RivetCms
       counter = 1
       scope = self.class.unscoped.where.not(id: id)
 
-      # Scope to organization if acts_as_tenant is used
       if respond_to?(:organization_id) && organization_id.present?
         scope = scope.where(organization_id: organization_id)
       end

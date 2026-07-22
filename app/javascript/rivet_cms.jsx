@@ -6,21 +6,27 @@ import Layout from "./components/Layout"
 import DashboardShow from "./pages/Dashboard/Show"
 import ContentTypesIndex from "./pages/ContentTypes/Index"
 import ContentTypesNew from "./pages/ContentTypes/New"
-import ContentTypesEdit from "./pages/ContentTypes/Edit"
 import ContentTypesShow from "./pages/ContentTypes/Show"
 import ComponentsIndex from "./pages/Components/Index"
 import ComponentsNew from "./pages/Components/New"
-import ComponentsEdit from "./pages/Components/Edit"
+import ComponentsShow from "./pages/Components/Show"
+import ContentManagerIndex from "./pages/ContentManager/Index"
+import DocumentsIndex from "./pages/Documents/Index"
+import DocumentsEdit from "./pages/Documents/Edit"
+import MediaIndex from "./pages/Media/Index"
 
 const pages = {
   "Dashboard/Show": DashboardShow,
   "ContentTypes/Index": ContentTypesIndex,
   "ContentTypes/New": ContentTypesNew,
-  "ContentTypes/Edit": ContentTypesEdit,
   "ContentTypes/Show": ContentTypesShow,
   "Components/Index": ComponentsIndex,
   "Components/New": ComponentsNew,
-  "Components/Edit": ComponentsEdit,
+  "Components/Show": ComponentsShow,
+  "ContentManager/Index": ContentManagerIndex,
+  "Documents/Index": DocumentsIndex,
+  "Documents/Edit": DocumentsEdit,
+  "Media/Index": MediaIndex,
 }
 
 // Rails verifies the token from the XSRF-TOKEN cookie via this header

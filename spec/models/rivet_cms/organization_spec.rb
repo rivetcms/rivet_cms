@@ -82,6 +82,12 @@ module RivetCms
         create(:category, organization: org)
         expect { org.destroy }.to change { Category.count }.by(-1)
       end
+
+      it "destroys associated media assets when destroyed" do
+        org = create(:organization)
+        create(:media_asset, organization: org)
+        expect { org.destroy }.to change { MediaAsset.count }.by(-1)
+      end
     end
 
     describe "factory" do

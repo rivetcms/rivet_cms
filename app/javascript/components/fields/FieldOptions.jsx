@@ -34,21 +34,24 @@ function TypeBadges({ label, allTypes, selected, onChange, hint }) {
   )
 }
 
-export default function FieldOptions({ fieldType, options, setOption, referenceTargets, embeddableComponents }) {
+export default function FieldOptions({ fieldType, config, setConfig, minItems, maxItems, setCardinality, referenceTargets, embeddableComponents }) {
+  const toNumberOrNull = (v) => (v === "" || v == null ? null : Number(v))
+  const multiple = maxItems !== 1
+
   switch (fieldType) {
     case "string":
       return (
         <div className="space-y-4">
-          <OptionInput label="Maximum Length" type="number" min={1} placeholder="No limit" hint="Leave empty for no limit" value={options.max_length} onChange={(v) => setOption("max_length", v)} />
-          <OptionInput label="Placeholder Text" placeholder="e.g., Enter a title..." value={options.placeholder} onChange={(v) => setOption("placeholder", v)} />
+          <OptionInput label="Maximum Length" type="number" min={1} placeholder="No limit" hint="Leave empty for no limit" value={config.max_length} onChange={(v) => setConfig("max_length", v)} />
+          <OptionInput label="Placeholder Text" placeholder="e.g., Enter a title..." value={config.placeholder} onChange={(v) => setConfig("placeholder", v)} />
         </div>
       )
     case "text":
       return (
         <div className="space-y-4">
-          <OptionInput label="Maximum Length" type="number" min={1} placeholder="No limit" hint="Leave empty for no limit" value={options.max_length} onChange={(v) => setOption("max_length", v)} />
-          <OptionInput label="Placeholder Text" placeholder="e.g., Write your content here..." value={options.placeholder} onChange={(v) => setOption("placeholder", v)} />
-          <OptionInput label="Default Rows" type="number" min={2} max={20} hint="Height of the text area (2-20 rows)" value={options.rows ?? 4} onChange={(v) => setOption("rows", v)} />
+          <OptionInput label="Maximum Length" type="number" min={1} placeholder="No limit" hint="Leave empty for no limit" value={config.max_length} onChange={(v) => setConfig("max_length", v)} />
+          <OptionInput label="Placeholder Text" placeholder="e.g., Write your content here..." value={config.placeholder} onChange={(v) => setConfig("placeholder", v)} />
+          <OptionInput label="Default Rows" type="number" min={2} max={20} hint="Height of the text area (2-20 rows)" value={config.rows ?? 4} onChange={(v) => setConfig("rows", v)} />
         </div>
       )
     case "rich_text":
@@ -63,8 +66,8 @@ export default function FieldOptions({ fieldType, options, setOption, referenceT
               <RadioTile
                 key={value}
                 name="toolbar"
-                checked={(options.toolbar || "standard") === value}
-                onChange={() => setOption("toolbar", value)}
+                checked={(config.toolbar || "standard") === value}
+                onChange={() => setConfig("toolbar", value)}
                 className="px-2 py-2.5 text-center"
               >
                 <span className="block text-[13px] font-medium">{label}</span>
@@ -77,29 +80,29 @@ export default function FieldOptions({ fieldType, options, setOption, referenceT
     case "markdown":
       return (
         <div className="space-y-4">
-          <ToggleField label="Enable Live Preview" description="Show rendered markdown alongside the editor" checked={isTrue(options.preview)} onChange={(v) => setOption("preview", v)} />
-          <OptionInput label="Placeholder Text" placeholder="e.g., Write in markdown..." value={options.placeholder} onChange={(v) => setOption("placeholder", v)} />
+          <ToggleField label="Enable Live Preview" description="Show rendered markdown alongside the editor" checked={isTrue(config.preview)} onChange={(v) => setConfig("preview", v)} />
+          <OptionInput label="Placeholder Text" placeholder="e.g., Write in markdown..." value={config.placeholder} onChange={(v) => setConfig("placeholder", v)} />
         </div>
       )
     case "integer":
       return (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <OptionInput label="Minimum Value" type="number" placeholder="No minimum" value={options.min} onChange={(v) => setOption("min", v)} />
-            <OptionInput label="Maximum Value" type="number" placeholder="No maximum" value={options.max} onChange={(v) => setOption("max", v)} />
+            <OptionInput label="Minimum Value" type="number" placeholder="No minimum" value={config.min} onChange={(v) => setConfig("min", v)} />
+            <OptionInput label="Maximum Value" type="number" placeholder="No maximum" value={config.max} onChange={(v) => setConfig("max", v)} />
           </div>
-          <OptionInput label="Step Increment" type="number" min={1} hint="Increment when using arrows (default: 1)" value={options.step ?? 1} onChange={(v) => setOption("step", v)} />
-          <OptionInput label="Default Value" type="number" placeholder="No default" value={options.default} onChange={(v) => setOption("default", v)} />
+          <OptionInput label="Step Increment" type="number" min={1} hint="Increment when using arrows (default: 1)" value={config.step ?? 1} onChange={(v) => setConfig("step", v)} />
+          <OptionInput label="Default Value" type="number" placeholder="No default" value={config.default} onChange={(v) => setConfig("default", v)} />
         </div>
       )
     case "boolean":
       return (
         <Field label="Default Value" hint="Initial value when creating new content">
           <div className="grid grid-cols-2 gap-1.5">
-            <RadioTile name="default" checked={!isTrue(options.default)} onChange={() => setOption("default", "false")} className="px-3 py-2 text-center">
+            <RadioTile name="default" checked={!isTrue(config.default)} onChange={() => setConfig("default", "false")} className="px-3 py-2 text-center">
               <span className="text-[13px] font-medium">False (Off)</span>
             </RadioTile>
-            <RadioTile name="default" checked={isTrue(options.default)} onChange={() => setOption("default", "true")} className="px-3 py-2 text-center">
+            <RadioTile name="default" checked={isTrue(config.default)} onChange={() => setConfig("default", "true")} className="px-3 py-2 text-center">
               <span className="text-[13px] font-medium">True (On)</span>
             </RadioTile>
           </div>
@@ -108,28 +111,28 @@ export default function FieldOptions({ fieldType, options, setOption, referenceT
     case "image":
       return (
         <div className="space-y-4">
-          <OptionInput label="Maximum File Size (MB)" type="number" min={1} max={100} hint="Default: 10 MB" value={options.max_size_mb ?? 10} onChange={(v) => setOption("max_size_mb", v)} />
-          <TypeBadges label="Allowed Image Types" allTypes={IMAGE_TYPES} selected={options.allowed_types} onChange={(v) => setOption("allowed_types", v)} hint="Select allowed image formats" />
-          <ToggleField label="Require Alt Text" description="Force editors to provide alt text for accessibility" checked={isTrue(options.alt_required)} onChange={(v) => setOption("alt_required", v)} />
+          <OptionInput label="Maximum File Size (MB)" type="number" min={1} max={100} hint="Default: 10 MB" value={config.max_size_mb ?? 10} onChange={(v) => setConfig("max_size_mb", v)} />
+          <TypeBadges label="Allowed Image Types" allTypes={IMAGE_TYPES} selected={config.allowed_types} onChange={(v) => setConfig("allowed_types", v)} hint="Select allowed image formats" />
+          <ToggleField label="Require Alt Text" description="Force editors to provide alt text for accessibility" checked={isTrue(config.alt_required)} onChange={(v) => setConfig("alt_required", v)} />
         </div>
       )
     case "video":
       return (
         <div className="space-y-4">
-          <OptionInput label="Maximum File Size (MB)" type="number" min={1} max={1000} hint="Default: 100 MB" value={options.max_size_mb ?? 100} onChange={(v) => setOption("max_size_mb", v)} />
-          <TypeBadges label="Allowed Video Types" allTypes={VIDEO_TYPES} selected={options.allowed_types} onChange={(v) => setOption("allowed_types", v)} hint="Select allowed video formats" />
+          <OptionInput label="Maximum File Size (MB)" type="number" min={1} max={1000} hint="Default: 100 MB" value={config.max_size_mb ?? 100} onChange={(v) => setConfig("max_size_mb", v)} />
+          <TypeBadges label="Allowed Video Types" allTypes={VIDEO_TYPES} selected={config.allowed_types} onChange={(v) => setConfig("allowed_types", v)} hint="Select allowed video formats" />
         </div>
       )
     case "file":
       return (
         <div className="space-y-4">
-          <OptionInput label="Maximum File Size (MB)" type="number" min={1} max={500} hint="Default: 50 MB" value={options.max_size_mb ?? 50} onChange={(v) => setOption("max_size_mb", v)} />
+          <OptionInput label="Maximum File Size (MB)" type="number" min={1} max={500} hint="Default: 50 MB" value={config.max_size_mb ?? 50} onChange={(v) => setConfig("max_size_mb", v)} />
           <OptionInput
             label="Allowed File Extensions"
             placeholder="e.g., pdf, doc, docx, xls, xlsx"
             hint="Comma-separated list of extensions (leave empty to allow all)"
-            value={Array.isArray(options.allowed_types) ? options.allowed_types.join(", ") : options.allowed_types}
-            onChange={(v) => setOption("allowed_types", v)}
+            value={Array.isArray(config.allowed_types) ? config.allowed_types.join(", ") : config.allowed_types}
+            onChange={(v) => setConfig("allowed_types", v)}
           />
         </div>
       )
@@ -139,15 +142,15 @@ export default function FieldOptions({ fieldType, options, setOption, referenceT
           <SelectInput
             label="Reference Content Type"
             hint="Which content type can be referenced"
-            value={options.content_type_id ?? ""}
-            onChange={(e) => setOption("content_type_id", e.target.value)}
+            value={config.content_type_id ?? ""}
+            onChange={(e) => setConfig("content_type_id", e.target.value)}
           >
             <option value="">Select a content type...</option>
             {referenceTargets.map((ct) => (
               <option key={ct.id} value={ct.id}>{ct.name}</option>
             ))}
           </SelectInput>
-          <ToggleField label="Allow Multiple References" description="Allow selecting more than one item" checked={isTrue(options.multiple)} onChange={(v) => setOption("multiple", v)} />
+          <ToggleField label="Allow Multiple References" description="Allow selecting more than one item" checked={multiple} onChange={(v) => setCardinality("max_items", v ? null : 1)} />
         </div>
       )
     case "component":
@@ -156,19 +159,19 @@ export default function FieldOptions({ fieldType, options, setOption, referenceT
           <SelectInput
             label="Embed Component"
             hint="Which component to embed in this field"
-            value={options.component_id ?? ""}
-            onChange={(e) => setOption("component_id", e.target.value)}
+            value={config.component_id ?? ""}
+            onChange={(e) => setConfig("component_id", e.target.value)}
           >
             <option value="">Select a component...</option>
             {embeddableComponents.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </SelectInput>
-          <ToggleField label="Allow Repeating" description="Allow adding multiple instances of this component" checked={isTrue(options.repeatable)} onChange={(v) => setOption("repeatable", v)} />
-          {isTrue(options.repeatable) && (
+          <ToggleField label="Allow Repeating" description="Allow adding multiple instances of this component" checked={multiple} onChange={(v) => setCardinality("max_items", v ? null : 1)} />
+          {multiple && (
             <div className="grid grid-cols-2 gap-3">
-              <OptionInput label="Minimum Items" type="number" min={0} placeholder="0" value={options.min_items} onChange={(v) => setOption("min_items", v)} />
-              <OptionInput label="Maximum Items" type="number" min={1} placeholder="Unlimited" value={options.max_items} onChange={(v) => setOption("max_items", v)} />
+              <OptionInput label="Minimum Items" type="number" min={0} placeholder="0" value={minItems} onChange={(v) => setCardinality("min_items", toNumberOrNull(v))} />
+              <OptionInput label="Maximum Items" type="number" min={1} placeholder="Unlimited" value={maxItems} onChange={(v) => setCardinality("max_items", toNumberOrNull(v))} />
             </div>
           )}
         </div>

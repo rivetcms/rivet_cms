@@ -20,11 +20,12 @@ module RivetCms
       end
     end
 
-    describe "GET /content_types/:id/edit" do
-      it "returns http success" do
+    describe "GET /content_types/:id" do
+      it "renders the builder with settings available" do
         content_type = create(:content_type, organization: organization)
-        get rivet_cms.edit_content_type_path(content_type)
+        get rivet_cms.content_type_path(content_type)
         expect(response).to have_http_status(:success)
+        expect(response.body).to include("ContentTypes/Show")
       end
     end
   end

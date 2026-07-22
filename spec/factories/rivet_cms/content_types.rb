@@ -13,9 +13,5 @@ FactoryBot.define do
     trait :collection do
       single { false }
     end
-
-    trait :without_organization do
-      organization { nil }
-    end
   end
 end

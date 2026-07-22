@@ -19,12 +19,13 @@ module RivetCms
       end
     end
 
-    describe "GET /components/:id/edit" do
-      it "returns http success" do
+    describe "GET /components/:id" do
+      it "renders the builder with settings available" do
         category = create(:category, organization: organization)
         component = create(:component, organization: organization, category: category)
-        get rivet_cms.edit_component_path(component)
+        get rivet_cms.component_path(component)
         expect(response).to have_http_status(:success)
+        expect(response.body).to include("Components/Show")
       end
     end
   end

@@ -2,11 +2,15 @@ module RivetCms
   class ContentTypesController < ApplicationController
     include InertiaProps
 
-    before_action :set_content_type, only: [ :show, :edit, :update, :destroy ]
+    before_action :set_content_type, only: [ :show, :update, :destroy ]
 
     def index
+      entry_counts = Document.where(organization: Current.organization).group(:content_type_id).count
+
       render inertia: "ContentTypes/Index", props: {
-        content_types: ContentType.all.map { |ct| content_type_props(ct) }
+        content_types: Current.organization.content_types.map { |ct|
+          content_type_props(ct).merge(documents_count: entry_counts.fetch(ct.id, 0))
+        }
       }
     end
 
@@ -18,8 +22,8 @@ module RivetCms
         fields: fields.map { |f| field_props(f) },
         field_types: Field::FIELD_TYPE_LABELS,
         # Selectable targets for "reference" and "component" field options
-        reference_targets: ContentType.where.not(id: @content_type.id).order(:name).map { |ct| { id: ct.id, name: ct.name } },
-        embeddable_components: Component.order(:name).map { |c| { id: c.id, name: c.name } }
+        reference_targets: Current.organization.content_types.where.not(id: @content_type.id).order(:name).map { |ct| { id: ct.id, name: ct.name } },
+        embeddable_components: Current.organization.components.order(:name).map { |c| { id: c.id, name: c.name } }
       }
     end
 
@@ -37,17 +41,11 @@ module RivetCms
       end
     end
 
-    def edit
-      render inertia: "ContentTypes/Edit", props: {
-        content_type: content_type_props(@content_type)
-      }
-    end
-
     def update
       if @content_type.update(content_type_params)
         redirect_to content_type_path(@content_type), notice: "Content type updated successfully"
       else
-        redirect_to edit_content_type_path(@content_type), inertia: { errors: @content_type.errors }
+        redirect_to content_type_path(@content_type), inertia: { errors: @content_type.errors }
       end
     end
 
@@ -59,7 +57,7 @@ module RivetCms
     private
 
     def set_content_type
-      @content_type = ContentType.find(params[:id])
+      @content_type = Current.organization.content_types.find(params[:id])
     end
 
     def content_type_params

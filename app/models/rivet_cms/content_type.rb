@@ -3,11 +3,10 @@ module RivetCms
     include Sluggable
 
     has_prefix_id :ctype
-    acts_as_tenant :organization
+    include OrganizationScoped
 
-    belongs_to :organization, optional: true
     has_many :fields, dependent: :destroy
-    has_many :contents, dependent: :destroy
+    has_many :documents, dependent: :destroy
 
     validates :name, presence: true
     validates :slug, uniqueness: { scope: :organization_id }

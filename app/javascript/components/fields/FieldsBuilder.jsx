@@ -43,7 +43,7 @@ function DropZone({ onDrop }) {
   )
 }
 
-export default function FieldsBuilder({ contentType, fields, onEdit }) {
+export default function FieldsBuilder({ owner, fields, onEdit }) {
   const propRows = useMemo(() => groupRows(fields), [fields])
   const [optimisticRows, setOptimisticRows] = useState(null)
   const [dragging, setDragging] = useState(null)
@@ -56,7 +56,7 @@ export default function FieldsBuilder({ contentType, fields, onEdit }) {
   const saveLayout = (nextRows) => {
     setOptimisticRows(nextRows)
     router.post(
-      contentType.paths.update_layout,
+      owner.paths.update_layout,
       { rows: nextRows.map((row) => row.map((f) => f.id)) },
       { preserveScroll: true }
     )

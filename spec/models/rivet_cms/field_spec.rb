@@ -7,10 +7,10 @@ module RivetCms
     describe "validations" do
       it { is_expected.to be_valid }
 
-      it "requires name" do
-        subject.name = nil
+      it "requires label" do
+        subject.label = nil
         expect(subject).not_to be_valid
-        expect(subject.errors[:name]).to include("can't be blank")
+        expect(subject.errors[:label]).to include("can't be blank")
       end
 
       it "requires field_type" do
@@ -18,19 +18,31 @@ module RivetCms
         expect(subject).not_to be_valid
       end
 
-      it "requires unique name within content_type" do
-        content_type = create(:content_type)
-        create(:field, name: "title", content_type: content_type, organization: content_type.organization)
-        field = build(:field, name: "title", content_type: content_type, organization: content_type.organization)
-        expect(field).not_to be_valid
-        expect(field.errors[:name]).to include("has already been taken")
+      it "derives key from label when blank" do
+        field = build(:field, key: nil, label: "Hero Title")
+        field.valid?
+        expect(field.key).to eq("hero_title")
       end
 
-      it "allows same name in different content_types" do
+      it "rejects an invalid key format" do
+        subject.key = "Bad Key"
+        expect(subject).not_to be_valid
+        expect(subject.errors[:key]).to be_present
+      end
+
+      it "requires unique key within content_type" do
+        content_type = create(:content_type)
+        create(:field, key: "title", content_type: content_type, organization: content_type.organization)
+        field = build(:field, key: "title", content_type: content_type, organization: content_type.organization)
+        expect(field).not_to be_valid
+        expect(field.errors[:key]).to include("has already been taken")
+      end
+
+      it "allows same key in different content_types" do
         ct1 = create(:content_type)
         ct2 = create(:content_type)
-        create(:field, name: "title", content_type: ct1, organization: ct1.organization)
-        field = build(:field, name: "title", content_type: ct2, organization: ct2.organization)
+        create(:field, key: "title", content_type: ct1, organization: ct1.organization)
+        field = build(:field, key: "title", content_type: ct2, organization: ct2.organization)
         expect(field).to be_valid
       end
 
@@ -45,6 +57,13 @@ module RivetCms
         subject.component = create(:component, organization: subject.organization)
         expect(subject).not_to be_valid
         expect(subject.errors[:base]).to include("Field cannot belong to both content_type and component")
+      end
+
+      it "does not allow component fields inside components" do
+        component = create(:component)
+        field = build(:field, :for_component, component: component, organization: component.organization, field_type: :component)
+        expect(field).not_to be_valid
+        expect(field.errors[:field_type]).to be_present
       end
     end
 
@@ -95,12 +114,12 @@ module RivetCms
         expect(field.kept?).to be true
       end
 
-      it "allows reusing name after soft delete" do
+      it "allows reusing key after soft delete" do
         content_type = create(:content_type)
-        field = create(:field, name: "title", content_type: content_type, organization: content_type.organization)
+        field = create(:field, key: "title", content_type: content_type, organization: content_type.organization)
         field.discard
 
-        new_field = build(:field, name: "title", content_type: content_type, organization: content_type.organization)
+        new_field = build(:field, key: "title", content_type: content_type, organization: content_type.organization)
         expect(new_field).to be_valid
       end
     end

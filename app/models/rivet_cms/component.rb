@@ -3,18 +3,13 @@ module RivetCms
     include Sluggable
 
     has_prefix_id :comp
-    acts_as_tenant :organization
+    include OrganizationScoped
 
-    belongs_to :organization, optional: true
     belongs_to :category
     has_many :fields, dependent: :destroy
 
     validates :name, presence: true
     validates :slug, uniqueness: { scope: :organization_id }
-    validates :repeatable, inclusion: { in: [ true, false ] }
-
-    scope :repeatable, -> { where(repeatable: true) }
-    scope :single, -> { where(repeatable: false) }
 
     # Get fields including soft-deleted ones
     def all_fields

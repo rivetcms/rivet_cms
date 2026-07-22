@@ -3,9 +3,8 @@ module RivetCms
     include SoftDeletable
 
     has_prefix_id :fld
-    acts_as_tenant :organization
+    include OrganizationScoped
 
-    belongs_to :organization, optional: true
     belongs_to :content_type, optional: true
     belongs_to :component, optional: true
     has_many :content_values, dependent: :destroy
@@ -21,17 +20,22 @@ module RivetCms
       video: 7,
       file: 8,
       reference: 9,
-      component: 10
+      component: 10,
+      date: 11,
+      datetime: 12
     }
 
     enum :width, { full: "full", half: "half" }, prefix: true
 
-    validates :name, presence: true
-    validates :name, uniqueness: { scope: :content_type_id, conditions: -> { where(deleted_at: nil) } }, if: -> { content_type_id.present? }
-    validates :name, uniqueness: { scope: :component_id, conditions: -> { where(deleted_at: nil) } }, if: -> { component_id.present? }
+    validates :key, presence: true, format: { with: /\A[a-z][a-z0-9_]*\z/, message: "must be lowercase snake_case" }
+    validates :key, uniqueness: { scope: :content_type_id, conditions: -> { where(deleted_at: nil) } }, if: -> { content_type_id.present? }
+    validates :key, uniqueness: { scope: :component_id, conditions: -> { where(deleted_at: nil) } }, if: -> { component_id.present? }
+    validates :label, presence: true
     validates :field_type, presence: true
     validate :belongs_to_one_owner
+    validate :components_cannot_embed_components
 
+    before_validation :derive_key_from_label, on: :create
     before_create :set_default_position
     before_create :set_default_row
 
@@ -49,7 +53,9 @@ module RivetCms
       "video" => "Video",
       "file" => "File",
       "reference" => "Reference",
-      "component" => "Component"
+      "component" => "Component",
+      "date" => "Date",
+      "datetime" => "Date & Time"
     }.freeze
 
     def field_type_label
@@ -88,12 +94,8 @@ module RivetCms
     # Get the other field paired in the same row (if any)
     def paired_field
       return nil unless width_half?
-      return nil unless content_type_id.present?
 
-      self.class.kept
-          .where(content_type_id: content_type_id, row: row, width: "half")
-          .where.not(id: id)
-          .first
+      sibling_fields.where(row: row, width: "half").where.not(id: id).first
     end
 
     def paired?
@@ -109,38 +111,8 @@ module RivetCms
 
     # Move this field to its own new row
     def move_to_own_row!
-      max_row = self.class.where(content_type_id: content_type_id).maximum(:row) || 0
+      max_row = sibling_fields.maximum(:row) || 0
       update!(row: max_row + 1, position: 0)
-    end
-
-    # Normalize layout for a content type - ONLY fixes invalid states:
-    # - Full-width fields sharing a row with other fields
-    # - More than 2 fields in a row
-    # Does NOT auto-pair half-width fields
-    def self.normalize_layout!(content_type_id)
-      transaction do
-        fields_by_row = where(content_type_id: content_type_id).kept.group_by(&:row)
-
-        fields_by_row.each do |row_num, row_fields|
-          # Check for full-width fields sharing a row
-          full_width_fields = row_fields.select(&:width_full?)
-          half_width_fields = row_fields.select(&:width_half?)
-
-          # If a full-width field is sharing a row, move it to its own row
-          if full_width_fields.any? && row_fields.size > 1
-            full_width_fields.each do |field|
-              field.move_to_own_row!
-            end
-          end
-
-          # If more than 2 half-width fields in a row, move extras to own rows
-          if half_width_fields.size > 2
-            half_width_fields[2..].each do |field|
-              field.move_to_own_row!
-            end
-          end
-        end
-      end
     end
 
     # Pair this field with another field on the same row
@@ -152,6 +124,23 @@ module RivetCms
     end
 
     private
+
+    def sibling_fields
+      scope = content_type_id.present? ? { content_type_id: content_type_id } : { component_id: component_id }
+      self.class.kept.where(scope)
+    end
+
+    def derive_key_from_label
+      return if key.present?
+
+      self.key = label.to_s.parameterize(separator: "_")
+    end
+
+    def components_cannot_embed_components
+      return unless component_id.present? && field_type == "component"
+
+      errors.add(:field_type, "component fields cannot be nested inside components")
+    end
 
     def belongs_to_one_owner
       has_content_type = content_type_id.present? || content_type.present?
