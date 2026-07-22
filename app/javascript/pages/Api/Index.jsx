@@ -38,6 +38,8 @@ export default function Index({ base_url: baseUrl, public_api: publicApi, conten
           <li><code className="font-mono">page</code>, <code className="font-mono">per_page</code> — pagination (max 100). Responses wrap items in <code className="font-mono">{`{ data, meta }`}</code>.</li>
           <li><code className="font-mono">sort</code> — e.g. <code className="font-mono">-published_at</code>, <code className="font-mono">slug</code>, or a date field key (prefix <code className="font-mono">-</code> for descending).</li>
           <li><code className="font-mono">{`<dateField>[gte]`}</code> / <code className="font-mono">{`<dateField>[lte]`}</code> — range-filter a date or datetime field.</li>
+          <li><code className="font-mono">populate=author,tags</code> — expand reference fields one level into full documents (<code className="font-mono">populate=*</code> for all).</li>
+          <li><code className="font-mono">fields=title,excerpt</code> — return only the listed keys in <code className="font-mono">data</code>.</li>
           <li><code className="font-mono">preview=true</code> — on a single document, returns the draft (requires a preview token).</li>
         </ul>
       </div>

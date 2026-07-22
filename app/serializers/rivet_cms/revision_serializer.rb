@@ -3,50 +3,94 @@ module RivetCms
     RICH_TEXT_TAGS = %w[p br strong em b i u s del a img ul ol li h1 h2 h3 h4 h5 h6 blockquote pre code hr].freeze
     RICH_TEXT_ATTRS = %w[href src alt title class target rel width height style].freeze
 
-    def initialize(revision)
+    # fields: root-level key whitelist (nil = all). populate: reference Field
+    # records to expand one level deep. preview: serve draft targets and skip
+    # the published-only relation filter. preload: a shared RevisionPreloader
+    # (built automatically for single-revision use).
+    def initialize(revision, fields: nil, populate: [], preview: false, preload: nil)
       @revision = revision
+      @field_keys = fields
+      @populate = populate
+      @populate_field_ids = populate.map(&:id).to_set
+      @preview = preview
+      @preload = preload
     end
 
     def as_json(*)
       return nil if @revision.nil?
 
-      document = @revision.document
+      @preload ||= RevisionPreloader.new([ @revision ], populate_fields: @populate, preview: @preview)
+      document = @preload.document_for(@revision)
+      fields = @preload.fields_for_content_type(document.content_type_id)
+      fields = fields.select { |field| @field_keys.include?(field.key) } if @field_keys
+
       {
         id: document.prefix_id,
         slug: document.slug,
         content_type: document.content_type.slug,
         state: @revision.state,
-        data: serialize_owner(@revision, document.content_type.fields.kept)
+        data: serialize_owner(@revision, fields, root: true)
       }
     end
 
     private
 
-    def serialize_owner(owner, fields)
-      loaded = OwnerData.new(owner)
-
+    def serialize_owner(owner, fields, root:)
       fields.each_with_object({}) do |field, data|
-        data[field.key] = serialize_field(loaded, field)
+        data[field.key] = serialize_field(owner, field, root: root)
       end
     end
 
-    def serialize_field(loaded, field)
+    def serialize_field(owner, field, root:)
       case field.field_type
       when "reference"
-        collapse(field, loaded.relations(field).map { |relation| reference_json(relation) })
+        serialize_reference(owner, field, root: root)
       when "component"
-        collapse(field, loaded.component_instances(field).map { |instance| serialize_owner(instance, instance.component.fields.kept) })
+        collapse(field, @preload.component_instances(owner, field).map { |instance|
+          serialize_owner(instance, @preload.fields_for_component(instance.component_id), root: false)
+        })
       when "image", "video", "file"
-        attachment_json(loaded.value(field)&.media_asset)
+        attachment_json(@preload.value(owner, field)&.media_asset)
       when "rich_text"
-        sanitize(loaded.value(field)&.value)
+        sanitize(@preload.value(owner, field)&.value)
       else
-        loaded.value(field)&.value
+        @preload.value(owner, field)&.value
       end
+    end
+
+    def serialize_reference(owner, field, root:)
+      relations = visible_relations(@preload.relations(owner, field))
+
+      if root && @populate_field_ids.include?(field.id)
+        collapse(field, relations.filter_map { |relation| populated_json(relation) })
+      else
+        collapse(field, relations.map { |relation| reference_json(relation) })
+      end
+    end
+
+    # Published scope must not reveal draft-only documents, even as {id, slug}.
+    def visible_relations(relations)
+      return relations if @preview
+
+      relations.reject { |relation| relation.target_document.published_revision_id.nil? }
     end
 
     def reference_json(relation)
       { id: relation.target_document.prefix_id, slug: relation.target_document.slug }
+    end
+
+    def populated_json(relation)
+      target = relation.target_document
+      revision = @preload.target_revision(target.id)
+      return nil if revision.nil?
+
+      {
+        id: target.prefix_id,
+        slug: target.slug,
+        content_type: target.content_type.slug,
+        state: revision.state,
+        data: serialize_owner(revision, @preload.fields_for_content_type(target.content_type_id), root: false)
+      }
     end
 
     def attachment_json(asset)
@@ -63,44 +107,6 @@ module RivetCms
       return nil if html.blank?
 
       ActionController::Base.helpers.sanitize(html.to_s, tags: RICH_TEXT_TAGS, attributes: RICH_TEXT_ATTRS)
-    end
-
-    # Loads an owner's values, relations, and component instances once
-    # and serves per-field lookups from memory.
-    class OwnerData
-      def initialize(owner)
-        @owner = owner
-      end
-
-      def value(field)
-        values_by_field[field.id]
-      end
-
-      def relations(field)
-        relations_by_field.fetch(field.id, [])
-      end
-
-      def component_instances(field)
-        instances_by_field.fetch(field.id, [])
-      end
-
-      private
-
-      def values_by_field
-        @values_by_field ||= @owner.content_values
-          .includes(:field, media_asset: { file_attachment: :blob })
-          .index_by(&:field_id)
-      end
-
-      def relations_by_field
-        @relations_by_field ||= @owner.relations
-          .includes(:target_document).order(:position).group_by(&:field_id)
-      end
-
-      def instances_by_field
-        @instances_by_field ||= @owner.component_instances
-          .includes(component: :fields).order(:position).group_by(&:field_id)
-      end
     end
   end
 end

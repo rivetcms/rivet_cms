@@ -27,5 +27,32 @@ module RivetCms
       expect(props["views"]).to eq({ type: "integer" })
       expect(props["starts_at"]).to eq({ type: "string", format: "date-time" })
     end
+
+    it "documents populate and fields on both endpoints" do
+      content_type
+      doc = spec
+      list_names = doc.dig(:paths, "https://cms.test/api/articles", :get, :parameters).map { |p| p[:name] }
+      item_names = doc.dig(:paths, "https://cms.test/api/articles/{slug}", :get, :parameters).map { |p| p[:name] }
+
+      expect(list_names).to include("populate", "fields")
+      expect(item_names).to include("populate", "fields")
+    end
+
+    it "documents a resolvable reference as oneOf shallow or the target schema" do
+      target = create(:content_type, name: "Author", slug: "authors", organization: organization)
+      create(:field, field_type: :reference, key: "author", max_items: 1,
+                     config: { "content_type_id" => target.id.to_s }, content_type: content_type, organization: organization)
+
+      schema = spec.dig(:components, :schemas, "Articles", :properties, :data, :properties)["author"]
+      expect(schema[:oneOf]).to include({ "$ref" => "#/components/schemas/Authors" })
+    end
+
+    it "falls back to the shallow shape when the reference target is unresolvable" do
+      create(:field, field_type: :reference, key: "author", max_items: 1,
+                     config: { "content_type_id" => 999_999 }, content_type: content_type, organization: organization)
+
+      schema = spec.dig(:components, :schemas, "Articles", :properties, :data, :properties)["author"]
+      expect(schema).to eq({ type: "object", properties: { id: { type: "string" }, slug: { type: "string" } } })
+    end
   end
 end

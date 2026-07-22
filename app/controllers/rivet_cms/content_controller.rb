@@ -14,12 +14,19 @@ module RivetCms
     DOCUMENT_SORTS = { "created_at" => :created_at, "updated_at" => :updated_at, "slug" => :slug }.freeze
 
     def index
+      populate = requested_populate
+
       base = content_type.documents.where.not(published_revision_id: nil).includes(:published_revision)
       scope = ordered(filtered(base))
       page = scope.page(params[:page]).per(per_page)
 
+      revisions = page.map(&:published_revision)
+      preload = RevisionPreloader.new(revisions, populate_fields: populate)
+
       render json: {
-        data: page.map { |document| RevisionSerializer.new(document.published_revision).as_json },
+        data: revisions.map { |revision|
+          RevisionSerializer.new(revision, fields: selected_field_keys, populate: populate, preload: preload).as_json
+        },
         meta: { page: page.current_page, per_page: page.limit_value, total: page.total_count, total_pages: page.total_pages }
       }
     end
@@ -27,11 +34,15 @@ module RivetCms
     def show
       return head :forbidden if preview_requested? && !preview_scope?
 
+      populate = requested_populate
+
       document = content_type.documents.find_by!(slug: params[:slug])
-      revision = preview_requested? ? (document.draft_revision || document.published_revision) : document.published_revision
+      preview = preview_requested?
+      revision = preview ? (document.draft_revision || document.published_revision) : document.published_revision
       return head :not_found if revision.nil?
 
-      render json: RevisionSerializer.new(revision).as_json
+      preload = RevisionPreloader.new([ revision ], populate_fields: populate, preview: preview)
+      render json: RevisionSerializer.new(revision, fields: selected_field_keys, populate: populate, preview: preview, preload: preload).as_json
     end
 
     private
@@ -78,6 +89,41 @@ module RivetCms
       requested = params[:per_page].to_i
       requested = DEFAULT_PER_PAGE if requested <= 0
       requested.clamp(1, MAX_PER_PAGE)
+    end
+
+    def reference_fields
+      @reference_fields ||= content_type.fields.kept.reference.ordered.to_a
+    end
+
+    # Validates both params, then drops populated fields that a fields
+    # selection excludes so their targets are never needlessly preloaded.
+    def requested_populate
+      populate = populate_fields
+      keys = selected_field_keys
+      keys ? populate.select { |field| keys.include?(field.key) } : populate
+    end
+
+    def populate_fields
+      raw = params[:populate].to_s
+      return [] if raw.blank?
+      return reference_fields if raw.strip == "*"
+
+      raw.split(",").map(&:strip).reject(&:blank?).map do |key|
+        reference_fields.find { |field| field.key == key } ||
+          raise(ApiQueryError, "cannot populate field: #{key}")
+      end
+    end
+
+    def selected_field_keys
+      return @selected_field_keys if defined?(@selected_field_keys)
+
+      keys = params[:fields].to_s.split(",").map(&:strip).reject(&:blank?)
+      return @selected_field_keys = nil if keys.empty?
+
+      unknown = keys - content_type.fields.kept.pluck(:key)
+      raise ApiQueryError, "unknown field: #{unknown.first}" if unknown.any?
+
+      @selected_field_keys = keys
     end
 
     def ordered(scope)

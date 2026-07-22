@@ -22,5 +22,29 @@ module RivetCms
       expect(body).not_to include("<script>")
       expect(body).not_to include("javascript")
     end
+
+    it "filters draft-only reference targets inside components" do
+      document = create(:document)
+      organization = document.organization
+      category = create(:category, organization: organization)
+      component = create(:component, category: category, organization: organization)
+      ref_field = create(:field, field_type: :reference, key: "related", component: component, content_type: nil, organization: organization)
+      comp_field = create(:field, field_type: :component, key: "block", max_items: 1,
+                                  config: { "component_id" => component.id },
+                                  content_type: document.content_type, organization: organization)
+
+      published_target = create(:document, content_type: document.content_type, organization: organization)
+      published_target.update!(published_revision: create(:document_revision, document: published_target, state: :published))
+      draft_target = create(:document, content_type: document.content_type, organization: organization)
+
+      revision = create(:document_revision, document: document, state: :published)
+      instance = revision.component_instances.create!(field: comp_field, component: component, position: 0)
+      instance.relations.create!(field: ref_field, target_document: published_target, position: 0)
+      instance.relations.create!(field: ref_field, target_document: draft_target, position: 1)
+
+      refs = described_class.new(revision).as_json.dig(:data, "block", "related")
+
+      expect(refs.map { |ref| ref[:slug] }).to eq([ published_target.slug ])
+    end
   end
 end

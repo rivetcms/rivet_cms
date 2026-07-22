@@ -43,7 +43,9 @@ module RivetCms
           parameters: [
             { name: "slug", in: "path", required: true, schema: { type: "string" } },
             { name: "preview", in: "query", required: false, schema: { type: "boolean" },
-              description: "Requires a preview-scoped token; returns the draft revision." }
+              description: "Requires a preview-scoped token; returns the draft revision." },
+            populate_param,
+            fields_param
           ],
           responses: { "200" => { description: "A document", content: json_content(ref) }, "404" => { description: "Not found" } }
         }
@@ -55,8 +57,20 @@ module RivetCms
         { name: "page", in: "query", schema: { type: "integer", default: 1 } },
         { name: "per_page", in: "query", schema: { type: "integer", default: 25, maximum: 100 } },
         { name: "sort", in: "query", schema: { type: "string" },
-          description: "Field/column, prefix - for descending (e.g. -published_at)." }
+          description: "Field/column, prefix - for descending (e.g. -published_at)." },
+        populate_param,
+        fields_param
       ]
+    end
+
+    def populate_param
+      { name: "populate", in: "query", schema: { type: "string" },
+        description: "Comma-separated reference field keys to expand one level into full documents, or * for all." }
+    end
+
+    def fields_param
+      { name: "fields", in: "query", schema: { type: "string" },
+        description: "Comma-separated field keys to include in data; also limits which populated fields appear." }
     end
 
     def list_schema(item_ref)
@@ -91,7 +105,7 @@ module RivetCms
       when "boolean" then { type: "boolean" }
       when "date" then { type: "string", format: "date" }
       when "datetime" then { type: "string", format: "date-time" }
-      when "reference" then collapse(field, { type: "object", properties: { id: { type: "string" }, slug: { type: "string" } } })
+      when "reference" then reference_schema(field)
       when "component" then component_schema(field)
       when "image", "video", "file"
         { type: "object", nullable: true, properties: {
@@ -100,6 +114,15 @@ module RivetCms
         } }
       else { type: "string" }
       end
+    end
+
+    # Shallow {id, slug} by default; when the field's configured target resolves,
+    # a oneOf with the target schema documents the populated shape.
+    def reference_schema(field)
+      shallow = { type: "object", properties: { id: { type: "string" }, slug: { type: "string" } } }
+      target = @organization.content_types.find_by(id: field.config&.dig("content_type_id"))
+      inner = target ? { oneOf: [ shallow, { "$ref" => "#/components/schemas/#{schema_name(target)}" } ] } : shallow
+      collapse(field, inner)
     end
 
     def component_schema(field)
