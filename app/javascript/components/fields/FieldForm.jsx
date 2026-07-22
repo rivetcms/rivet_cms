@@ -3,6 +3,8 @@ import FieldTypeIcon from "./FieldTypeIcon"
 import FieldOptions from "./FieldOptions"
 import { Field, TextInput, TextArea, ToggleField, RadioTile, FormActions } from "../forms"
 
+const OPTIONLESS_TYPES = ["date", "datetime"]
+
 export default function FieldForm({ owner, field, fieldTypes, referenceTargets, embeddableComponents, onClose }) {
   const isNew = !field
 
@@ -16,6 +18,14 @@ export default function FieldForm({ owner, field, fieldTypes, referenceTargets, 
     max_items: field?.max_items ?? null,
     config: field?.config || {},
   })
+
+  const selectedType = isNew ? form.data.field_type : field.field_type
+  const showOptions = !OPTIONLESS_TYPES.includes(selectedType)
+
+  // Options are type-specific, so switching type on create starts clean.
+  const changeType = (value) => {
+    form.setData((data) => ({ ...data, field_type: value, config: {}, min_items: null, max_items: null }))
+  }
 
   const errorMessages = Object.entries(form.errors).flatMap(([attr, messages]) => {
     const list = Array.isArray(messages) ? messages : [messages]
@@ -52,7 +62,7 @@ export default function FieldForm({ owner, field, fieldTypes, referenceTargets, 
                 key={value}
                 name="field_type"
                 checked={form.data.field_type === value}
-                onChange={() => form.setData("field_type", value)}
+                onChange={() => changeType(value)}
                 className="flex items-center gap-2 px-2.5 py-2"
               >
                 <FieldTypeIcon fieldType={value} size={14} />
@@ -127,13 +137,13 @@ export default function FieldForm({ owner, field, fieldTypes, referenceTargets, 
         onChange={(checked) => form.setData("required", checked)}
       />
 
-      {!isNew && (
+      {showOptions && (
         <>
           <div className="divider my-1 text-[11px] font-semibold uppercase tracking-wider text-base-content/40">
             Options
           </div>
           <FieldOptions
-            fieldType={field.field_type}
+            fieldType={selectedType}
             config={form.data.config}
             setConfig={(key, value) => form.setData("config", { ...form.data.config, [key]: value })}
             minItems={form.data.min_items}
