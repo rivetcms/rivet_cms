@@ -27,6 +27,8 @@ module RivetCms
                       new_content_type: new_content_type_path,
                       components: components_path,
                       new_component: new_component_path,
+                      api_tokens: api_tokens_path,
+                      api_docs: api_docs_path,
                       login: RivetCms.login_path,
                       logout: RivetCms.logout_path,
                       logout_method: RivetCms.logout_method

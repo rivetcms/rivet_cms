@@ -157,6 +157,19 @@ module RivetCms
       }
     end
 
+    def api_token_json(token)
+      {
+        id: token.id,
+        name: token.name,
+        scope: token.scope,
+        masked: token.masked,
+        last_used_at: token.last_used_at,
+        expires_at: token.expires_at,
+        created_at: token.created_at,
+        paths: { destroy: api_token_path(token) }
+      }
+    end
+
     def component_props(component)
       {
         id: component.id,

@@ -36,4 +36,8 @@
 #   # Media/upload settings:
 #   # config.max_upload_size = 100 * 1024 * 1024
 #   # config.media_host = "https://cms.example.com"
+#
+#   # Delivery API: false (default) requires an API token; true allows anonymous
+#   # reads of published content. Preview (draft) reads always need a token.
+#   # config.public_api = false
 # end

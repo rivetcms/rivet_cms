@@ -6,6 +6,8 @@ module RivetCms
     let(:content_type) { create(:content_type, slug: "articles", organization: organization) }
     let(:title_field) { create(:field, :string, key: "title", content_type: content_type, organization: organization) }
 
+    before { RivetCms.public_api = true }
+
     def publish_document(slug:, title:)
       document = create(:document, slug: slug, content_type: content_type, organization: organization)
       draft = create(:document_revision, document: document, state: :draft)
@@ -20,8 +22,9 @@ module RivetCms
       get rivet_cms.content_index_path("articles")
 
       body = JSON.parse(response.body)
-      expect(body.map { |d| d["slug"] }).to include("first")
-      expect(body.first.dig("data", "title")).to eq("First")
+      expect(body["data"].map { |d| d["slug"] }).to include("first")
+      expect(body["data"].first.dig("data", "title")).to eq("First")
+      expect(body["meta"]).to include("page" => 1, "total" => 1)
     end
 
     it "shows a single published document" do

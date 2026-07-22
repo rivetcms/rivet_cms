@@ -14,6 +14,11 @@ module RivetCms
     # in the public API. When nil, URLs are relative paths.
     attr_accessor :media_host
 
+    # When true the delivery API allows anonymous reads of published content.
+    # When false (default) every request needs an API token. A preview-scoped
+    # token is always required to read drafts, regardless of this setting.
+    attr_accessor :public_api
+
     # Authentication is delegated to the host app. See the initializer template
     # (rails g rivet_cms:install) for a full example.
     attr_accessor :parent_controller
@@ -46,6 +51,7 @@ module RivetCms
 
   self.max_upload_size = 100 * 1024 * 1024
   self.media_host = nil
+  self.public_api = false
 
   self.parent_controller = "ActionController::Base"
   self.login_path = nil
@@ -89,16 +95,22 @@ module RivetCms
   end
 
   # Digest of the precompiled admin assets, used as the Inertia asset version
-  # so clients do a full reload when the gem ships a new build.
+  # so clients do a full reload when the gem ships a new build. Recomputed each
+  # request in development so a rebuild auto-reloads the browser; memoized
+  # elsewhere (assets are static at runtime).
   def self.asset_version
-    @asset_version ||= begin
-      build_path = Engine.root.join("app/assets/builds")
-      asset_digests = %w[rivet_cms.js rivet_cms.css].filter_map do |filename|
-        asset = build_path.join(filename)
-        Digest::MD5.file(asset).hexdigest if asset.exist?
-      end
+    return compute_asset_version if Rails.env.development?
 
-      asset_digests.any? ? Digest::MD5.hexdigest([ VERSION, *asset_digests ].join(":")) : VERSION
+    @asset_version ||= compute_asset_version
+  end
+
+  def self.compute_asset_version
+    build_path = Engine.root.join("app/assets/builds")
+    asset_digests = %w[rivet_cms.js rivet_cms.css].filter_map do |filename|
+      asset = build_path.join(filename)
+      Digest::MD5.file(asset).hexdigest if asset.exist?
     end
+
+    asset_digests.any? ? Digest::MD5.hexdigest([ VERSION, *asset_digests ].join(":")) : VERSION
   end
 end

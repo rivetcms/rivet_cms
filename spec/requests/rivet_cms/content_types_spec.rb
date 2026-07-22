@@ -28,5 +28,17 @@ module RivetCms
         expect(response.body).to include("ContentTypes/Show")
       end
     end
+
+    describe "DELETE /content_types/:id" do
+      it "destroys a content type that has soft-deleted fields" do
+        content_type = create(:content_type, organization: organization)
+        create(:field, :discarded, content_type: content_type, organization: organization)
+
+        expect {
+          delete rivet_cms.content_type_path(content_type)
+        }.to change(ContentType, :count).by(-1)
+        expect(response).to redirect_to(rivet_cms.content_types_path)
+      end
+    end
   end
 end

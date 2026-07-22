@@ -4,8 +4,8 @@ module RivetCms
 
     has_prefix_id :ctype
     include OrganizationScoped
+    include HasFields
 
-    has_many :fields, dependent: :destroy
     has_many :documents, dependent: :destroy
 
     validates :name, presence: true
@@ -17,21 +17,6 @@ module RivetCms
 
     def collection?
       !single?
-    end
-
-    # Get fields including soft-deleted ones
-    def all_fields
-      fields.with_discarded
-    end
-
-    # Get only active (non-deleted) fields
-    def active_fields
-      fields
-    end
-
-    # Get only soft-deleted fields
-    def discarded_fields
-      fields.with_discarded.discarded
     end
   end
 end

@@ -14,6 +14,8 @@ import ContentManagerIndex from "./pages/ContentManager/Index"
 import DocumentsIndex from "./pages/Documents/Index"
 import DocumentsEdit from "./pages/Documents/Edit"
 import MediaIndex from "./pages/Media/Index"
+import ApiTokensIndex from "./pages/ApiTokens/Index"
+import ApiIndex from "./pages/Api/Index"
 
 const pages = {
   "Dashboard/Show": DashboardShow,
@@ -27,6 +29,8 @@ const pages = {
   "Documents/Index": DocumentsIndex,
   "Documents/Edit": DocumentsEdit,
   "Media/Index": MediaIndex,
+  "ApiTokens/Index": ApiTokensIndex,
+  "Api/Index": ApiIndex,
 }
 
 // Rails verifies the token from the XSRF-TOKEN cookie via this header

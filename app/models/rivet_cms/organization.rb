@@ -8,6 +8,7 @@ module RivetCms
     has_many :components, dependent: :destroy, extend: PREFIXED_FINDERS
     has_many :categories, dependent: :destroy, extend: PREFIXED_FINDERS
     has_many :media_assets, dependent: :destroy, extend: PREFIXED_FINDERS
+    has_many :api_tokens, dependent: :destroy, extend: PREFIXED_FINDERS
 
     validates :name, presence: true
     validates :domain, presence: true, uniqueness: true

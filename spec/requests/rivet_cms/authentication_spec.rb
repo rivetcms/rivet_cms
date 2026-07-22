@@ -17,6 +17,7 @@ module RivetCms
       end
 
       it "leaves the public read API open" do
+        RivetCms.public_api = true
         content_type
         get rivet_cms.content_index_path("articles")
         expect(response).to have_http_status(:ok)
@@ -46,6 +47,7 @@ module RivetCms
       end
 
       it "leaves the public read API open" do
+        RivetCms.public_api = true
         content_type
         get rivet_cms.content_index_path("articles")
         expect(response).to have_http_status(:ok)

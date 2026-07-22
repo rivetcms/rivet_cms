@@ -41,6 +41,7 @@ module RivetCms
     end
 
     it "404s the public API for another organization's content type slug" do
+      RivetCms.public_api = true
       organization
       create(:content_type, slug: "articles", organization: other_org)
 

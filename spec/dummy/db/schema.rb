@@ -39,6 +39,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_23_000001) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "rivet_cms_api_tokens", force: :cascade do |t|
+    t.integer "organization_id", null: false
+    t.string "name", null: false
+    t.string "token_digest", null: false
+    t.string "token_last4", null: false
+    t.integer "scope", default: 0, null: false
+    t.datetime "last_used_at"
+    t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id"], name: "index_rivet_cms_api_tokens_on_organization_id"
+    t.index ["token_digest"], name: "index_rivet_cms_api_tokens_on_token_digest", unique: true
+  end
+
   create_table "rivet_cms_categories", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -218,6 +232,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_23_000001) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "rivet_cms_api_tokens", "rivet_cms_organizations", column: "organization_id"
   add_foreign_key "rivet_cms_categories", "rivet_cms_organizations", column: "organization_id"
   add_foreign_key "rivet_cms_component_instances", "rivet_cms_components", column: "component_id"
   add_foreign_key "rivet_cms_component_instances", "rivet_cms_fields", column: "field_id"
