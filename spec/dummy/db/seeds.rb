@@ -11,3 +11,7 @@ user = User.find_or_create_by!(email: "dev@example.com") do |u|
 end
 
 puts "Created user: #{user.name} (#{user.email})"
+
+require "rivet_cms/seeds"
+RivetCms::Seeds.load!(organization: org)
+puts "Loaded content-type templates: #{RivetCms::Seeds.available.join(', ')}"
