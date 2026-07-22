@@ -35,6 +35,43 @@ module RivetCms
       yield self
     end
 
+    # Ruby content helpers — read CMS content directly from host-app code with
+    # the same semantics and options as the delivery API (sort, date filters,
+    # pagination, populate, fields, preview).
+
+    # Published entries of a content type. Options mirror the API's list
+    # params; populate accepts an array of keys or :all.
+    def entries(type_slug, organization: nil, **options)
+      content_type = find_content_type!(type_slug, organization)
+      query = ContentQuery.new(content_type, **options)
+      populate = query.populate_fields
+
+      page = query.documents
+      revisions = page.map(&:published_revision)
+      preload = RevisionPreloader.new(revisions, populate_fields: populate)
+
+      wrapped = revisions.map do |revision|
+        Entry.new(RevisionSerializer.new(revision, fields: query.field_keys, populate: populate, preload: preload).as_json)
+      end
+      EntryCollection.new(wrapped, page: page.current_page, per_page: page.limit_value,
+                                   total: page.total_count, total_pages: page.total_pages)
+    end
+
+    # One entry by slug, or nil. preview: true serves the draft when present
+    # (Ruby callers are trusted host code — no token gate).
+    def entry(type_slug, entry_slug, organization: nil, preview: false, populate: nil, fields: nil)
+      content_type = find_content_type!(type_slug, organization)
+      document = content_type.documents.find_by(slug: entry_slug)
+      serialize_document(content_type, document, preview: preview, populate: populate, fields: fields)
+    end
+
+    # The one entry of a single-type content type, or nil.
+    def single(type_slug, organization: nil, preview: false, populate: nil, fields: nil)
+      content_type = find_content_type!(type_slug, organization)
+      document = content_type.documents.find_by(singleton_key: "singleton") || content_type.documents.first
+      serialize_document(content_type, document, preview: preview, populate: populate, fields: fields)
+    end
+
     def warn_unconfigured_authentication!
       return if @auth_warning_logged
 
@@ -47,6 +84,30 @@ module RivetCms
 
     def reset_auth_warning!
       @auth_warning_logged = false
+    end
+
+    private
+
+    def find_content_type!(type_slug, organization)
+      org = organization || Current.organization ||
+            Organization.find_by(default: true) || Organization.first
+      raise ContentQuery::Error, "no organization available" if org.nil?
+
+      org.content_types.find_by(slug: type_slug.to_s) ||
+        raise(ContentQuery::Error, "unknown content type: #{type_slug}")
+    end
+
+    def serialize_document(content_type, document, preview:, populate:, fields:)
+      return nil if document.nil?
+
+      revision = preview ? (document.draft_revision || document.published_revision) : document.published_revision
+      return nil if revision.nil?
+
+      query = ContentQuery.new(content_type, populate: populate, fields: fields)
+      populate_fields = query.populate_fields
+      preload = RevisionPreloader.new([ revision ], populate_fields: populate_fields, preview: preview)
+      Entry.new(RevisionSerializer.new(revision, fields: query.field_keys, populate: populate_fields,
+                                                 preview: preview, preload: preload).as_json)
     end
   end
 
