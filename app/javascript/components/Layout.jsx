@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { Link, usePage } from "@inertiajs/react"
 import Flash from "./Flash"
 import ThemeToggle from "./ThemeToggle"
@@ -76,7 +77,29 @@ function Aside({ paths, appVersion, url }) {
   )
 }
 
-function Header() {
+function readCookie(name) {
+  const match = document.cookie.split("; ").find((row) => row.startsWith(`${name}=`))
+  return match ? decodeURIComponent(match.split("=")[1]) : ""
+}
+
+// Logout targets a host route (often DELETE), so submit a real HTML form with
+// _method and the CSRF token rather than an Inertia visit.
+function LogoutForm({ path, method }) {
+  return (
+    <form action={path} method="post">
+      <input type="hidden" name="_method" value={method || "delete"} />
+      <input type="hidden" name="authenticity_token" value={readCookie("XSRF-TOKEN")} />
+      <button type="submit" className="flex w-full items-center gap-2 rounded-field px-2.5 py-1.5 text-[13px] transition-colors hover:bg-base-200">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Log out
+      </button>
+    </form>
+  )
+}
+
+function Header({ auth, paths }) {
+  const showMenu = auth || paths.logout
+
   return (
     <header className="navbar sticky top-0 z-10 min-h-12 border-b border-base-300 bg-base-100 px-3 py-0">
       <div className="flex-none lg:hidden">
@@ -87,26 +110,38 @@ function Header() {
       <div className="flex-1"></div>
       <div className="flex-none items-center gap-1">
         <ThemeToggle />
-        <div className="dropdown dropdown-end">
-          <div tabIndex={0} role="button" className="btn btn-circle btn-ghost btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg>
+        {showMenu && (
+          <div className="dropdown dropdown-end">
+            <div tabIndex={0} role="button" className="btn btn-circle btn-ghost btn-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg>
+            </div>
+            <div tabIndex={0} className="dropdown-content z-10 mt-1 w-52 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg">
+              {auth && (
+                <div className="border-b border-base-200 px-2.5 pb-2 pt-1">
+                  {auth.name && <div className="truncate text-[13px] font-medium">{auth.name}</div>}
+                  {auth.email && auth.email !== auth.name && <div className="truncate text-[11px] text-base-content/50">{auth.email}</div>}
+                </div>
+              )}
+              {paths.logout && (
+                <div className={auth ? "pt-1" : ""}>
+                  <LogoutForm path={paths.logout} method={paths.logout_method} />
+                </div>
+              )}
+            </div>
           </div>
-          <ul tabIndex={0} className="dropdown-content menu z-10 mt-1 w-48 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg">
-            <li>
-              <button type="button" className="gap-2 text-[13px]">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                Log out
-              </button>
-            </li>
-          </ul>
-        </div>
+        )}
       </div>
     </header>
   )
 }
 
 export default function Layout({ children }) {
-  const { props: { paths, app_version: appVersion }, url } = usePage()
+  const { props: { paths, auth, app_version: appVersion }, url } = usePage()
+
+  // Read by the axios 401 interceptor for session-expiry redirects
+  useEffect(() => {
+    window.__rivetLoginPath = paths.login || null
+  }, [paths.login])
 
   return (
     <>
@@ -114,7 +149,7 @@ export default function Layout({ children }) {
       <div className="drawer lg:drawer-open">
         <input id="sidebar-drawer" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content flex min-h-screen flex-col bg-base-200/50">
-          <Header />
+          <Header auth={auth} paths={paths} />
           <main className="flex-1 px-4 py-6 lg:px-8">
             <div className="mx-auto w-full max-w-5xl">{children}</div>
           </main>

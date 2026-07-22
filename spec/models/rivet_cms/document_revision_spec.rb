@@ -73,6 +73,27 @@ module RivetCms
       end
     end
 
+    describe "authorship" do
+      it "accepts any host class as a polymorphic author and copies it on publish" do
+        author = User.create!(name: "Jane", email: "jane@example.com")
+        draft = create(:document_revision, document: document, state: :draft, author: author, author_name: "Jane")
+
+        snapshot = draft.publish!
+
+        expect(snapshot.author).to eq(author)
+        expect(snapshot.author_name).to eq("Jane")
+      end
+
+      it "keeps the cached author name when the host user is deleted" do
+        author = User.create!(name: "Jane", email: "jane@example.com")
+        draft = create(:document_revision, document: document, state: :draft, author: author, author_name: "Jane")
+        author.destroy!
+
+        expect(draft.reload.author).to be_nil
+        expect(draft.author_name).to eq("Jane")
+      end
+    end
+
     describe "publish validation" do
       it "refuses to publish when a required field is missing and leaves the document unpublished" do
         create(:field, :string, required: true, content_type: content_type, organization: org)

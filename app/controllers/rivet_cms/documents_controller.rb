@@ -19,7 +19,7 @@ module RivetCms
     def create
       document = @content_type.documents.new(slug: params[:slug])
       document.save!
-      draft = document.revisions.create!(state: :draft)
+      draft = document.revisions.create!(state: :draft, **author_attributes)
       document.update!(draft_revision: draft)
       DraftWriter.new(draft).write(values_param)
 
@@ -33,6 +33,7 @@ module RivetCms
     end
 
     def update
+      @document.draft_revision.update!(author_attributes)
       DraftWriter.new(@document.draft_revision).write(values_param)
       redirect_to edit_content_type_document_path(@content_type, @document), notice: "Draft saved"
     end
@@ -78,6 +79,15 @@ module RivetCms
 
     def values_param
       params.fetch(:values, {}).permit!.to_h
+    end
+
+    # Content is always attributed. With a signed-in user it's their name;
+    # without one (unconfigured/programmatic) it falls back to "System".
+    def author_attributes
+      @author_attributes ||= begin
+        user = Current.user
+        { author: user, author_name: user ? RivetCms.user_name.call(user).presence || "System" : "System" }
+      end
     end
   end
 end

@@ -1,7 +1,12 @@
 module RivetCms
-  class ApplicationController < ActionController::Base
+  # Inherits from the host-configured parent controller so host auth filters and
+  # helpers are available. Do not reference this class from initializers — the
+  # parent is resolved when Zeitwerk first loads it.
+  class ApplicationController < RivetCms.parent_controller.constantize
     layout "rivet_cms/application"
 
+    before_action :authenticate_rivet_user
+    before_action :set_rivet_current_user
     before_action :set_current_organization
     after_action :set_csrf_cookie
 
@@ -9,6 +14,10 @@ module RivetCms
 
     inertia_share app_version: RivetCms::VERSION,
                   flash: -> { { notice: flash.notice, alert: flash.alert } },
+                  auth: -> {
+                    user = Current.user
+                    { name: RivetCms.user_name.call(user), email: RivetCms.user_email.call(user) } if user
+                  },
                   paths: -> {
                     {
                       root: root_path,
@@ -17,7 +26,10 @@ module RivetCms
                       content_types: content_types_path,
                       new_content_type: new_content_type_path,
                       components: components_path,
-                      new_component: new_component_path
+                      new_component: new_component_path,
+                      login: RivetCms.login_path,
+                      logout: RivetCms.logout_path,
+                      logout_method: RivetCms.logout_method
                     }
                   }
 
@@ -28,7 +40,28 @@ module RivetCms
       cookies["XSRF-TOKEN"] = form_authenticity_token
     end
 
-    # TODO: Pro replaces this with host/subdomain resolution and authentication.
+    def authenticate_rivet_user
+      result = RivetCms.authenticate.call(self)
+      return if performed? # the lambda rendered/redirected on its own
+      return if result     # truthy => allowed
+
+      deny_rivet_access    # falsy and unhandled => fail closed
+    end
+
+    def deny_rivet_access
+      if request.inertia?
+        head :unauthorized
+      elsif RivetCms.login_path.present?
+        redirect_to RivetCms.login_path
+      else
+        render plain: "RivetCms: authentication required.", status: :forbidden
+      end
+    end
+
+    def set_rivet_current_user
+      Current.user = RivetCms.current_user.call(self)
+    end
+
     def set_current_organization
       RivetCms::Current.organization =
         Organization.find_by(domain: request.host) ||

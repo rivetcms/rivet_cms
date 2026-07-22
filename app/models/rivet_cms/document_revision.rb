@@ -12,7 +12,11 @@ module RivetCms
     has_prefix_id :rev
 
     belongs_to :document
-    belongs_to :author, class_name: "RivetCms::User", optional: true
+    # The reference stays optional so deleting a host user doesn't orphan or
+    # block revisions; author_name is the durable attribution and is required.
+    belongs_to :author, polymorphic: true, optional: true
+
+    validates :author_name, presence: true
 
     has_many :content_values, as: :owner, dependent: :destroy
     has_many :relations, as: :owner, dependent: :destroy
@@ -31,6 +35,7 @@ module RivetCms
           locale: locale,
           schema_version: schema_version,
           author: author,
+          author_name: author_name,
           state: :published,
           published_at: Time.current
         )

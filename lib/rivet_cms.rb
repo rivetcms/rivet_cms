@@ -13,9 +13,80 @@ module RivetCms
     # Host (e.g. "https://cms.example.com") used to build absolute media URLs
     # in the public API. When nil, URLs are relative paths.
     attr_accessor :media_host
+
+    # Authentication is delegated to the host app. See the initializer template
+    # (rails g rivet_cms:install) for a full example.
+    attr_accessor :parent_controller
+    attr_accessor :authenticate
+    attr_accessor :current_user
+    attr_accessor :user_name
+    attr_accessor :user_email
+    attr_accessor :login_path
+    attr_accessor :logout_path
+    attr_accessor :logout_method
+
+    def configure
+      yield self
+    end
+
+    def warn_unconfigured_authentication!
+      return if @auth_warning_logged
+
+      @auth_warning_logged = true
+      Rails.logger&.warn(
+        "[RivetCms] No authentication configured — the admin UI is open. " \
+        "Set RivetCms.configure { |c| c.authenticate = ... } before deploying."
+      )
+    end
+
+    def reset_auth_warning!
+      @auth_warning_logged = false
+    end
   end
+
   self.max_upload_size = 100 * 1024 * 1024
   self.media_host = nil
+
+  self.parent_controller = "ActionController::Base"
+  self.login_path = nil
+  self.logout_path = nil
+  self.logout_method = "delete"
+
+  # authenticate returns truthy to allow the request and falsy to deny it; the
+  # engine turns a denial into a redirect to login_path or a 403 (a lambda may
+  # also render/redirect itself). Unconfigured: allow in dev/test with a
+  # warning, and FAIL CLOSED everywhere else — staging, production, custom envs.
+  DEFAULT_AUTHENTICATE = lambda do |_controller|
+    if Rails.env.development? || Rails.env.test?
+      RivetCms.warn_unconfigured_authentication!
+      true
+    else
+      false
+    end
+  end
+  self.authenticate = DEFAULT_AUTHENTICATE
+
+  self.current_user = ->(_controller) { nil }
+
+  self.user_name = lambda do |user|
+    %i[full_name name display_name email email_address].each do |attr|
+      next unless user.respond_to?(attr)
+
+      value = user.public_send(attr)
+      return value.to_s if value.present?
+    end
+    nil
+  end
+
+  self.user_email = lambda do |user|
+    %i[email email_address].each do |attr|
+      next unless user.respond_to?(attr)
+
+      value = user.public_send(attr)
+      return value.to_s if value.present?
+    end
+    nil
+  end
 
   # Digest of the precompiled admin assets, used as the Inertia asset version
   # so clients do a full reload when the gem ships a new build.

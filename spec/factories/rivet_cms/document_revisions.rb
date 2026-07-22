@@ -3,6 +3,7 @@ FactoryBot.define do
     document
     locale { "en" }
     state { :draft }
+    author_name { "System" }
 
     trait :published do
       state { :published }

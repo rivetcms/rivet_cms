@@ -43,7 +43,8 @@ class CreateContentSystemTables < ActiveRecord::Migration[7.0]
       t.references :document, null: false, foreign_key: { to_table: :rivet_cms_documents }
       t.string :locale, null: false, default: "en"
       t.integer :schema_version, null: false, default: 1
-      t.references :author, foreign_key: { to_table: :rivet_cms_users }
+      t.references :author, polymorphic: true
+      t.string :author_name
       t.integer :state, null: false, default: 0
       t.datetime :published_at
       t.timestamps

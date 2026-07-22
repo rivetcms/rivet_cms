@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_22_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_23_000001) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -116,12 +116,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_22_000001) do
     t.integer "document_id", null: false
     t.string "locale", default: "en", null: false
     t.integer "schema_version", default: 1, null: false
+    t.string "author_type"
     t.integer "author_id"
+    t.string "author_name"
     t.integer "state", default: 0, null: false
     t.datetime "published_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["author_id"], name: "index_rivet_cms_document_revisions_on_author_id"
+    t.index ["author_type", "author_id"], name: "index_rivet_cms_document_revisions_on_author"
     t.index ["document_id", "locale"], name: "index_rivet_cms_document_revisions_on_document_id_and_locale"
     t.index ["document_id", "state"], name: "index_rivet_cms_document_revisions_on_document_id_and_state"
     t.index ["document_id"], name: "index_rivet_cms_document_revisions_on_document_id"
@@ -207,26 +209,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_22_000001) do
     t.index ["target_document_id"], name: "index_rivet_cms_relations_on_target_document_id"
   end
 
-  create_table "rivet_cms_users", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "email_address", null: false
-    t.string "password_digest", null: false
-    t.integer "role", default: 0, null: false
-    t.integer "invited_by_id"
-    t.datetime "invited_at"
-    t.datetime "accepted_at"
-    t.datetime "deleted_at"
-    t.integer "deleted_by_id"
-    t.integer "organization_id", null: false
+  create_table "users", force: :cascade do |t|
+    t.string "name"
+    t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["accepted_at"], name: "index_rivet_cms_users_on_accepted_at"
-    t.index ["deleted_at"], name: "index_rivet_cms_users_on_deleted_at"
-    t.index ["deleted_by_id"], name: "index_rivet_cms_users_on_deleted_by_id"
-    t.index ["email_address"], name: "index_rivet_cms_users_on_email_address", unique: true
-    t.index ["invited_by_id"], name: "index_rivet_cms_users_on_invited_by_id"
-    t.index ["name"], name: "index_rivet_cms_users_on_name"
-    t.index ["organization_id"], name: "index_rivet_cms_users_on_organization_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -240,7 +227,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_22_000001) do
   add_foreign_key "rivet_cms_content_values", "rivet_cms_fields", column: "field_id"
   add_foreign_key "rivet_cms_content_values", "rivet_cms_media_assets", column: "media_asset_id"
   add_foreign_key "rivet_cms_document_revisions", "rivet_cms_documents", column: "document_id"
-  add_foreign_key "rivet_cms_document_revisions", "rivet_cms_users", column: "author_id"
   add_foreign_key "rivet_cms_documents", "rivet_cms_content_types", column: "content_type_id"
   add_foreign_key "rivet_cms_documents", "rivet_cms_document_revisions", column: "draft_revision_id"
   add_foreign_key "rivet_cms_documents", "rivet_cms_document_revisions", column: "published_revision_id"
@@ -251,7 +237,4 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_22_000001) do
   add_foreign_key "rivet_cms_media_assets", "rivet_cms_organizations", column: "organization_id"
   add_foreign_key "rivet_cms_relations", "rivet_cms_documents", column: "target_document_id"
   add_foreign_key "rivet_cms_relations", "rivet_cms_fields", column: "field_id"
-  add_foreign_key "rivet_cms_users", "rivet_cms_organizations", column: "organization_id"
-  add_foreign_key "rivet_cms_users", "rivet_cms_users", column: "deleted_by_id"
-  add_foreign_key "rivet_cms_users", "rivet_cms_users", column: "invited_by_id"
 end

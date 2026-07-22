@@ -32,6 +32,20 @@ const pages = {
 // Rails verifies the token from the XSRF-TOKEN cookie via this header
 axios.defaults.xsrfHeaderName = "X-CSRF-Token"
 
+// When the host session expires mid-SPA, send the browser to the host login
+// page instead of leaving a dead UI.
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const login = window?.__rivetLoginPath
+    if (error.response?.status === 401 && login) {
+      window.location = login
+      return new Promise(() => {})
+    }
+    return Promise.reject(error)
+  }
+)
+
 createInertiaApp({
   resolve: (name) => {
     const page = pages[name]

@@ -40,12 +40,6 @@ module RivetCms
     end
 
     describe "associations" do
-      it "has many users" do
-        org = create(:organization)
-        user = create(:user, organization: org)
-        expect(org.users).to include(user)
-      end
-
       it "has many content_types" do
         org = create(:organization)
         content_type = create(:content_type, organization: org)
@@ -63,12 +57,6 @@ module RivetCms
         category = create(:category, organization: org)
         component = create(:component, organization: org, category: category)
         expect(org.components).to include(component)
-      end
-
-      it "destroys associated users when destroyed" do
-        org = create(:organization)
-        user = create(:user, organization: org)
-        expect { org.destroy }.to change { User.count }.by(-1)
       end
 
       it "destroys associated content_types when destroyed" do

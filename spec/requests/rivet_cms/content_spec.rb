@@ -8,7 +8,7 @@ module RivetCms
 
     def publish_document(slug:, title:)
       document = create(:document, slug: slug, content_type: content_type, organization: organization)
-      draft = document.revisions.create!(state: :draft)
+      draft = create(:document_revision, document: document, state: :draft)
       document.update!(draft_revision: draft)
       draft.content_values.create!(field: title_field, string_value: title)
       draft.publish!
