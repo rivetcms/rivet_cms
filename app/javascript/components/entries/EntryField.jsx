@@ -3,6 +3,7 @@ import { Field, TextInput, TextArea, SelectInput } from "../forms"
 import RichTextEditor from "./RichTextEditor"
 import MarkdownEditor from "./MarkdownEditor"
 import MediaPicker from "./MediaPicker"
+import Thumbnail from "../Thumbnail"
 import FieldGrid from "./FieldGrid"
 
 function ComponentField({ field, value, onChange, referenceOptions, error }) {
@@ -126,7 +127,7 @@ function MediaField({ field, value, onChange, error }) {
         {value ? (
           <div className="flex items-center gap-2 rounded-field border border-base-300 py-1.5 pl-1.5 pr-3">
             {value.kind === "image" && value.url ? (
-              <img src={value.url} alt={value.filename} className="size-9 rounded-selector object-cover" />
+              <Thumbnail src={value.thumbnail_url || value.url} alt={value.alt || value.filename} className="size-9 rounded-selector object-cover" />
             ) : (
               <span className="flex size-9 items-center justify-center rounded-selector bg-base-200 text-base-content/40">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
@@ -203,7 +204,7 @@ export default function EntryField({ field, value, onChange, referenceOptions, e
     case "boolean":
       return (
         <Field label={field.label} hint={field.description} error={error}>
-          <label className="flex h-[calc(var(--size-field)*10)] w-full cursor-pointer items-center justify-between rounded-field border border-base-300 bg-base-100 px-3 transition-colors focus-within:border-primary focus-within:shadow-[0_0_0_1px_var(--color-primary)]">
+          <label className="flex h-[calc(var(--size-field)*10)] w-full cursor-pointer items-center justify-between rounded-field border border-base-300 bg-base-100 px-3 transition-colors focus-within:border-primary">
             <span className="text-[13px] text-base-content/60">{value ? "Yes" : "No"}</span>
             <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
           </label>

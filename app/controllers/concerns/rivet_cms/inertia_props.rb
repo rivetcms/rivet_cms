@@ -157,6 +157,7 @@ module RivetCms
         description: asset.description,
         created_at: asset.created_at&.iso8601,
         url: asset.url,
+        thumbnail_url: asset.thumbnail_url,
         paths: { update: media_asset_path(asset), destroy: media_asset_path(asset) }
       }
     end

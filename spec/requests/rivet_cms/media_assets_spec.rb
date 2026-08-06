@@ -64,6 +64,15 @@ module RivetCms
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
+    it "serves a thumbnail representation url for images" do
+      create(:media_asset, organization: organization)
+
+      get rivet_cms.media_assets_path, headers: { "Accept" => "application/json" }
+
+      body = JSON.parse(response.body)
+      expect(body.first["thumbnail_url"]).to include("/rails/active_storage/representations/")
+    end
+
     it "filters by filename, title, or alt with q" do
       create(:media_asset, organization: organization)
       hero = create(:media_asset, organization: organization, title: "Conference hero")

@@ -20,6 +20,8 @@ module RivetCms
       where("LOWER(filename) LIKE :q OR LOWER(title) LIKE :q OR LOWER(alt) LIKE :q", q: pattern)
     }
 
+    THUMBNAIL_SIZE = [ 480, 480 ].freeze
+
     def url
       return nil unless file.attached?
 
@@ -28,6 +30,20 @@ module RivetCms
         helpers.rails_blob_url(file, host: RivetCms.media_host)
       else
         helpers.rails_blob_path(file, only_path: true)
+      end
+    end
+
+    # Resized representation for grid/picker cells; nil for non-images so
+    # callers fall back to a glyph. Processing happens lazily on first request.
+    def thumbnail_url
+      return nil unless image? && file.attached? && file.blob.variable?
+
+      variant = file.variant(resize_to_limit: THUMBNAIL_SIZE)
+      helpers = Rails.application.routes.url_helpers
+      if RivetCms.media_host.present?
+        helpers.rails_representation_url(variant, host: RivetCms.media_host)
+      else
+        helpers.rails_representation_path(variant, only_path: true)
       end
     end
 

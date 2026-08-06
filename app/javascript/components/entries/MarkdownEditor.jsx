@@ -58,7 +58,7 @@ export default function MarkdownEditor({ value, onChange }) {
   }, [tab])
 
   return (
-    <div className="overflow-hidden rounded-field border border-base-300 bg-base-100 focus-within:border-primary focus-within:shadow-[0_0_0_1px_var(--color-primary)]">
+    <div className="overflow-hidden rounded-field border border-base-300 bg-base-100 focus-within:border-primary">
       <div className="flex items-center gap-1 border-b border-base-300 px-1.5 py-1">
         <TabBtn active={tab === "write"} onClick={() => setTab("write")}>Write</TabBtn>
         <TabBtn active={tab === "preview"} onClick={() => setTab("preview")}>Preview</TabBtn>

@@ -11,6 +11,20 @@ module RivetCms
       expect(response.body).to include("Documents/Index")
     end
 
+    it "lists entries with title, author, and pagination props" do
+      title_field = create(:field, :string, key: "title", content_type: content_type, organization: organization)
+      document = create(:document, slug: "titled", content_type: content_type, organization: organization)
+      draft = create(:document_revision, document: document, state: :draft, author_name: "Nathan")
+      document.update!(draft_revision: draft)
+      draft.content_values.create!(field: title_field, string_value: "My First Post")
+
+      get rivet_cms.content_type_documents_path(content_type)
+
+      expect(response.body).to include("My First Post")
+      expect(response.body).to include("Nathan")
+      expect(response.body).to include("pagination")
+    end
+
     it "filters the entries list by slug with q" do
       create(:document, slug: "hello-world", content_type: content_type, organization: organization)
       create(:document, slug: "other-post", content_type: content_type, organization: organization)

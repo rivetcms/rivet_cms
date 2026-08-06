@@ -1,9 +1,10 @@
 import { Link, router } from "@inertiajs/react"
 import PageHeader from "../../components/PageHeader"
 import EmptyState from "../../components/EmptyState"
+import { timeAgo } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
 
-export default function Index({ content_type: contentType, documents, q: initialQ }) {
+export default function Index({ content_type: contentType, documents, pagination, q: initialQ }) {
   const [q, setQ] = useSearch(initialQ, (value) =>
     router.get(contentType.paths.documents, value ? { q: value } : {}, { preserveState: true, replace: true })
   )
@@ -11,6 +12,9 @@ export default function Index({ content_type: contentType, documents, q: initial
   const destroy = (document) => {
     if (confirm("Delete this entry? This cannot be undone.")) router.delete(document.paths.destroy)
   }
+
+  const goToPage = (page) =>
+    router.get(contentType.paths.documents, { page, ...(initialQ ? { q: initialQ } : {}) }, { preserveScroll: true })
 
   return (
     <>
@@ -48,8 +52,10 @@ export default function Index({ content_type: contentType, documents, q: initial
           <table className="table">
             <thead>
               <tr className="text-[11px] uppercase tracking-wider text-base-content/50">
-                <th>Slug</th>
+                <th>Entry</th>
                 <th>Status</th>
+                <th>Author</th>
+                <th>Updated</th>
                 <th className="w-24 text-right">Actions</th>
               </tr>
             </thead>
@@ -57,13 +63,18 @@ export default function Index({ content_type: contentType, documents, q: initial
               {documents.map((document) => (
                 <tr key={document.id} className="hover">
                   <td>
-                    <Link href={document.paths.edit} className="font-medium hover:text-primary">{document.slug}</Link>
+                    <Link href={document.paths.edit} className="group block">
+                      <span className="block font-medium group-hover:text-primary">{document.title || document.slug}</span>
+                      <span className="block font-mono text-[11px] text-base-content/50">{document.slug}</span>
+                    </Link>
                   </td>
                   <td>
                     <span className={`badge badge-sm font-medium ${document.published ? "badge-success badge-soft" : "badge-ghost"}`}>
                       {document.published ? "Published" : "Draft"}
                     </span>
                   </td>
+                  <td className="text-[13px] text-base-content/70">{document.author}</td>
+                  <td className="text-[13px] text-base-content/50">{timeAgo(document.updated_at)}</td>
                   <td>
                     <div className="flex justify-end gap-0.5">
                       <Link href={document.paths.edit} className="btn btn-ghost btn-sm btn-square" aria-label={`Edit ${document.slug}`}>
@@ -78,6 +89,28 @@ export default function Index({ content_type: contentType, documents, q: initial
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pagination && pagination.total_pages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm border border-base-300"
+            disabled={pagination.page <= 1}
+            onClick={() => goToPage(pagination.page - 1)}
+          >
+            Previous
+          </button>
+          <span className="text-[13px] text-base-content/60">Page {pagination.page} of {pagination.total_pages}</span>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm border border-base-300"
+            disabled={pagination.page >= pagination.total_pages}
+            onClick={() => goToPage(pagination.page + 1)}
+          >
+            Next
+          </button>
         </div>
       )}
     </>

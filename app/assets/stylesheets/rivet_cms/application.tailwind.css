@@ -92,14 +92,14 @@ html[data-theme="dark"] {
     --color-error-content: #101010;
 }
 
-/* Focus: single accent border instead of DaisyUI's offset outline (no double-border gap) */
+/* Focus: single 1px accent border instead of DaisyUI's offset outline */
 .input:focus, .input:focus-within,
 .textarea:focus, .textarea:focus-within,
 .select:focus, .select:focus-within,
 .file-input:focus, .file-input:focus-within {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 1px var(--color-primary);
+    box-shadow: none;
 }
 
 /* Rendered rich text / markdown preview — themed with base tokens, not prose gray */

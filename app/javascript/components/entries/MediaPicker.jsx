@@ -3,6 +3,7 @@ import { createPortal } from "react-dom"
 import { usePage } from "@inertiajs/react"
 import axios from "axios"
 import { formatBytes } from "../../lib/format"
+import Thumbnail from "../Thumbnail"
 
 function FileGlyph() {
   return (
@@ -99,7 +100,7 @@ export default function MediaPicker({ open, onClose, onSelect, kind }) {
                 <button key={asset.id} type="button" onClick={() => { onSelect(asset); onClose() }} className="group overflow-hidden rounded-field border border-base-300 text-left transition-colors hover:border-primary">
                   <div className="flex aspect-square items-center justify-center bg-base-200">
                     {asset.kind === "image" ? (
-                      <img src={asset.url} alt={asset.filename} className="h-full w-full object-cover" />
+                      <Thumbnail src={asset.thumbnail_url || asset.url} alt={asset.alt || asset.filename} className="h-full w-full object-cover" />
                     ) : (
                       <FileGlyph />
                     )}

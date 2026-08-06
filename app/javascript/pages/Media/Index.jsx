@@ -3,9 +3,36 @@ import { router, usePage } from "@inertiajs/react"
 import PageHeader from "../../components/PageHeader"
 import MediaDetails from "../../components/MediaDetails"
 import MediaUpload, { UploadDropzone, UploadRow } from "../../components/MediaUpload"
+import Thumbnail from "../../components/Thumbnail"
 import { formatBytes } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
 import { useUploadQueue } from "../../lib/use_upload_queue"
+
+function CopyUrlButton({ asset }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = () => {
+    navigator.clipboard.writeText(new URL(asset.url, window.location.origin).href).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1200)
+    })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className={`flex size-6 items-center justify-center rounded-selector bg-base-100/90 shadow-sm transition-opacity ${copied ? "text-success opacity-100" : "text-base-content/50 opacity-0 hover:text-base-content group-hover:opacity-100"}`}
+      aria-label={`Copy URL for ${asset.filename}`}
+    >
+      {copied ? (
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      )}
+    </button>
+  )
+}
 
 export default function Index({ assets, pagination, q: initialQ }) {
   const { paths, media_accept: mediaAccept } = usePage().props
@@ -105,7 +132,7 @@ export default function Index({ assets, pagination, q: initialQ }) {
               <button type="button" onClick={() => setSelected(asset)} className="block w-full cursor-pointer text-left" aria-label={`Details for ${asset.filename}`}>
                 <div className="flex aspect-square items-center justify-center bg-base-200">
                   {asset.kind === "image" ? (
-                    <img src={asset.url} alt={asset.alt || asset.filename} className="h-full w-full object-cover" />
+                    <Thumbnail src={asset.thumbnail_url || asset.url} alt={asset.alt || asset.filename} className="h-full w-full object-cover" />
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-base-content/40"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
                   )}
@@ -115,9 +142,12 @@ export default function Index({ assets, pagination, q: initialQ }) {
                   <div className="font-mono text-[10px] text-base-content/50">{formatBytes(asset.byte_size)}</div>
                 </div>
               </button>
-              <button type="button" onClick={() => destroy(asset)} className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-selector bg-base-100/90 text-base-content/50 opacity-0 shadow-sm transition-opacity hover:text-error group-hover:opacity-100" aria-label={`Delete ${asset.filename}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
+              <div className="absolute right-1.5 top-1.5 flex gap-1">
+                <CopyUrlButton asset={asset} />
+                <button type="button" onClick={() => destroy(asset)} className="flex size-6 items-center justify-center rounded-selector bg-base-100/90 text-base-content/50 opacity-0 shadow-sm transition-opacity hover:text-error group-hover:opacity-100" aria-label={`Delete ${asset.filename}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
             </div>
           ))}
         </div>

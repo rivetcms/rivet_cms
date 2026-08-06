@@ -122,7 +122,7 @@ export default function RichTextEditor({ value, onChange }) {
   return (
     <div className={maximized
       ? "fixed inset-0 z-40 flex flex-col bg-base-100"
-      : "overflow-hidden rounded-field border border-base-300 bg-base-100 focus-within:border-primary focus-within:shadow-[0_0_0_1px_var(--color-primary)]"}>
+      : "overflow-hidden rounded-field border border-base-300 bg-base-100 focus-within:border-primary"}>
       <div className="flex flex-wrap items-center gap-0.5 border-b border-base-300 px-1.5 py-1">
         <Btn active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} label="Bold"><b>B</b></Btn>
         <Btn active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} label="Italic"><i>I</i></Btn>
