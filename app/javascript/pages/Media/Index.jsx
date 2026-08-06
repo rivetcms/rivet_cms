@@ -1,33 +1,28 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { router, usePage } from "@inertiajs/react"
-import axios from "axios"
 import PageHeader from "../../components/PageHeader"
 import MediaDetails from "../../components/MediaDetails"
+import MediaUpload, { UploadDropzone, UploadRow } from "../../components/MediaUpload"
 import { formatBytes } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
+import { useUploadQueue } from "../../lib/use_upload_queue"
 
 export default function Index({ assets, pagination, q: initialQ }) {
   const { paths, media_accept: mediaAccept } = usePage().props
   const mediaPath = paths.media
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState(null)
   const [selected, setSelected] = useState(null)
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [dragActive, setDragActive] = useState(false)
+  const dragDepth = useRef(0)
   const [q, setQ] = useSearch(initialQ, (value) =>
     router.get(mediaPath, value ? { q: value } : {}, { preserveState: true, replace: true })
   )
 
-  const upload = (file) => {
-    if (!file) return
-    const data = new FormData()
-    data.append("file", file)
-    setUploading(true)
-    setError(null)
-    axios
-      .post(mediaPath, data)
-      .then(() => router.reload({ only: ["assets"] }))
-      .catch((err) => setError(err.response?.data?.errors?.join(", ") || "Upload failed"))
-      .finally(() => setUploading(false))
-  }
+  // Direct drops upload inline; the modal is the button path
+  const dropQueue = useUploadQueue(mediaPath, () => {
+    router.reload({ only: ["assets", "pagination"] })
+    dropQueue.clearDone()
+  })
 
   const destroy = (asset) => {
     if (confirm(`Delete "${asset.filename}"? This cannot be undone.`)) {
@@ -41,28 +36,68 @@ export default function Index({ assets, pagination, q: initialQ }) {
     router.reload({ only: ["assets"] })
   }
 
+  // Dropping files anywhere on the page uploads them in place. Disabled while
+  // a modal is open so there is only ever one drop target on screen.
+  const pageDroppable = !uploadOpen && !selected
+  const hasFiles = (e) => Array.from(e.dataTransfer.types).includes("Files")
+  const onDragEnter = (e) => {
+    if (!pageDroppable || !hasFiles(e)) return
+    e.preventDefault()
+    dragDepth.current += 1
+    setDragActive(true)
+  }
+  const onDragLeave = () => {
+    dragDepth.current = Math.max(0, dragDepth.current - 1)
+    if (dragDepth.current === 0) setDragActive(false)
+  }
+  const onDrop = (e) => {
+    if (!pageDroppable || !hasFiles(e)) return
+    e.preventDefault()
+    dragDepth.current = 0
+    setDragActive(false)
+    if (e.dataTransfer.files.length) dropQueue.enqueue(e.dataTransfer.files)
+  }
+
   return (
-    <>
+    <div
+      className="relative min-h-[70vh]"
+      onDragEnter={onDragEnter}
+      onDragOver={(e) => pageDroppable && hasFiles(e) && e.preventDefault()}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <PageHeader title="Media" description="Upload once, reuse across any content.">
-        <input
-          type="search"
-          className="input input-bordered w-52"
-          placeholder="Search media…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-        <label className="btn btn-primary cursor-pointer">
-          {uploading ? "Uploading…" : "Upload"}
-          <input type="file" className="hidden" accept={mediaAccept} onChange={(e) => upload(e.target.files[0])} />
-        </label>
+        <button type="button" className="btn btn-primary" onClick={() => { setDragActive(false); dragDepth.current = 0; setUploadOpen(true) }}>Upload</button>
       </PageHeader>
 
-      {error && <div className="alert alert-error mb-4 px-3 py-2.5 text-[13px]">{error}</div>}
+      {(assets.length > 0 || initialQ) && (
+        <div className="mb-4">
+          <input
+            type="search"
+            className="input input-bordered w-64"
+            placeholder="Search media…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </div>
+      )}
+
+      {dropQueue.items.length > 0 && (
+        <ul className="mb-4 space-y-1">
+          {dropQueue.items.map((item) => (
+            <UploadRow key={item.id} item={item} onDismiss={dropQueue.dismiss} />
+          ))}
+        </ul>
+      )}
 
       {assets.length === 0 ? (
-        <div className="rounded-box border border-dashed border-base-300 bg-base-100 py-16 text-center text-[13px] text-base-content/50">
-          {initialQ ? `No media match "${initialQ}".` : "No media yet. Upload a file to get started."}
-        </div>
+        initialQ ? (
+          <div className="rounded-box border border-dashed border-base-300 bg-base-100 py-16 text-center text-[13px] text-base-content/50">
+            No media match "{initialQ}".
+          </div>
+        ) : (
+          <UploadDropzone accept={mediaAccept} onFiles={dropQueue.enqueue} className="py-20" />
+        )
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
           {assets.map((asset) => (
@@ -88,6 +123,21 @@ export default function Index({ assets, pagination, q: initialQ }) {
         </div>
       )}
 
+      {dragActive && (
+        <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center rounded-box border-2 border-dashed border-primary bg-base-100/85">
+          <span className="text-sm font-semibold">Drop to upload</span>
+        </div>
+      )}
+
+      {uploadOpen && (
+        <MediaUpload
+          mediaPath={mediaPath}
+          accept={mediaAccept}
+          onClose={() => setUploadOpen(false)}
+          onSettled={() => router.reload({ only: ["assets", "pagination"] })}
+        />
+      )}
+
       {selected && <MediaDetails asset={selected} onClose={() => setSelected(null)} onSaved={saved} onDelete={destroy} />}
 
       {pagination && pagination.total_pages > 1 && (
@@ -111,6 +161,6 @@ export default function Index({ assets, pagination, q: initialQ }) {
           </button>
         </div>
       )}
-    </>
+    </div>
   )
 }

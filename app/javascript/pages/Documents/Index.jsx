@@ -22,15 +22,20 @@ export default function Index({ content_type: contentType, documents, q: initial
       </div>
 
       <PageHeader title={`${contentType.name} entries`} description="Create and publish content entries.">
-        <input
-          type="search"
-          className="input input-bordered w-52"
-          placeholder="Search by slug…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
         <Link href={contentType.paths.new_document} className="btn btn-primary">New Entry</Link>
       </PageHeader>
+
+      {(documents.length > 0 || initialQ) && (
+        <div className="mb-4">
+          <input
+            type="search"
+            className="input input-bordered w-64"
+            placeholder="Search by slug…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </div>
+      )}
 
       {documents.length === 0 && !initialQ ? (
         <EmptyState resourceName="Entries" singularName="Entry" newPath={contentType.paths.new_document} />

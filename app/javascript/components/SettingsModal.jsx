@@ -12,7 +12,12 @@ export default function SettingsModal({ open, title, onClose, children }) {
   if (!open) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
+    >
       <div className="w-full max-w-lg overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-(--shadow-overlay)" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-base-300 px-5 py-3.5">
           <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
