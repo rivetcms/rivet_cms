@@ -2,6 +2,7 @@ import { useState } from "react"
 import axios from "axios"
 import SettingsModal from "./SettingsModal"
 import { formatBytes } from "../lib/format"
+import FileIcon from "./FileIcon"
 
 function MetaRow({ label, children }) {
   return (
@@ -45,8 +46,10 @@ export default function MediaDetails({ asset, onClose, onSaved, onDelete }) {
           <div className="flex aspect-square items-center justify-center overflow-hidden rounded-field border border-base-300 bg-base-200">
             {asset.kind === "image" ? (
               <img src={asset.url} alt={asset.alt || asset.filename} className="h-full w-full object-contain" />
+            ) : asset.thumbnail_url ? (
+              <img src={asset.thumbnail_url} alt={asset.alt || asset.filename} className="h-full w-full object-contain" />
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-base-content/40"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+              <FileIcon contentType={asset.content_type} kind={asset.kind} size={36} />
             )}
           </div>
           <div className="space-y-1.5 rounded-field bg-base-200/60 p-3">

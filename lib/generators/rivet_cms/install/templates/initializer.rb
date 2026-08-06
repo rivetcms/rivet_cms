@@ -37,6 +37,9 @@
 #   # config.max_upload_size = 100 * 1024 * 1024
 #   # config.media_host = "https://cms.example.com"
 #   #
+#   # Thumbnails need system binaries (all optional, see README): libvips for
+#   # images, poppler-utils for PDF previews, ffmpeg for video previews.
+#   #
 #   # MIME types the media library accepts (checked against the sniffed type).
 #   # Defaults to common image/video/audio/document types; SVG is excluded
 #   # because scripted SVGs can carry XSS. Set to nil to allow anything.

@@ -35,6 +35,25 @@ That's it. The admin UI's JavaScript and CSS are precompiled into the gem
 (`app/assets/builds/`) and served through the asset pipeline (Propshaft or
 Sprockets), so no frontend tooling is required in the host app.
 
+## Media processing (optional system dependencies)
+
+The media library generates thumbnails through Active Storage. What renders
+depends on which system binaries the host has installed; everything degrades
+gracefully to a file-type icon when a binary is missing:
+
+| Binary | Install (Debian/Ubuntu) | Install (macOS) | Enables |
+|---|---|---|---|
+| libvips (recommended) | `apt install libvips` | `brew install vips` | Image thumbnails (resized variants) |
+| poppler | `apt install poppler-utils` | `brew install poppler` | PDF thumbnails (first page) |
+| ffmpeg | `apt install ffmpeg` | `brew install ffmpeg` | Video thumbnails (first frame) |
+
+None are hard dependencies: uploads, storage, and delivery work without them.
+Without poppler or ffmpeg, PDFs and videos show a type icon instead of a
+preview. libvips is the one you really want: without it image thumbnail
+requests fail and grid cells stay on their neutral placeholder (full-size
+originals still serve fine everywhere else). Thumbnails are processed lazily
+on first request and cached by Active Storage.
+
 ## Reading content from Ruby
 
 Host apps can read CMS content directly — no HTTP round-trip — with the same

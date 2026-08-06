@@ -4,6 +4,8 @@ import PageHeader from "../../components/PageHeader"
 import MediaDetails from "../../components/MediaDetails"
 import MediaUpload, { UploadDropzone, UploadRow } from "../../components/MediaUpload"
 import Thumbnail from "../../components/Thumbnail"
+import FilterSelect from "../../components/FilterSelect"
+import FileIcon from "../../components/FileIcon"
 import { formatBytes } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
 import { useUploadQueue } from "../../lib/use_upload_queue"
@@ -34,20 +36,26 @@ function CopyUrlButton({ asset }) {
   )
 }
 
-export default function Index({ assets, pagination, q: initialQ }) {
+const KIND_LABELS = { image: "Images", video: "Videos", file: "Files" }
+
+export default function Index({ assets, pagination, q: initialQ, kind: initialKind, kinds = [] }) {
   const { paths, media_accept: mediaAccept } = usePage().props
   const mediaPath = paths.media
   const [selected, setSelected] = useState(null)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const dragDepth = useRef(0)
-  const [q, setQ] = useSearch(initialQ, (value) =>
-    router.get(mediaPath, value ? { q: value } : {}, { preserveState: true, replace: true })
-  )
+
+  const filterParams = (overrides = {}) => {
+    const merged = { q: initialQ, kind: initialKind, ...overrides }
+    return Object.fromEntries(Object.entries(merged).filter(([, v]) => v))
+  }
+  const visit = (params) => router.get(mediaPath, params, { preserveState: true, replace: true })
+  const [q, setQ] = useSearch(initialQ, (value) => visit(filterParams({ q: value })))
 
   // Direct drops upload inline; the modal is the button path
   const dropQueue = useUploadQueue(mediaPath, () => {
-    router.reload({ only: ["assets", "pagination"] })
+    router.reload({ only: ["assets", "pagination", "kinds"] })
     dropQueue.clearDone()
   })
 
@@ -97,8 +105,8 @@ export default function Index({ assets, pagination, q: initialQ }) {
         <button type="button" className="btn btn-primary" onClick={() => { setDragActive(false); dragDepth.current = 0; setUploadOpen(true) }}>Upload</button>
       </PageHeader>
 
-      {(assets.length > 0 || initialQ) && (
-        <div className="mb-4">
+      {(assets.length > 0 || initialQ || initialKind) && (
+        <div className="mb-4 flex items-center gap-2">
           <input
             type="search"
             className="input input-bordered w-64"
@@ -106,6 +114,24 @@ export default function Index({ assets, pagination, q: initialQ }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
+          {(kinds.length > 1 || initialKind) && (
+            <FilterSelect
+              options={kinds.map((kind) => ({ value: kind, label: KIND_LABELS[kind] || kind }))}
+              value={initialKind}
+              allLabel="All media"
+              onChange={(kind) => visit(filterParams({ kind, q }))}
+            />
+          )}
+          {(q || initialQ || initialKind) && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm btn-square"
+              onClick={() => router.get(mediaPath, {}, { replace: true })}
+              aria-label="Clear filters"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          )}
         </div>
       )}
 
@@ -118,9 +144,9 @@ export default function Index({ assets, pagination, q: initialQ }) {
       )}
 
       {assets.length === 0 ? (
-        initialQ ? (
+        initialQ || initialKind ? (
           <div className="rounded-box border border-dashed border-base-300 bg-base-100 py-16 text-center text-[13px] text-base-content/50">
-            No media match "{initialQ}".
+            No media match your filters.
           </div>
         ) : (
           <UploadDropzone accept={mediaAccept} onFiles={dropQueue.enqueue} className="py-20" />
@@ -131,10 +157,10 @@ export default function Index({ assets, pagination, q: initialQ }) {
             <div key={asset.id} className="group relative overflow-hidden rounded-box border border-base-300 bg-base-100 transition-colors hover:border-base-content/30">
               <button type="button" onClick={() => setSelected(asset)} className="block w-full cursor-pointer text-left" aria-label={`Details for ${asset.filename}`}>
                 <div className="flex aspect-square items-center justify-center bg-base-200">
-                  {asset.kind === "image" ? (
+                  {asset.thumbnail_url || asset.kind === "image" ? (
                     <Thumbnail src={asset.thumbnail_url || asset.url} alt={asset.alt || asset.filename} className="h-full w-full object-cover" />
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-base-content/40"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+                    <FileIcon contentType={asset.content_type} kind={asset.kind} />
                   )}
                 </div>
                 <div className="px-2 py-1.5">
@@ -164,7 +190,7 @@ export default function Index({ assets, pagination, q: initialQ }) {
           mediaPath={mediaPath}
           accept={mediaAccept}
           onClose={() => setUploadOpen(false)}
-          onSettled={() => router.reload({ only: ["assets", "pagination"] })}
+          onSettled={() => router.reload({ only: ["assets", "pagination", "kinds"] })}
         />
       )}
 
@@ -176,7 +202,7 @@ export default function Index({ assets, pagination, q: initialQ }) {
             type="button"
             className="btn btn-ghost btn-sm border border-base-300"
             disabled={pagination.page <= 1}
-            onClick={() => router.get(mediaPath, { page: pagination.page - 1, ...(initialQ ? { q: initialQ } : {}) }, { preserveScroll: true })}
+            onClick={() => router.get(mediaPath, { ...filterParams(), page: pagination.page - 1 }, { preserveScroll: true })}
           >
             Previous
           </button>
@@ -185,7 +211,7 @@ export default function Index({ assets, pagination, q: initialQ }) {
             type="button"
             className="btn btn-ghost btn-sm border border-base-300"
             disabled={pagination.page >= pagination.total_pages}
-            onClick={() => router.get(mediaPath, { page: pagination.page + 1, ...(initialQ ? { q: initialQ } : {}) }, { preserveScroll: true })}
+            onClick={() => router.get(mediaPath, { ...filterParams(), page: pagination.page + 1 }, { preserveScroll: true })}
           >
             Next
           </button>

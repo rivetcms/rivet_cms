@@ -83,6 +83,28 @@ module RivetCms
       }
     end
 
+    # Display titles for a page of documents: each type's first string field,
+    # read from the draft revisions in one query. Keyed by revision id (a
+    # revision only holds values for its own type's fields).
+    def document_titles(documents)
+      type_ids = documents.map(&:content_type_id).uniq
+      title_field_ids = Field.kept.where(content_type_id: type_ids, field_type: "string").ordered
+                             .group_by(&:content_type_id).filter_map { |_, fields| fields.first&.id }
+      revision_ids = documents.filter_map(&:draft_revision_id)
+      return {} if title_field_ids.empty? || revision_ids.empty?
+
+      ContentValue.where(owner_type: "RivetCms::DocumentRevision", owner_id: revision_ids, field_id: title_field_ids)
+                  .pluck(:owner_id, :string_value).to_h
+    end
+
+    def document_list_props(document, titles)
+      document_props(document).merge(
+        title: document.draft_revision_id && titles[document.draft_revision_id],
+        author: document.draft_revision&.author_name,
+        updated_at: document.updated_at.iso8601
+      )
+    end
+
     def entry_field_props(field)
       {
         key: field.key,

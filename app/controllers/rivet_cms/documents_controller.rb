@@ -10,10 +10,12 @@ module RivetCms
       documents = documents.search(params[:q]) if params[:q].present?
       page = documents.includes(:draft_revision).page(params[:page]).per(25)
 
+      titles = document_titles(page)
+
       render inertia: "Documents/Index", props: {
         content_type: content_type_props(@content_type),
         q: params[:q].presence,
-        documents: page.map { |document| document_list_props(document, titles_by_revision_id(page)) },
+        documents: page.map { |document| document_list_props(document, titles) },
         pagination: { page: page.current_page, total_pages: page.total_pages }
       }
     end
@@ -65,33 +67,6 @@ module RivetCms
     end
 
     private
-
-    # The first string field of the type serves as the display title
-    def title_field
-      return @title_field if defined?(@title_field)
-
-      @title_field = @content_type.fields.kept.where(field_type: "string").ordered.first
-    end
-
-    def titles_by_revision_id(documents)
-      @titles_by_revision_id ||= begin
-        revision_ids = documents.filter_map(&:draft_revision_id)
-        if title_field && revision_ids.any?
-          ContentValue.where(owner_type: "RivetCms::DocumentRevision", owner_id: revision_ids, field: title_field)
-                      .pluck(:owner_id, :string_value).to_h
-        else
-          {}
-        end
-      end
-    end
-
-    def document_list_props(document, titles)
-      document_props(document).merge(
-        title: document.draft_revision_id && titles[document.draft_revision_id],
-        author: document.draft_revision&.author_name,
-        updated_at: document.updated_at.iso8601
-      )
-    end
 
     def set_content_type
       @content_type = Current.organization.content_types.find(params[:content_type_id])

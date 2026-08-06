@@ -4,14 +4,7 @@ import { usePage } from "@inertiajs/react"
 import axios from "axios"
 import { formatBytes } from "../../lib/format"
 import Thumbnail from "../Thumbnail"
-
-function FileGlyph() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-base-content/40">
-      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-    </svg>
-  )
-}
+import FileIcon from "../FileIcon"
 
 // The configured allowlist narrowed to the field's kind; falls back to broad
 // wildcards when no allowlist is configured. The server validates either way.
@@ -99,10 +92,10 @@ export default function MediaPicker({ open, onClose, onSelect, kind }) {
               {shown.map((asset) => (
                 <button key={asset.id} type="button" onClick={() => { onSelect(asset); onClose() }} className="group overflow-hidden rounded-field border border-base-300 text-left transition-colors hover:border-primary">
                   <div className="flex aspect-square items-center justify-center bg-base-200">
-                    {asset.kind === "image" ? (
+                    {asset.thumbnail_url || asset.kind === "image" ? (
                       <Thumbnail src={asset.thumbnail_url || asset.url} alt={asset.alt || asset.filename} className="h-full w-full object-cover" />
                     ) : (
-                      <FileGlyph />
+                      <FileIcon contentType={asset.content_type} kind={asset.kind} size={22} />
                     )}
                   </div>
                   <div className="px-2 py-1.5">

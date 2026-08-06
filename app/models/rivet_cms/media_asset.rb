@@ -33,17 +33,26 @@ module RivetCms
       end
     end
 
-    # Resized representation for grid/picker cells; nil for non-images so
-    # callers fall back to a glyph. Processing happens lazily on first request.
+    # Resized representation for grid/picker cells: a variant for images, a
+    # preview (first page/frame) for PDFs and videos when the host has poppler
+    # or ffmpeg installed. Nil when neither applies so callers fall back to a
+    # glyph. Processing happens lazily on first request.
     def thumbnail_url
-      return nil unless image? && file.attached? && file.blob.variable?
+      return nil unless file.attached?
 
-      variant = file.variant(resize_to_limit: THUMBNAIL_SIZE)
+      representation =
+        if image? && file.blob.variable?
+          file.variant(resize_to_limit: THUMBNAIL_SIZE)
+        elsif file.blob.previewable?
+          file.preview(resize_to_limit: THUMBNAIL_SIZE)
+        end
+      return nil unless representation
+
       helpers = Rails.application.routes.url_helpers
       if RivetCms.media_host.present?
-        helpers.rails_representation_url(variant, host: RivetCms.media_host)
+        helpers.rails_representation_url(representation, host: RivetCms.media_host)
       else
-        helpers.rails_representation_path(variant, only_path: true)
+        helpers.rails_representation_path(representation, only_path: true)
       end
     end
 

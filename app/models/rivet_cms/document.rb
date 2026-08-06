@@ -17,7 +17,7 @@ module RivetCms
     validate :content_type_in_same_organization
 
     scope :recent, -> { order(created_at: :desc) }
-    scope :search, ->(query) { where("LOWER(slug) LIKE ?", "%#{sanitize_sql_like(query.downcase)}%") }
+    scope :search, ->(query) { where("LOWER(#{table_name}.slug) LIKE ?", "%#{sanitize_sql_like(query.downcase)}%") }
 
     private
 

@@ -5,6 +5,7 @@ module RivetCms
     def index
       scope = media_assets.recent
       scope = scope.search(params[:q]) if params[:q].present?
+      scope = scope.where(kind: params[:kind]) if MediaAsset.kinds.key?(params[:kind])
       page = scope.page(params[:page]).per(48)
       assets = page.map { |asset| media_asset_json(asset) }
 
@@ -14,6 +15,8 @@ module RivetCms
           render inertia: "Media/Index", props: {
             assets: assets,
             q: params[:q].presence,
+            kind: params[:kind].presence,
+            kinds: media_assets.distinct.order(:kind).pluck(:kind),
             pagination: { page: page.current_page, total_pages: page.total_pages }
           }
         end

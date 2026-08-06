@@ -91,6 +91,26 @@ module RivetCms
       expect(JSON.parse(response.body)).to eq([])
     end
 
+    def pdf_upload
+      file = Tempfile.new([ "doc", ".pdf" ])
+      file.write("%PDF-1.4 fake")
+      file.rewind
+      Rack::Test::UploadedFile.new(file.path, "application/pdf", original_filename: "doc.pdf")
+    end
+
+    it "filters by kind and reports the kinds present" do
+      create(:media_asset, organization: organization)
+      post rivet_cms.media_assets_path, params: { file: pdf_upload }
+
+      get rivet_cms.media_assets_path, params: { kind: "file" }, headers: { "Accept" => "application/json" }
+      body = JSON.parse(response.body)
+      expect(body.map { |a| a["kind"] }.uniq).to eq([ "file" ])
+
+      get rivet_cms.media_assets_path
+      expect(response.body).to include("kinds")
+      expect(response.body).to include("image")
+    end
+
     it "updates title, alt, and description" do
       asset = create(:media_asset, organization: organization)
 
