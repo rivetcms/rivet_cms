@@ -11,8 +11,19 @@ function FileGlyph() {
   )
 }
 
+// The configured allowlist narrowed to the field's kind; falls back to broad
+// wildcards when no allowlist is configured. The server validates either way.
+function acceptFor(kind, mediaAccept) {
+  if (!mediaAccept) return kind === "image" ? "image/*" : kind === "video" ? "video/*" : undefined
+  if (kind === "image" || kind === "video") {
+    return mediaAccept.split(",").filter((t) => t.startsWith(`${kind}/`)).join(",")
+  }
+  return mediaAccept
+}
+
 export default function MediaPicker({ open, onClose, onSelect, kind }) {
-  const mediaPath = usePage().props.paths.media
+  const { paths, media_accept: mediaAccept } = usePage().props
+  const mediaPath = paths.media
   const [assets, setAssets] = useState([])
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -51,13 +62,13 @@ export default function MediaPicker({ open, onClose, onSelect, kind }) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-box border border-base-300 border-t-[3px] border-t-primary bg-base-100 shadow-(--shadow-overlay)" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-base-300 px-4 py-3">
           <h2 className="text-sm font-semibold">Media Library</h2>
           <div className="flex items-center gap-2">
             <label className="btn btn-primary btn-sm cursor-pointer">
               {uploading ? "Uploading…" : "Upload"}
-              <input type="file" className="hidden" accept={kind === "image" ? "image/*" : kind === "video" ? "video/*" : undefined} onChange={(e) => upload(e.target.files[0])} />
+              <input type="file" className="hidden" accept={acceptFor(kind, mediaAccept)} onChange={(e) => upload(e.target.files[0])} />
             </label>
             <button type="button" className="btn btn-ghost btn-sm btn-square" onClick={onClose} aria-label="Close">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>

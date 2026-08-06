@@ -11,6 +11,12 @@ module RivetCms
     # Hard ceiling for library uploads (bytes); hosts can override in an initializer.
     attr_accessor :max_upload_size
 
+    # MIME types the media library accepts, checked against the sniffed type,
+    # not the client-declared one. nil disables the check. SVG is excluded by
+    # default because scripted SVGs are an XSS vector; hosts that trust their
+    # editors can append "image/svg+xml".
+    attr_accessor :allowed_media_types
+
     # Host (e.g. "https://cms.example.com") used to build absolute media URLs
     # in the public API. When nil, URLs are relative paths.
     attr_accessor :media_host
@@ -112,6 +118,15 @@ module RivetCms
   end
 
   self.max_upload_size = 100 * 1024 * 1024
+  self.allowed_media_types = %w[
+    image/png image/jpeg image/gif image/webp image/avif
+    video/mp4 video/webm video/quicktime
+    audio/mpeg audio/wav audio/ogg
+    application/pdf application/zip
+    text/plain text/csv
+    application/msword application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    application/vnd.ms-excel application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+  ]
   self.media_host = nil
   self.public_api = false
 

@@ -13,6 +13,7 @@ module RivetCms
     inertia_config version: -> { RivetCms.asset_version }
 
     inertia_share app_version: RivetCms::VERSION,
+                  media_accept: -> { RivetCms.allowed_media_types&.join(",") },
                   flash: -> { { notice: flash.notice, alert: flash.alert } },
                   auth: -> {
                     user = Current.user

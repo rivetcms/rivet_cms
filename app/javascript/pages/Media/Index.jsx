@@ -4,7 +4,8 @@ import axios from "axios"
 import PageHeader from "../../components/PageHeader"
 
 export default function Index({ assets, pagination }) {
-  const mediaPath = usePage().props.paths.media
+  const { paths, media_accept: mediaAccept } = usePage().props
+  const mediaPath = paths.media
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -30,7 +31,7 @@ export default function Index({ assets, pagination }) {
       <PageHeader title="Media" description="Upload once, reuse across any content.">
         <label className="btn btn-primary cursor-pointer">
           {uploading ? "Uploading…" : "Upload"}
-          <input type="file" className="hidden" onChange={(e) => upload(e.target.files[0])} />
+          <input type="file" className="hidden" accept={mediaAccept} onChange={(e) => upload(e.target.files[0])} />
         </label>
       </PageHeader>
 

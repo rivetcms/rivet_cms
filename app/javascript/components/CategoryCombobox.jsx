@@ -58,7 +58,7 @@ export default function CategoryCombobox({ categories: initialCategories, value,
           <path d="m7 9 5-5 5 5" />
         </svg>
       </div>
-      <div tabIndex={0} className="dropdown-content z-10 mt-1 w-full rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg">
+      <div tabIndex={0} className="dropdown-content z-10 mt-1 w-full rounded-box border border-base-300 bg-base-100 p-1.5 shadow-(--shadow-raised)">
         <div className="mb-1.5">
           <input
             type="text"

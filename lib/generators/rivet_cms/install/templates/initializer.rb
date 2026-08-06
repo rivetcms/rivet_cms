@@ -36,6 +36,11 @@
 #   # Media/upload settings:
 #   # config.max_upload_size = 100 * 1024 * 1024
 #   # config.media_host = "https://cms.example.com"
+#   #
+#   # MIME types the media library accepts (checked against the sniffed type).
+#   # Defaults to common image/video/audio/document types; SVG is excluded
+#   # because scripted SVGs can carry XSS. Set to nil to allow anything.
+#   # config.allowed_media_types += %w[image/svg+xml]
 #
 #   # Delivery API: false (default) requires an API token; true allows anonymous
 #   # reads of published content. Preview (draft) reads always need a token.

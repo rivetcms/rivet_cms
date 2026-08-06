@@ -10,11 +10,11 @@ export default function EditorDialog({ title, onClose, onSubmit, submitLabel = "
           e.stopPropagation()
           onSubmit()
         }}
-        className="w-full max-w-sm overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-xl"
+        className="w-full max-w-sm overflow-hidden rounded-box border border-base-300 border-t-[3px] border-t-primary bg-base-100 shadow-(--shadow-overlay)"
       >
         <div className="border-b border-base-300 px-4 py-3 text-sm font-semibold">{title}</div>
         <div className="space-y-4 px-4 py-4">{children}</div>
-        <div className="flex items-center justify-end gap-2 border-t border-base-200 px-4 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-base-200 bg-base-200/60 px-4 py-3">
           <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn btn-primary btn-sm">{submitLabel}</button>
         </div>

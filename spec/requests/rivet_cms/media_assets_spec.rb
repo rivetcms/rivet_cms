@@ -38,6 +38,32 @@ module RivetCms
       expect(body["url"]).to be_present
     end
 
+    def html_upload(filename: "page.html", declared_type: "text/html")
+      file = Tempfile.new([ "page", ".html" ])
+      file.write("<html><script>alert(1)</script></html>")
+      file.rewind
+      Rack::Test::UploadedFile.new(file.path, declared_type, original_filename: filename)
+    end
+
+    it "rejects a file type outside the allowlist" do
+      organization
+      expect {
+        post rivet_cms.media_assets_path, params: { file: html_upload }
+      }.not_to change(MediaAsset, :count)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(JSON.parse(response.body)["errors"].join).to include("not allowed")
+    end
+
+    it "rejects by sniffed type, not the client-declared one" do
+      organization
+      expect {
+        post rivet_cms.media_assets_path, params: { file: html_upload(filename: "photo.png", declared_type: "image/png") }
+      }.not_to change(MediaAsset, :count)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
     it "deletes a media asset" do
       asset = create(:media_asset, organization: organization)
       expect {

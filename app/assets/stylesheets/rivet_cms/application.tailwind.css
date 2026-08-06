@@ -5,8 +5,27 @@
 }
 
 @theme {
-    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Steel ramp from the RivetCMS design system; orange is wordmark-only */
+:root {
+    --steel-0: #ffffff;
+    --steel-1: #f7f7f6;
+    --steel-2: #efefed;
+    --steel-3: #dededb;
+    --steel-4: #b8b8b3;
+    --steel-5: #8e8e88;
+    --steel-6: #5a5a55;
+    --steel-7: #3a3a38;
+    --steel-8: #262624;
+    --steel-9: #171716;
+    --steel-10: #101010;
+    --orange-5: #ff5c00;
+    --shadow-card: 0 1px 2px rgba(16, 16, 16, 0.07);
+    --shadow-raised: 0 2px 6px rgba(16, 16, 16, 0.11);
+    --shadow-overlay: 0 8px 28px rgba(16, 16, 16, 0.2);
 }
 
 /* Design tokens shared by every theme: compact controls, unified radii */
@@ -17,17 +36,60 @@ html[data-theme] {
     --radius-selector: 0.375rem;
     --radius-box: 0.75rem;
     --border: 1px;
+    --depth: 0;
+    --noise: 0;
     font-family: var(--font-sans);
 }
 
+/* Flat buttons that drop 1px on press */
+.btn:not(:disabled, .btn-disabled):active {
+    transform: translateY(1px);
+}
+
 html[data-theme="lofi"] {
-    --color-primary: oklch(51.1% 0.242 277);
-    --color-primary-content: oklch(98% 0.01 277);
+    --color-base-100: var(--steel-0);
+    --color-base-200: var(--steel-1);
+    --color-base-300: var(--steel-3);
+    --color-base-content: var(--steel-9);
+    --color-primary: var(--steel-9);
+    --color-primary-content: #ffffff;
+    --color-secondary: var(--steel-6);
+    --color-secondary-content: #ffffff;
+    --color-accent: var(--steel-7);
+    --color-accent-content: #ffffff;
+    --color-neutral: var(--steel-8);
+    --color-neutral-content: #ffffff;
+    --color-info: #3a6ea5;
+    --color-info-content: #ffffff;
+    --color-success: #2f7d46;
+    --color-success-content: #ffffff;
+    --color-warning: #c98a00;
+    --color-warning-content: #101010;
+    --color-error: #c8351f;
+    --color-error-content: #ffffff;
 }
 
 html[data-theme="dark"] {
-    --color-primary: oklch(58.5% 0.222 277);
-    --color-primary-content: oklch(98% 0.01 277);
+    --color-base-100: var(--steel-9);
+    --color-base-200: var(--steel-10);
+    --color-base-300: var(--steel-7);
+    --color-base-content: #f2f2f0;
+    --color-primary: var(--steel-1);
+    --color-primary-content: var(--steel-9);
+    --color-secondary: var(--steel-4);
+    --color-secondary-content: var(--steel-9);
+    --color-accent: var(--steel-3);
+    --color-accent-content: var(--steel-9);
+    --color-neutral: var(--steel-2);
+    --color-neutral-content: var(--steel-9);
+    --color-info: #6d9bc9;
+    --color-info-content: #101010;
+    --color-success: #5aa672;
+    --color-success-content: #101010;
+    --color-warning: #d9a63a;
+    --color-warning-content: #101010;
+    --color-error: #d96a52;
+    --color-error-content: #101010;
 }
 
 /* Focus: single accent border instead of DaisyUI's offset outline (no double-border gap) */

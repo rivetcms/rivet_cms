@@ -41,7 +41,7 @@ function NavLink({ href, icon, active, children }) {
     <li>
       <Link
         href={href}
-        className={`flex items-center gap-2.5 rounded-field px-2.5 py-2 text-[13px] font-medium transition-colors ${active ? "bg-primary/10 text-primary" : "text-base-content/70 hover:bg-base-200"}`}
+        className={`flex items-center gap-2.5 rounded-field px-2.5 py-2 text-[13px] font-medium transition-colors ${active ? "bg-primary text-primary-content" : "text-base-content/70 hover:bg-base-200 hover:text-base-content"}`}
       >
         <span className={active ? "" : "text-base-content/50"}>{icon}</span>
         {children}
@@ -58,11 +58,9 @@ function Aside({ paths, appVersion, url }) {
       <label htmlFor="sidebar-drawer" aria-label="Close sidebar" className="drawer-overlay"></label>
       <aside className="flex min-h-full w-60 flex-col p-3">
         <Link href={paths.root} className="mb-4 flex items-center gap-2.5 rounded-field px-2 py-2 transition-colors hover:bg-base-200">
-          <div className="flex aspect-square size-7 items-center justify-center rounded-field bg-primary text-primary-content">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-3.5 w-3.5"><rect width="256" height="256" fill="none"></rect><line x1="208" y1="128" x2="128" y2="208" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="32"></line><line x1="192" y1="40" x2="40" y2="192" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="32"></line></svg>
-          </div>
+          <div className="flex aspect-square size-7 items-center justify-center rounded-field bg-(--orange-5) text-[15px] font-bold text-white">R</div>
           <div className="grid flex-1 text-left leading-tight">
-            <span className="truncate text-[13px] font-semibold tracking-tight">Rivet CMS</span>
+            <span className="truncate text-[14px] font-bold tracking-tight">RivetCMS</span>
             <span className="truncate font-mono text-[10px] text-base-content/50">v{appVersion}</span>
           </div>
         </Link>
@@ -135,7 +133,7 @@ function Header({ auth, paths }) {
             <div tabIndex={0} role="button" className="btn btn-circle btn-ghost btn-sm">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg>
             </div>
-            <div tabIndex={0} className="dropdown-content z-10 mt-1 w-52 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg">
+            <div tabIndex={0} className="dropdown-content z-10 mt-1 w-52 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-(--shadow-raised)">
               {auth && (
                 <div className="border-b border-base-200 px-2.5 pb-2 pt-1">
                   {auth.name && <div className="truncate text-[13px] font-medium">{auth.name}</div>}

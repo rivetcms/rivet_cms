@@ -10,6 +10,7 @@ module RivetCms
 
     validates :file, presence: true
     validate :file_size_within_limit
+    validate :file_type_allowed
 
     before_save :cache_file_metadata
 
@@ -51,6 +52,17 @@ module RivetCms
       return if file.byte_size <= limit
 
       errors.add(:file, "is too large (max #{ActiveSupport::NumberHelper.number_to_human_size(limit)})")
+    end
+
+    def file_type_allowed
+      allowed = RivetCms.allowed_media_types
+      return unless allowed && file.attached?
+
+      blob = file.blob
+      blob.identify_without_saving unless blob.identified?
+      return if allowed.include?(blob.content_type)
+
+      errors.add(:file, "type #{blob.content_type} is not allowed")
     end
 
     def cache_file_metadata
