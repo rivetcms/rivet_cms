@@ -30,8 +30,8 @@ module RivetCms
       validator = ContentValidator.new(self).validate
       raise ContentInvalidError, validator.errors unless validator.valid?
 
-      transaction do
-        snapshot = document.revisions.create!(
+      snapshot = transaction do
+        published = document.revisions.create!(
           locale: locale,
           schema_version: schema_version,
           author: author,
@@ -39,10 +39,15 @@ module RivetCms
           state: :published,
           published_at: Time.current
         )
-        self.class.copy_owned_into(self, snapshot)
-        document.update!(published_revision: snapshot)
-        snapshot
+        self.class.copy_owned_into(self, published)
+        document.update!(published_revision: published)
+        published
       end
+
+      # Hooks fire only once the write is durable, even under an outer
+      # transaction; the gem requires Rails 7.2+ for this guarantee
+      ActiveRecord.after_all_transactions_commit { Hooks.run(:publish, snapshot) }
+      snapshot
     end
 
     def self.copy_owned_into(source, target)

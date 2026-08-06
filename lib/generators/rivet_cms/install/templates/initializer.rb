@@ -48,4 +48,14 @@
 #   # Delivery API: false (default) requires an API token; true allows anonymous
 #   # reads of published content. Preview (draft) reads always need a token.
 #   # config.public_api = false
+#
+#   # Lifecycle hooks: run host code when content changes. Hooks fire after
+#   # the database commit and receive the published snapshot revision.
+#   # RivetCms.on(:publish) { |revision| Rails.cache.delete("nav") }
+#
+#   # Webhooks: POST a JSON payload to each endpoint on matching events
+#   # (events omitted = all events). Delivered async via ActiveJob.
+#   # config.webhooks = [
+#   #   { url: "https://example.com/deploy-hook", events: %w[entry.published] }
+#   # ]
 # end

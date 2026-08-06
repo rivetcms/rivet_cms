@@ -85,6 +85,49 @@ organization); pass `organization:` explicitly in jobs and scripts. Unknown
 option values — sort/filter/populate/fields keys — raise
 `RivetCms::ContentQuery::Error`, mirroring the API's 400s.
 
+## Lifecycle hooks and webhooks
+
+Run host code when content changes. Hooks fire after the database commit and
+receive the published snapshot revision; a failing hook is logged, never
+raised into the publish path:
+
+```ruby
+RivetCms.on(:publish) do |revision|
+  Rails.cache.delete("navigation")
+  BuildSiteJob.perform_later
+end
+```
+
+Register hooks in an initializer. If you must register from reloadable code
+(`to_prepare`), pass a `key:` — re-registering the same key replaces the
+handler instead of stacking a duplicate on every reload:
+
+```ruby
+RivetCms.on(:publish, key: :sitemap) { |revision| RefreshSitemapJob.perform_later }
+```
+
+For HTTP consumers, configure webhook endpoints instead; each matching event
+POSTs a JSON payload (event name, document id, slug, content type,
+organization, locale, published_at, author) through ActiveJob:
+
+```ruby
+RivetCms.configure do |config|
+  config.webhooks = [
+    { url: "https://example.com/deploy-hook", events: %w[entry.published] }
+  ]
+end
+```
+
+Omitting `events` subscribes an endpoint to everything. Malformed webhook
+config raises at boot. Delivery failures (connection errors and non-2xx
+responses alike) raise inside the job, so retries follow your queue adapter's
+defaults. Current events: `entry.published`.
+
+CE delivery is a single **unsigned** POST: anyone who learns the endpoint URL
+can forge it. Treat webhooks as a trigger, not as trusted data; re-fetch
+content through the delivery API rather than acting on payload fields. Signed
+deliveries with managed retries are part of RivetCMS Pro.
+
 ## Development
 
 The frontend lives in `app/javascript` (React + Inertia pages) and is bundled

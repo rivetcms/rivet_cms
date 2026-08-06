@@ -1,6 +1,7 @@
 require "rivet_cms/version"
 require "rivet_cms/engine"
 require "rivet_cms/safe_pattern"
+require "rivet_cms/hooks"
 require "image_processing"
 require "prefixed_ids"
 require "kaminari"
@@ -20,6 +21,18 @@ module RivetCms
     # Host (e.g. "https://cms.example.com") used to build absolute media URLs
     # in the public API. When nil, URLs are relative paths.
     attr_accessor :media_host
+
+    # Basic webhook endpoints: [{ url: "https://...", events: %w[entry.published] }].
+    # events is optional (defaults to all). Delivered by WebhookDeliveryJob;
+    # no signing or retries.
+    attr_accessor :webhooks
+
+    # Subscribe to a lifecycle event; see RivetCms::Hooks for the event list
+    # and the key: contract for reload-safe registration.
+    #   RivetCms.on(:publish) { |revision| ... }
+    def on(event, callable = nil, key: nil, &block)
+      Hooks.on(event, callable, key: key, &block)
+    end
 
     # When true the delivery API allows anonymous reads of published content.
     # When false (default) every request needs an API token. A preview-scoped
@@ -129,6 +142,7 @@ module RivetCms
   ]
   self.media_host = nil
   self.public_api = false
+  self.webhooks = []
 
   self.parent_controller = "ActionController::Base"
   self.login_path = nil

@@ -6,7 +6,7 @@ PATH
       inertia_rails (~> 3.0)
       kaminari (~> 1.2)
       prefixed_ids (~> 1.8)
-      rails (~> 7.0)
+      rails (>= 7.2)
 
 GEM
   remote: https://rubygems.org/
