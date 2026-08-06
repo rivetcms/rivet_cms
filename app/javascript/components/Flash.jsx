@@ -33,7 +33,7 @@ export default function Flash() {
   if (!flash || !visible) return null
 
   return (
-    <div className="toast toast-top toast-end z-50">
+    <div className="toast toast-top toast-center z-50 lg:left-[calc(50%+7.5rem)]">
       {flash.alert && (
         <Toast tone="danger">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={TONES.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>

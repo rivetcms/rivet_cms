@@ -112,7 +112,9 @@ module RivetCms
       when "image", "video", "file"
         { type: "object", nullable: true, properties: {
           id: { type: "integer" }, filename: { type: "string" }, content_type: { type: "string" },
-          byte_size: { type: "integer" }, url: { type: "string" }
+          byte_size: { type: "integer" }, title: { type: "string", nullable: true },
+          alt: { type: "string", nullable: true }, description: { type: "string", nullable: true },
+          url: { type: "string" }
         } }
       when "string", "text" then string_schema(field)
       else { type: "string" }

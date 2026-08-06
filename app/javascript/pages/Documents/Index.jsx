@@ -1,8 +1,13 @@
 import { Link, router } from "@inertiajs/react"
 import PageHeader from "../../components/PageHeader"
 import EmptyState from "../../components/EmptyState"
+import { useSearch } from "../../lib/use_search"
 
-export default function Index({ content_type: contentType, documents }) {
+export default function Index({ content_type: contentType, documents, q: initialQ }) {
+  const [q, setQ] = useSearch(initialQ, (value) =>
+    router.get(contentType.paths.documents, value ? { q: value } : {}, { preserveState: true, replace: true })
+  )
+
   const destroy = (document) => {
     if (confirm("Delete this entry? This cannot be undone.")) router.delete(document.paths.destroy)
   }
@@ -17,11 +22,22 @@ export default function Index({ content_type: contentType, documents }) {
       </div>
 
       <PageHeader title={`${contentType.name} entries`} description="Create and publish content entries.">
+        <input
+          type="search"
+          className="input input-bordered w-52"
+          placeholder="Search by slug…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
         <Link href={contentType.paths.new_document} className="btn btn-primary">New Entry</Link>
       </PageHeader>
 
-      {documents.length === 0 ? (
+      {documents.length === 0 && !initialQ ? (
         <EmptyState resourceName="Entries" singularName="Entry" newPath={contentType.paths.new_document} />
+      ) : documents.length === 0 ? (
+        <div className="rounded-box border border-dashed border-base-300 bg-base-100 py-16 text-center text-[13px] text-base-content/50">
+          No entries match "{initialQ}".
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-box border border-base-300 bg-base-100">
           <table className="table">

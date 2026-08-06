@@ -6,9 +6,13 @@ module RivetCms
     before_action :set_document, only: [ :edit, :update, :destroy, :publish ]
 
     def index
+      documents = @content_type.documents.recent
+      documents = documents.search(params[:q]) if params[:q].present?
+
       render inertia: "Documents/Index", props: {
         content_type: content_type_props(@content_type),
-        documents: @content_type.documents.recent.map { |document| document_props(document) }
+        q: params[:q].presence,
+        documents: documents.map { |document| document_props(document) }
       }
     end
 

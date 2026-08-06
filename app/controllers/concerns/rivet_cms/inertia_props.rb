@@ -152,8 +152,12 @@ module RivetCms
         filename: asset.filename,
         content_type: asset.content_type,
         byte_size: asset.byte_size,
+        title: asset.title,
+        alt: asset.alt,
+        description: asset.description,
+        created_at: asset.created_at&.iso8601,
         url: asset.url,
-        paths: { destroy: media_asset_path(asset) }
+        paths: { update: media_asset_path(asset), destroy: media_asset_path(asset) }
       }
     end
 

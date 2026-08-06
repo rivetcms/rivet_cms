@@ -11,6 +11,16 @@ module RivetCms
       expect(response.body).to include("Documents/Index")
     end
 
+    it "filters the entries list by slug with q" do
+      create(:document, slug: "hello-world", content_type: content_type, organization: organization)
+      create(:document, slug: "other-post", content_type: content_type, organization: organization)
+
+      get rivet_cms.content_type_documents_path(content_type), params: { q: "HELLO" }
+
+      expect(response.body).to include("hello-world")
+      expect(response.body).not_to include("other-post")
+    end
+
     it "renders the new entry editor with the content-type fields" do
       create(:field, :string, label: "Headline", content_type: content_type, organization: organization)
       get rivet_cms.new_content_type_document_path(content_type)

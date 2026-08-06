@@ -15,6 +15,10 @@ module RivetCms
     before_save :cache_file_metadata
 
     scope :recent, -> { order(created_at: :desc) }
+    scope :search, ->(query) {
+      pattern = "%#{sanitize_sql_like(query.downcase)}%"
+      where("LOWER(filename) LIKE :q OR LOWER(title) LIKE :q OR LOWER(alt) LIKE :q", q: pattern)
+    }
 
     def url
       return nil unless file.attached?

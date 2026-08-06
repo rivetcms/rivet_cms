@@ -3,7 +3,9 @@ module RivetCms
     include InertiaProps
 
     def index
-      page = media_assets.recent.page(params[:page]).per(48)
+      scope = media_assets.recent
+      scope = scope.search(params[:q]) if params[:q].present?
+      page = scope.page(params[:page]).per(48)
       assets = page.map { |asset| media_asset_json(asset) }
 
       respond_to do |format|
@@ -11,6 +13,7 @@ module RivetCms
         format.html do
           render inertia: "Media/Index", props: {
             assets: assets,
+            q: params[:q].presence,
             pagination: { page: page.current_page, total_pages: page.total_pages }
           }
         end
@@ -26,6 +29,15 @@ module RivetCms
 
       if asset.save
         render json: media_asset_json(asset), status: :created
+      else
+        render json: { errors: asset.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
+    def update
+      asset = media_assets.find(params[:id])
+      if asset.update(params.permit(:title, :alt, :description))
+        render json: media_asset_json(asset)
       else
         render json: { errors: asset.errors.full_messages }, status: :unprocessable_entity
       end

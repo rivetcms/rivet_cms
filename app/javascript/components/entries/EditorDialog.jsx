@@ -10,7 +10,7 @@ export default function EditorDialog({ title, onClose, onSubmit, submitLabel = "
           e.stopPropagation()
           onSubmit()
         }}
-        className="w-full max-w-sm overflow-hidden rounded-box border border-base-300 border-t-[3px] border-t-primary bg-base-100 shadow-(--shadow-overlay)"
+        className="w-full max-w-sm overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-(--shadow-overlay)"
       >
         <div className="border-b border-base-300 px-4 py-3 text-sm font-semibold">{title}</div>
         <div className="space-y-4 px-4 py-4">{children}</div>

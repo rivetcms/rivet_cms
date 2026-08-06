@@ -101,7 +101,8 @@ module RivetCms
     def attachment_json(asset)
       return nil unless asset
 
-      { id: asset.prefix_id, filename: asset.filename, content_type: asset.content_type, byte_size: asset.byte_size, url: asset.url }
+      { id: asset.prefix_id, filename: asset.filename, content_type: asset.content_type, byte_size: asset.byte_size,
+        title: asset.title, alt: asset.alt, description: asset.description, url: asset.url }
     end
 
     def collapse(field, items)

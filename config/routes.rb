@@ -32,7 +32,7 @@ RivetCms::Engine.routes.draw do
 
   get "content", to: "content_manager#index", as: :content
 
-  resources :media_assets, only: [ :index, :create, :destroy ]
+  resources :media_assets, only: [ :index, :create, :update, :destroy ]
   resources :api_tokens, only: [ :index, :create, :destroy ]
 
   get "api-docs", to: "api_docs#show", as: :api_docs

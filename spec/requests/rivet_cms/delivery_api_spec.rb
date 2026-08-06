@@ -341,5 +341,25 @@ module RivetCms
         expect(large).to eq(small)
       end
     end
+
+    describe "attachment serialization" do
+      it "includes title, alt, and description on media values" do
+        RivetCms.public_api = true
+        image_field = create(:field, :image, key: "cover", content_type: content_type, organization: organization)
+        asset = create(:media_asset, organization: organization, title: "Logo", alt: "Acropolis at dusk", description: "Hero")
+
+        document = create(:document, slug: "with-cover", content_type: content_type, organization: organization)
+        draft = create(:document_revision, document: document, state: :draft)
+        document.update!(draft_revision: draft)
+        draft.content_values.create!(field: image_field, media_asset: asset)
+        draft.publish!
+
+        get rivet_cms.content_show_path("articles", "with-cover")
+
+        expect(response).to have_http_status(:ok)
+        cover = JSON.parse(response.body).dig("data", "cover")
+        expect(cover).to include("title" => "Logo", "alt" => "Acropolis at dusk", "description" => "Hero")
+      end
+    end
   end
 end

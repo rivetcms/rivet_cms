@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePage } from "@inertiajs/react"
 import axios from "axios"
+import { formatBytes } from "../../lib/format"
 
 function FileGlyph() {
   return (
@@ -28,17 +29,21 @@ export default function MediaPicker({ open, onClose, onSelect, kind }) {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
+  const [q, setQ] = useState("")
 
   useEffect(() => {
     if (!open) return
-    setLoading(true)
-    setError(null)
-    axios
-      .get(mediaPath, { headers: { Accept: "application/json" } })
-      .then((res) => setAssets(res.data))
-      .catch(() => setError("Could not load the media library"))
-      .finally(() => setLoading(false))
-  }, [open, mediaPath])
+    const timer = setTimeout(() => {
+      setLoading(true)
+      setError(null)
+      axios
+        .get(mediaPath, { headers: { Accept: "application/json" }, params: q ? { q } : {} })
+        .then((res) => setAssets(res.data))
+        .catch(() => setError("Could not load the media library"))
+        .finally(() => setLoading(false))
+    }, q ? 250 : 0)
+    return () => clearTimeout(timer)
+  }, [open, mediaPath, q])
 
   if (!open) return null
 
@@ -62,10 +67,17 @@ export default function MediaPicker({ open, onClose, onSelect, kind }) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-box border border-base-300 border-t-[3px] border-t-primary bg-base-100 shadow-(--shadow-overlay)" onClick={(e) => e.stopPropagation()}>
+      <div className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-(--shadow-overlay)" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-base-300 px-4 py-3">
           <h2 className="text-sm font-semibold">Media Library</h2>
           <div className="flex items-center gap-2">
+            <input
+              type="search"
+              className="input input-bordered input-sm w-44"
+              placeholder="Search…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
             <label className="btn btn-primary btn-sm cursor-pointer">
               {uploading ? "Uploading…" : "Upload"}
               <input type="file" className="hidden" accept={acceptFor(kind, mediaAccept)} onChange={(e) => upload(e.target.files[0])} />
@@ -92,7 +104,10 @@ export default function MediaPicker({ open, onClose, onSelect, kind }) {
                       <FileGlyph />
                     )}
                   </div>
-                  <div className="truncate px-2 py-1.5 text-[11px] text-base-content/70">{asset.filename}</div>
+                  <div className="px-2 py-1.5">
+                    <div className="truncate text-[11px] text-base-content/70">{asset.filename}</div>
+                    <div className="font-mono text-[10px] text-base-content/50">{formatBytes(asset.byte_size)}</div>
+                  </div>
                 </button>
               ))}
             </div>

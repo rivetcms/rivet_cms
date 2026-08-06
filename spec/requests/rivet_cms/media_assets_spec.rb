@@ -64,6 +64,36 @@ module RivetCms
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
+    it "filters by filename, title, or alt with q" do
+      create(:media_asset, organization: organization)
+      hero = create(:media_asset, organization: organization, title: "Conference hero")
+
+      get rivet_cms.media_assets_path, params: { q: "conFEREnce" }, headers: { "Accept" => "application/json" }
+
+      body = JSON.parse(response.body)
+      expect(body.map { |a| a["id"] }).to eq([ hero.id ])
+    end
+
+    it "escapes LIKE wildcards in q" do
+      create(:media_asset, organization: organization, title: "plain")
+
+      get rivet_cms.media_assets_path, params: { q: "%" }, headers: { "Accept" => "application/json" }
+
+      expect(JSON.parse(response.body)).to eq([])
+    end
+
+    it "updates title, alt, and description" do
+      asset = create(:media_asset, organization: organization)
+
+      patch rivet_cms.media_asset_path(asset), params: { title: "Conference logo", alt: "Acropolis at dusk", description: "Hero image" }
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["title"]).to eq("Conference logo")
+      expect(body["alt"]).to eq("Acropolis at dusk")
+      expect(body["description"]).to eq("Hero image")
+    end
+
     it "deletes a media asset" do
       asset = create(:media_asset, organization: organization)
       expect {
