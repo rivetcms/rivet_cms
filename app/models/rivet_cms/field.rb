@@ -84,8 +84,9 @@ module RivetCms
     end
 
     # Update layout with row structure
-    # rows_config: array of arrays, each inner array contains field IDs for that row
-    # e.g., [["fld_abc"], ["fld_def", "fld_ghi"], ["fld_jkl"]]
+    # rows_config: array of arrays, each inner array contains numeric field
+    # IDs for that row, e.g. [[1], [2, 3], [4]]. Prefixed ids do not resolve
+    # through where(id:) and would silently match nothing.
     def self.update_layout!(rows_config)
       transaction do
         rows_config.each_with_index do |field_ids, row_index|

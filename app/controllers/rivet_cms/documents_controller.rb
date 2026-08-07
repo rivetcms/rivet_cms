@@ -13,20 +13,35 @@ module RivetCms
     before_action :set_content_type
     before_action :set_document, only: [ :edit, :update, :destroy, :publish ]
     before_action :set_trashed_document, only: [ :restore, :purge ]
+    # Record layer: the same gates again, now about the loaded record, so a
+    # policy can grant per-type or per-entry access. The recordless gates
+    # above stay as fail-fast checks that run before anything is loaded.
+    # Member actions check the type as well as the entry, so denying a type
+    # denies its entries even on a direct URL, with the verb matched:
+    # (action, :content, record: type) means "may <action> this type's content".
+    before_action -> { authorize! :read, :content, record: @content_type }, only: [ :index, :new, :trash, :edit ]
+    before_action -> { authorize! :write, :content, record: @content_type }, only: [ :create, :update ]
+    before_action -> { authorize! :publish, :content, record: @content_type }, only: [ :publish ]
+    before_action -> { authorize! :delete, :content, record: @content_type }, only: [ :destroy, :restore, :purge ]
+    before_action -> { authorize! :read, :content, record: @document }, only: [ :edit ]
+    before_action -> { authorize! :write, :content, record: @document }, only: [ :update ]
+    before_action -> { authorize! :publish, :content, record: @document }, only: [ :publish ]
+    before_action -> { authorize! :delete, :content, record: @document }, only: [ :destroy, :restore, :purge ]
 
     def index
       documents = @content_type.documents.recent
       documents = documents.search(params[:q]) if params[:q].present?
       page = documents.includes(:draft_revision).page(params[:page]).per(25)
+      visible = permitted(page, :read, :content)
 
-      titles = document_titles(page)
+      titles = document_titles(visible)
 
       render inertia: "Documents/Index", props: {
         content_type: content_type_props(@content_type),
         q: params[:q].presence,
         trashed_count: @content_type.documents.with_discarded.discarded.count,
         trash_path: trash_content_type_documents_path(@content_type),
-        documents: page.map { |document| document_list_props(document, titles) },
+        documents: visible.map { |document| document_list_props(document, titles) },
         pagination: { page: page.current_page, total_pages: page.total_pages }
       }
     end
@@ -81,7 +96,7 @@ module RivetCms
     end
 
     def trash
-      documents = @content_type.documents.with_discarded.discarded.order(:deleted_at)
+      documents = permitted(@content_type.documents.with_discarded.discarded.order(:deleted_at), :read, :content)
       titles = document_titles(documents)
 
       render inertia: "Documents/Trash", props: {
@@ -158,8 +173,8 @@ module RivetCms
     end
 
     def reference_options
-      Document.where(organization: Current.organization).in_visible_types.recent
-              .map { |document| { id: document.id, slug: document.slug, content_type: document.content_type.name } }
+      permitted_documents(Document.where(organization: Current.organization).in_visible_types.recent.includes(:content_type))
+        .map { |document| { id: document.id, slug: document.slug, content_type: document.content_type.name } }
     end
 
     def values_param

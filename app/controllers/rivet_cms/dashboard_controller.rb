@@ -11,6 +11,11 @@ module RivetCms
 
       organization = Current.organization
       content_types = read_content || read_schema ? organization.content_types.order(:name).to_a : []
+      # Type cards link to entry lists, so they filter through whichever
+      # record-phase read the user holds for that surface
+      content_types = content_types.select { |ct|
+        read_content ? can?(:read, :content, record: ct) : can?(:read, :schema, record: ct)
+      }
       documents = Document.where(organization: organization).in_visible_types
       entry_counts = read_content ? documents.group(:content_type_id).count : {}
 
@@ -44,7 +49,7 @@ module RivetCms
     def recent_documents(documents, read_content)
       return [] unless read_content
 
-      documents.includes(:content_type).order(updated_at: :desc).limit(8).map { |document|
+      permitted_documents(documents.includes(:content_type).order(updated_at: :desc).limit(8)).map { |document|
         document_props(document).merge(
           content_type_name: document.content_type.name,
           updated_at: document.updated_at.iso8601

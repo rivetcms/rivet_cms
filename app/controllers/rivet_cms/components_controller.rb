@@ -6,12 +6,16 @@ module RivetCms
     before_action -> { authorize! :delete, :schema }, only: [ :destroy ]
     before_action -> { authorize! :write, :schema }, except: [ :index, :show, :destroy ]
     before_action :set_component, only: [ :show, :update, :destroy ]
+    # Record layer: same gates, about this specific component
+    before_action -> { authorize! :read, :schema, record: @component }, only: [ :show ]
+    before_action -> { authorize! :write, :schema, record: @component }, only: [ :update ]
+    before_action -> { authorize! :delete, :schema, record: @component }, only: [ :destroy ]
 
     def index
       field_counts = Field.where(component_id: Current.organization.components.select(:id)).group(:component_id).count
 
       render inertia: "Components/Index", props: {
-        components: Current.organization.components.includes(:category).map { |c|
+        components: permitted(Current.organization.components.includes(:category), :read, :schema).map { |c|
           component_props(c).merge(fields_count: field_counts.fetch(c.id, 0))
         }
       }
@@ -41,7 +45,7 @@ module RivetCms
         create_category_path: create_category_components_path,
         fields: @component.fields.kept.ordered.map { |f| field_props(f) },
         field_types: Field::FIELD_TYPE_LABELS.except("component"),
-        reference_targets: Current.organization.content_types.order(:name).map { |ct| { id: ct.id, name: ct.name } },
+        reference_targets: permitted(Current.organization.content_types.order(:name), :read, :schema).map { |ct| { id: ct.id, name: ct.name } },
         embeddable_components: []
       }
     end

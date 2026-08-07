@@ -12,11 +12,12 @@ module RivetCms
       end
       documents = documents.search(params[:q]) if params[:q].present?
       page = documents.includes(:draft_revision, :content_type).page(params[:page]).per(25)
-      titles = document_titles(page)
+      visible = permitted_documents(page)
+      titles = document_titles(visible)
 
       render inertia: "ContentManager/Index", props: {
-        content_types: content_types.map { |content_type| content_type_ref_props(content_type) },
-        documents: page.map { |document|
+        content_types: permitted(content_types, :read, :content).map { |content_type| content_type_ref_props(content_type) },
+        documents: visible.map { |document|
           document_list_props(document, titles).merge(
             content_type_name: document.content_type.name,
             content_type_slug: document.content_type.slug

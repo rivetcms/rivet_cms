@@ -4,6 +4,14 @@ module RivetCms
     before_action -> { authorize! :write, :schema }, except: [ :destroy ]
     before_action :set_owner
     before_action :set_field, only: [ :update, :destroy, :toggle_width, :unpair, :pair ]
+    # Record layer: every field action touches its owner's schema, so the
+    # owner is checked for all of them, verb-matched like entries: writes
+    # need :write on the owner, destroy needs :delete. Denying a type or
+    # component denies its fields even on a direct URL.
+    before_action -> { authorize! :write, :schema, record: @owner }, except: [ :destroy ]
+    before_action -> { authorize! :delete, :schema, record: @owner }, only: [ :destroy ]
+    before_action -> { authorize! :write, :schema, record: @field }, only: [ :update, :toggle_width, :unpair, :pair ]
+    before_action -> { authorize! :delete, :schema, record: @field }, only: [ :destroy ]
 
     def create
       field = @owner.fields.build(field_params)
@@ -52,6 +60,8 @@ module RivetCms
 
     def pair
       other_field = @owner.fields.find(params[:pair_with])
+      # Pairing mutates both fields, so both must pass the record phase
+      authorize! :write, :schema, record: other_field
 
       # Both fields must be half-width and not already paired
       if @field.width_half? && other_field.width_half? && !@field.paired? && !other_field.paired?
@@ -62,6 +72,10 @@ module RivetCms
     end
 
     def update_layout
+      # The bulk update touches every referenced field, so each must pass the
+      # record phase, not just the owner
+      moved = @owner.fields.where(id: Array(params[:rows]).flatten)
+      moved.each { |field| authorize! :write, :schema, record: field }
       @owner.fields.update_layout!(params[:rows])
       redirect_to owner_path
     end

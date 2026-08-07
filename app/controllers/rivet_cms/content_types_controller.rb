@@ -12,6 +12,11 @@ module RivetCms
     # Purging destroys content, so it needs the content gate as well as schema
     before_action -> { authorize! :delete, :content }, only: [ :purge ]
     before_action :authorize_cascade!, only: [ :destroy, :restore ]
+    # Record layer: same gates, about this specific type
+    before_action -> { authorize! :read, :schema, record: @content_type }, only: [ :show ]
+    before_action -> { authorize! :write, :schema, record: @content_type }, only: [ :update ]
+    before_action -> { authorize! :delete, :schema, record: @content_type }, only: [ :destroy, :restore, :purge ]
+    before_action -> { authorize! :delete, :content, record: @content_type }, only: [ :purge ]
 
     def index
       # Entry counts are content data, not schema; omit them without content read
@@ -19,7 +24,7 @@ module RivetCms
 
       render inertia: "ContentTypes/Index", props: {
         removed_count: ContentType.with_discarded.discarded.where(organization: Current.organization).count,
-        content_types: Current.organization.content_types.map { |ct|
+        content_types: permitted(Current.organization.content_types, :read, :schema).map { |ct|
           props = content_type_props(ct)
           entry_counts ? props.merge(documents_count: entry_counts.fetch(ct.id, 0)) : props
         }
@@ -34,8 +39,8 @@ module RivetCms
         fields: fields.map { |f| field_props(f) },
         field_types: Field::FIELD_TYPE_LABELS,
         # Selectable targets for "reference" and "component" field options
-        reference_targets: Current.organization.content_types.where.not(id: @content_type.id).order(:name).map { |ct| { id: ct.id, name: ct.name } },
-        embeddable_components: Current.organization.components.order(:name).map { |c| { id: c.id, name: c.name } }
+        reference_targets: permitted(Current.organization.content_types.where.not(id: @content_type.id).order(:name), :read, :schema).map { |ct| { id: ct.id, name: ct.name } },
+        embeddable_components: permitted(Current.organization.components.order(:name), :read, :schema).map { |c| { id: c.id, name: c.name } }
       }
     end
 
@@ -63,8 +68,8 @@ module RivetCms
 
     # Removed types are kept, so they need somewhere to be seen and restored
     def trash
-      removed = ContentType.with_discarded.discarded.where(organization: Current.organization).order(:deleted_at)
-      entry_counts = can?(:read, :content) ? Document.with_discarded.where(content_type_id: removed.select(:id)).group(:content_type_id).count : nil
+      removed = permitted(ContentType.with_discarded.discarded.where(organization: Current.organization).order(:deleted_at), :read, :schema)
+      entry_counts = can?(:read, :content) ? Document.with_discarded.where(content_type_id: removed.map(&:id)).group(:content_type_id).count : nil
 
       render inertia: "ContentTypes/Trash", props: {
         content_types: removed.map { |content_type|
@@ -116,7 +121,11 @@ module RivetCms
     # Removing a type hides its entries from the admin and the delivery API,
     # so it is a content-level action as well as a schema one.
     def authorize_cascade!
-      authorize! :delete, :content if Document.with_discarded.where(content_type_id: @content_type.id).exists?
+      return unless Document.with_discarded.where(content_type_id: @content_type.id).exists?
+
+      # Both phases, like every other gate: recordless first, then the record
+      authorize! :delete, :content
+      authorize! :delete, :content, record: @content_type
     end
 
     def set_removed_content_type

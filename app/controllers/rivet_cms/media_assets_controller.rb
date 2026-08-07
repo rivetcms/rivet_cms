@@ -11,7 +11,7 @@ module RivetCms
       scope = scope.search(params[:q]) if params[:q].present?
       scope = scope.where(kind: params[:kind]) if MediaAsset.kinds.key?(params[:kind])
       page = scope.page(params[:page]).per(48)
-      assets = page.map { |asset| media_asset_json(asset) }
+      assets = permitted(page, :read, :media).map { |asset| media_asset_json(asset) }
 
       respond_to do |format|
         format.json { render json: assets }
@@ -43,6 +43,7 @@ module RivetCms
 
     def update
       asset = media_assets.find(params[:id])
+      authorize! :write, :media, record: asset
       if asset.update(params.permit(:title, :alt, :description))
         render json: media_asset_json(asset)
       else
@@ -52,6 +53,7 @@ module RivetCms
 
     def destroy
       asset = media_assets.find(params[:id])
+      authorize! :delete, :media, record: asset
       if asset.embedded_in_content?
         return redirect_to media_assets_path, alert: "Media is embedded in content and cannot be deleted"
       end

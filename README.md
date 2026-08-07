@@ -88,8 +88,8 @@ option values — sort/filter/populate/fields keys — raise
 ## Authorization
 
 Admin access control is a single policy receiving a `RivetCms::AccessCheck`
-(fields: `user`, `action`, `resource`, `organization`, and a reserved
-`record`) and returning a boolean; default allow. `action` is `:read`,
+(fields: `user`, `action`, `resource`, `organization`, and `record`) and
+returning a boolean; default allow. `action` is `:read`,
 `:write`, `:publish`, or `:delete`; `resource` is a coarse domain: `:content`
 (entries), `:schema` (content types, fields, components), `:media`, or `:api`
 (docs and tokens). The user is whatever your `current_user` lambda returns:
@@ -111,6 +111,40 @@ Write policies to allowlist known pairs and deny everything else; new actions
 and resources may appear in minor releases and must fail closed. A raising
 policy denies (fail closed) and logs. Denials redirect back with a flash in
 the admin UI and return 403 JSON on API-shaped endpoints.
+
+Checks run in two phases. First without a `record`, before anything is
+loaded: that check asks whether the action is available to the user *at all*
+(it also drives sidebar visibility). Then, once the controller has loaded
+the thing being acted on, the same check runs again with `record` set: the
+entry, content type (for entry lists and creation, the type they belong to),
+field, component, media asset, or API token. A per-record policy must return
+true for the recordless phase whenever the user could pass it for at least
+one record, and put the real decision in the record phase:
+
+```ruby
+config.can = lambda do |check|
+  case check.record
+  when nil then true                    # phase one: available at all?
+  when RivetCms::Document then check.user.can_edit?(check.record)
+  else true
+  end
+end
+```
+
+Denials compose downward. Checking `(action, :content, record: content_type)`
+means "may the user <action> this type's content": entry actions check the
+type as well as the entry (verb-matched), field actions check their owning
+type or component, and the API docs suppress schemas, references, and
+embedded component structures for anything the schema phase denies. Denying
+a parent therefore denies its children even on direct URLs.
+
+List surfaces (entry lists, the cross-type Content page, dashboards,
+media/type/component/token lists, trash pages, and the editor's reference
+picker) filter every row through the record phase, so a record the policy
+hides is not shown anywhere. Two consequences worth knowing: filtering
+happens after pagination, so a page can come up short when rows are hidden,
+and stat counts are aggregates that are not filtered per record; a policy
+hiding individual records still lets their existence be counted.
 
 Notes: the editor screen is a `:read` surface (mutations are gated
 separately); minting an API token additionally requires `:read, :content`

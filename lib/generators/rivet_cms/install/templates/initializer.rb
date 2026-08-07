@@ -51,8 +51,10 @@
 #   # config.revision_retention = :all
 #
 #   # Authorization: receives a RivetCms::AccessCheck (user, action, resource,
-#   # organization), returns a boolean; default allow. Actions: :read, :write,
-#   # :publish, :delete. Resources: :content, :schema, :media, :api. Allowlist
+#   # organization, record), returns a boolean; default allow. Actions: :read,
+#   # :write, :publish, :delete. Resources: :content, :schema, :media, :api.
+#   # Checks run twice: once with record nil ("available at all", drives the
+#   # sidebar), then with the loaded record for per-record decisions. Allowlist
 #   # known pairs and deny the rest; the vocabulary grows in minor releases.
 #   # config.can = ->(check) { check.user&.admin? || check.action == :read }
 #

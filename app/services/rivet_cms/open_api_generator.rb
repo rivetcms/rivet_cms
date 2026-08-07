@@ -3,13 +3,18 @@ module RivetCms
   # content types. Field types map to JSON Schema; references/components/media
   # expand into nested schemas.
   class OpenApiGenerator
-    def initialize(organization, base_url: "/api")
+    # content_types/components narrow the document to a permitted subset;
+    # nil means all. Excluded types must not be referenced either, or the
+    # document would carry $refs to schemas it does not contain.
+    def initialize(organization, base_url: "/api", content_types: nil, components: nil)
       @organization = organization
       @base_url = base_url
+      @content_types = content_types
+      @components = components
     end
 
     def as_json(*)
-      content_types = @organization.content_types.order(:name).to_a
+      content_types = (@content_types || @organization.content_types.order(:name)).to_a
 
       {
         openapi: "3.0.3",
@@ -133,21 +138,33 @@ module RivetCms
 
     # Shallow {id, slug} by default; when the field's configured target resolves,
     # a oneOf with the target schema documents the populated shape.
+    # A target outside the generated subset stays shallow: emitting its $ref
+    # would point at a schema this document does not contain.
     def reference_schema(field)
       shallow = { type: "object", properties: { id: { type: "string" }, slug: { type: "string" } } }
       target = @organization.content_types.find_by(id: field.config&.dig("content_type_id"))
-      inner = target ? { oneOf: [ shallow, { "$ref" => "#/components/schemas/#{schema_name(target)}" } ] } : shallow
+      inner = target && included_type_ids.include?(target.id) ? { oneOf: [ shallow, { "$ref" => "#/components/schemas/#{schema_name(target)}" } ] } : shallow
       collapse(field, inner)
     end
 
+    # Same rule: a component outside the subset renders as an opaque object
+    # rather than leaking its field structure.
     def component_schema(field)
       component = Component.find_by(id: field.config&.dig("component_id"), organization_id: field.organization_id)
-      inner = if component
+      inner = if component && included_component_ids.include?(component.id)
         { type: "object", properties: component.fields.kept.ordered.each_with_object({}) { |f, acc| acc[f.key] = field_schema(f) } }
       else
         { type: "object" }
       end
       collapse(field, inner)
+    end
+
+    def included_type_ids
+      @included_type_ids ||= (@content_types || @organization.content_types).map(&:id).to_set
+    end
+
+    def included_component_ids
+      @included_component_ids ||= (@components || @organization.components).map(&:id).to_set
     end
 
     def collapse(field, schema)

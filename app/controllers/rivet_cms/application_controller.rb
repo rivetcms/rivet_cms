@@ -74,6 +74,20 @@ module RivetCms
       raise RivetCms::AccessDenied, "#{action} #{resource}" unless can?(action, resource, record: record)
     end
 
+    # List surfaces must not show what a record's own page would refuse, so
+    # every list filters through the record phase. Filtering happens after
+    # pagination, so a page can come up short; stat counts stay aggregates.
+    def permitted(records, action, resource)
+      records.select { |record| can?(action, resource, record: record) }
+    end
+
+    # Cross-type entry lists check the entry and its type, so denying a type
+    # hides its entries everywhere the type itself is hidden
+    def permitted_documents(documents)
+      permitted(documents, :read, :content)
+        .select { |document| can?(:read, :content, record: document.content_type) }
+    end
+
     def deny_authorization
       message = "You do not have permission to do that"
       # Inertia visits redirect (the client follows and shows the flash).

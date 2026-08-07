@@ -11,7 +11,7 @@ module RivetCms
 
     def index
       render inertia: "ApiTokens/Index", props: {
-        tokens: api_tokens.recent.map { |token| api_token_json(token) },
+        tokens: permitted(api_tokens.recent, :read, :api).map { |token| api_token_json(token) },
         new_token: flash[:new_token]
       }
     end
@@ -26,7 +26,9 @@ module RivetCms
     end
 
     def destroy
-      api_tokens.find(params[:id]).destroy
+      token = api_tokens.find(params[:id])
+      authorize! :delete, :api, record: token
+      token.destroy
       redirect_to api_tokens_path, notice: "API token revoked"
     end
 
