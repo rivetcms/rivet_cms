@@ -1,3 +1,5 @@
+import * as React from "react"
+import * as Inertia from "@inertiajs/react"
 import { createInertiaApp } from "@inertiajs/react"
 import { createRoot } from "react-dom/client"
 import axios from "axios"
@@ -54,14 +56,39 @@ axios.interceptors.response.use(
   }
 )
 
-createInertiaApp({
-  resolve: (name) => {
-    const page = pages[name]
-    if (!page) throw new Error(`Unknown Inertia page: ${name}`)
-    page.layout ??= (children) => <Layout>{children}</Layout>
-    return page
+// Extension seam: a bundle loaded after this one (RivetCms.register_admin_script)
+// runs before DOMContentLoaded and can register its pages here. React and
+// Inertia are exposed so extensions mark them external and share this app's
+// single React instance instead of bundling their own.
+window.RivetCMS = {
+  registerPages(map) {
+    Object.assign(pages, map)
   },
-  setup({ el, App, props }) {
-    createRoot(el).render(<App {...props} />)
-  },
-})
+  React,
+  Inertia,
+}
+
+function boot() {
+  createInertiaApp({
+    resolve: (name) => {
+      const page = pages[name]
+      if (!page) throw new Error(`Unknown Inertia page: ${name}`)
+      page.layout ??= (children) => <Layout>{children}</Layout>
+      return page
+    },
+    setup({ el, App, props }) {
+      createRoot(el).render(<App {...props} />)
+    },
+  })
+}
+
+// Module scripts run while readyState is "interactive", before
+// DOMContentLoaded fires, and they run in document order. Waiting for
+// DOMContentLoaded therefore guarantees every extension bundle has
+// registered its pages before the first page resolves. Only a dynamically
+// injected script sees "complete", where the event will never fire again.
+if (document.readyState === "complete") {
+  boot()
+} else {
+  document.addEventListener("DOMContentLoaded", boot)
+}

@@ -2,6 +2,7 @@ require "rivet_cms/version"
 require "rivet_cms/engine"
 require "rivet_cms/safe_pattern"
 require "rivet_cms/hooks"
+require "rivet_cms/navigation"
 require "rivet_cms/access_check"
 require "image_processing"
 require "prefixed_ids"
@@ -27,6 +28,36 @@ module RivetCms
     # events is optional (defaults to all). Delivered by WebhookDeliveryJob;
     # no signing or retries.
     attr_accessor :webhooks
+
+    # Add a sidebar item; see RivetCms::Navigation for the full contract.
+    def register_nav(key, **options)
+      Navigation.register(key, **options)
+    end
+
+    # Extra admin bundles the layout emits after core's tags. An extension's
+    # precompiled JS loads in order and can register its pages on
+    # window.RivetCMS before the admin app boots.
+    def register_admin_script(name)
+      raise ArgumentError, "asset name required" if name.to_s.strip.empty?
+
+      admin_scripts << name.to_s unless admin_scripts.include?(name.to_s)
+    end
+
+    def register_admin_stylesheet(name)
+      raise ArgumentError, "asset name required" if name.to_s.strip.empty?
+
+      admin_stylesheets << name.to_s unless admin_stylesheets.include?(name.to_s)
+    end
+
+    def admin_scripts
+      @admin_scripts ||= []
+    end
+
+    def admin_stylesheets
+      @admin_stylesheets ||= []
+    end
+
+    attr_writer :admin_scripts, :admin_stylesheets
 
     # Subscribe to a lifecycle event; see RivetCms::Hooks for the event list
     # and the key: contract for reload-safe registration.

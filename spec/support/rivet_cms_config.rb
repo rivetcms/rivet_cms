@@ -23,4 +23,16 @@ RSpec.configure do |config|
     saved.each { |key, value| RivetCms.public_send("#{key}=", value) }
     RivetCms::Current.reset
   end
+
+  # Nav items and admin asset lists are process-global like hooks
+  config.around(:each) do |example|
+    nav = RivetCms::Navigation.snapshot
+    scripts = RivetCms.admin_scripts.dup
+    stylesheets = RivetCms.admin_stylesheets.dup
+    example.run
+  ensure
+    RivetCms::Navigation.restore(nav)
+    RivetCms.admin_scripts = scripts
+    RivetCms.admin_stylesheets = stylesheets
+  end
 end

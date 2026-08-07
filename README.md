@@ -242,6 +242,44 @@ can forge it. Treat webhooks as a trigger, not as trusted data; re-fetch
 content through the delivery API rather than acting on payload fields. Signed
 deliveries with managed retries are part of RivetCMS Pro.
 
+## Extending the admin
+
+An engine (or the host app) can add sidebar items and admin pages. Nav items
+register server-side; the sidebar is computed per request and filtered
+through the authorization policy, so an item a user cannot reach is never
+rendered, core items included:
+
+```ruby
+RivetCms.register_nav :audit_log,
+  label: "Audit Log",
+  section: "Manage",                 # existing section, or a new one
+  icon: :content,                    # built-in icon name; unknown names get a dot
+  requires: [:read, :content],       # can? gate, nil means always visible
+  path: -> { audit_log_path },       # instance_exec'd in the controller, or a string
+  position: 80                       # items sort by position across sections
+```
+
+Pages are React components served by the extension's own controllers
+(`render inertia: "AuditLog/Index"`). The extension ships a precompiled
+bundle, registered so the layout loads it after the core bundle:
+
+```ruby
+RivetCms.register_admin_script "my_extension"      # and register_admin_stylesheet
+```
+
+```js
+// my_extension.js: runs before the admin app boots. Mark react, react-dom
+// and @inertiajs/react as externals and use the shared instances, so there
+// is exactly one React in the page.
+const { React, Inertia } = window.RivetCMS
+window.RivetCMS.registerPages({ "AuditLog/Index": AuditLogIndex })
+```
+
+Registration is reload-safe: re-registering a nav key replaces the item, and
+asset names are deduplicated. A registered bundle that cannot be resolved is
+logged and skipped rather than failing the admin, so check the log if an
+extension's assets are not loading.
+
 ## Development
 
 The frontend lives in `app/javascript` (React + Inertia pages) and is bundled

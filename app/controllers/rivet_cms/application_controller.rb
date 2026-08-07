@@ -13,6 +13,7 @@ module RivetCms
     inertia_config version: -> { RivetCms.asset_version }
 
     inertia_share app_version: RivetCms::VERSION,
+                  nav: -> { navigation_props },
                   media_accept: -> { RivetCms.allowed_media_types&.join(",") },
                   flash: -> { { notice: flash.notice, alert: flash.alert } },
                   auth: -> {
@@ -40,6 +41,22 @@ module RivetCms
     rescue_from RivetCms::AccessDenied, with: :deny_authorization
 
     private
+
+    # Sidebar from the Navigation registry: items a user cannot reach are
+    # dropped here, so hiding and denying share one source of truth. Sections
+    # appear where their lowest-position item falls.
+    def navigation_props
+      sections = []
+      RivetCms::Navigation.items.each do |item|
+        next if item.requires && !can?(*item.requires)
+
+        path = item.path.respond_to?(:call) ? instance_exec(&item.path) : item.path
+        section = sections.find { |s| s[:section] == item.section } ||
+                  (sections << { section: item.section, items: [] }).last
+        section[:items] << { key: item.key, label: item.label, icon: item.icon, path: path, exact: item.exact }
+      end
+      sections
+    end
 
     # Fails closed: a raising policy denies and logs rather than 500ing the admin
     def can?(action, resource, record: nil)

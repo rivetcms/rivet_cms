@@ -14,7 +14,7 @@ const NAV_ICONS = {
       <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" />
     </svg>
   ),
-  contentTypes: (
+  content_types: (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" />
     </svg>
@@ -34,12 +34,19 @@ const NAV_ICONS = {
       <path d="m18 16 4-4-4-4" /><path d="m6 8-4 4 4 4" /><path d="m14.5 4-5 16" />
     </svg>
   ),
-  apiTokens: (
+  api_tokens: (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L21 4.9" /><path d="m21 2-9.6 9.6" /><circle cx="7.5" cy="15.5" r="5.5" />
     </svg>
   ),
 }
+
+// Items registered without a known icon get a neutral dot
+const DEFAULT_ICON = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+)
 
 function NavLink({ href, icon, active, children }) {
   return (
@@ -76,8 +83,12 @@ function UserMenu({ auth, paths }) {
   )
 }
 
-function Aside({ paths, auth, appVersion, url }) {
-  const isActive = (path) => url === path || url.startsWith(`${path}/`)
+function Aside({ nav, paths, auth, appVersion, url }) {
+  // exact items (the dashboard at root) would otherwise match every subpath
+  const isActive = (item) =>
+    item.exact
+      ? url.replace(/\/$/, "") === item.path.replace(/\/$/, "")
+      : url === item.path || url.startsWith(`${item.path}/`)
 
   return (
     <div className="drawer-side z-20 border-r border-base-300 bg-base-100">
@@ -91,37 +102,20 @@ function Aside({ paths, auth, appVersion, url }) {
           </div>
         </div>
 
-        <ul className="flex w-full list-none flex-col gap-0.5 p-0">
-          <NavLink href={paths.root} icon={NAV_ICONS.dashboard} active={url.replace(/\/$/, "") === paths.root.replace(/\/$/, "")}>
-            Dashboard
-          </NavLink>
-        </ul>
-
-        <div className="mt-4 px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-base-content/40">Manage</div>
-        <ul className="flex w-full list-none flex-col gap-0.5 p-0">
-          <NavLink href={paths.content} icon={NAV_ICONS.content} active={isActive(paths.content)}>
-            Content
-          </NavLink>
-          <NavLink href={paths.content_types} icon={NAV_ICONS.contentTypes} active={isActive(paths.content_types)}>
-            Content Types
-          </NavLink>
-          <NavLink href={paths.components} icon={NAV_ICONS.components} active={isActive(paths.components)}>
-            Components
-          </NavLink>
-          <NavLink href={paths.media} icon={NAV_ICONS.media} active={isActive(paths.media)}>
-            Media
-          </NavLink>
-        </ul>
-
-        <div className="mt-4 px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-base-content/40">Deliver</div>
-        <ul className="flex w-full list-none flex-col gap-0.5 p-0">
-          <NavLink href={paths.api_docs} icon={NAV_ICONS.api} active={isActive(paths.api_docs)}>
-            API
-          </NavLink>
-          <NavLink href={paths.api_tokens} icon={NAV_ICONS.apiTokens} active={isActive(paths.api_tokens)}>
-            API Tokens
-          </NavLink>
-        </ul>
+        {(nav || []).map((group, index) => (
+          <div key={group.section || index}>
+            {group.section && (
+              <div className="mt-4 px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-base-content/40">{group.section}</div>
+            )}
+            <ul className="flex w-full list-none flex-col gap-0.5 p-0">
+              {group.items.map((item) => (
+                <NavLink key={item.key} href={item.path} icon={NAV_ICONS[item.icon] || DEFAULT_ICON} active={isActive(item)}>
+                  {item.label}
+                </NavLink>
+              ))}
+            </ul>
+          </div>
+        ))}
 
         <div className="mt-auto flex items-center gap-1 border-t border-base-200 pt-2">
           {auth || paths.logout ? <UserMenu auth={auth} paths={paths} /> : <div className="flex-1" />}
@@ -164,7 +158,7 @@ function MobileBar() {
 }
 
 export default function Layout({ children }) {
-  const { props: { paths, auth, app_version: appVersion }, url } = usePage()
+  const { props: { nav, paths, auth, app_version: appVersion }, url } = usePage()
 
   // Read by the axios 401 interceptor for session-expiry redirects
   useEffect(() => {
@@ -182,7 +176,7 @@ export default function Layout({ children }) {
             <div className="mx-auto w-full max-w-5xl">{children}</div>
           </main>
         </div>
-        <Aside paths={paths} auth={auth} appVersion={appVersion} url={url} />
+        <Aside nav={nav} paths={paths} auth={auth} appVersion={appVersion} url={url} />
       </div>
     </>
   )

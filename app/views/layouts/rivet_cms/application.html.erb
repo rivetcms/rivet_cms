@@ -27,7 +27,14 @@
     </script>
 
     <%= stylesheet_link_tag "rivet_cms", media: "all" %>
+    <% RivetCms.admin_stylesheets.each do |name| %>
+      <%= admin_extension_tag :stylesheet, name %>
+    <% end %>
+    <%# Extension bundles come after core so window.RivetCMS exists when they run %>
     <%= javascript_include_tag "rivet_cms", type: "module", defer: true %>
+    <% RivetCms.admin_scripts.each do |name| %>
+      <%= admin_extension_tag :script, name %>
+    <% end %>
   </head>
   <body>
     <%= yield %>
