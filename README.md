@@ -259,6 +259,11 @@ RivetCms.register_nav :audit_log,
   position: 80                       # items sort by position across sections
 ```
 
+Always use a lambda for routes inside the admin: it resolves through the
+route helpers per request, so links follow the host's mount point
+(`/cms`, `/back-office`, ...). String paths are emitted verbatim and are only
+right for external URLs.
+
 Pages are React components served by the extension's own controllers
 (`render inertia: "AuditLog/Index"`). The extension ships a precompiled
 bundle, registered so the layout loads it after the core bundle:
@@ -279,6 +284,11 @@ Registration is reload-safe: re-registering a nav key replaces the item, and
 asset names are deduplicated. A registered bundle that cannot be resolved is
 logged and skipped rather than failing the admin, so check the log if an
 extension's assets are not loading.
+
+A complete working example lives in `spec/pro_stub`: a second engine that
+adds an admin route, page, nav item, hook subscriptions, and assets through
+these seams. Its specs (`spec/requests/rivet_cms/pro_stub_engine_spec.rb`)
+exercise every seam end to end from the extension's side.
 
 ## Development
 

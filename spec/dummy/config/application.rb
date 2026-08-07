@@ -18,6 +18,11 @@ require "action_cable/engine"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# The stand-in Pro engine, loaded the way Bundler would load a real gem so
+# its initializer and autoload paths get exercised as a second engine's would.
+$LOAD_PATH.unshift File.expand_path("../../pro_stub/lib", __dir__)
+require "pro_stub"
+
 module Dummy
   class Application < Rails::Application
     config.load_defaults Rails::VERSION::STRING.to_f
