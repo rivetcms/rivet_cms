@@ -50,14 +50,18 @@ module RivetCms
       snapshot
     end
 
+    # Snapshots carry kept-field data only: a soft-deleted field's values may
+    # linger on the draft (undiscard recovers them), but copying them would
+    # fail the clone's field association, which resolves through Field's
+    # kept-only default scope.
     def self.copy_owned_into(source, target)
-      source.content_values.find_each do |cv|
+      source.content_values.where(field_id: Field.select(:id)).find_each do |cv|
         clone = target.content_values.build(field_id: cv.field_id, media_asset_id: cv.media_asset_id)
         ContentValue::VALUE_COLUMNS.each { |col| clone[col] = cv[col] }
         clone.save!
       end
 
-      source.relations.find_each do |relation|
+      source.relations.where(field_id: Field.select(:id)).find_each do |relation|
         target.relations.create!(
           field_id: relation.field_id,
           target_document_id: relation.target_document_id,
@@ -65,7 +69,7 @@ module RivetCms
         )
       end
 
-      source.component_instances.find_each do |instance|
+      source.component_instances.where(field_id: Field.select(:id)).find_each do |instance|
         clone = target.component_instances.create!(
           field_id: instance.field_id,
           component_id: instance.component_id,

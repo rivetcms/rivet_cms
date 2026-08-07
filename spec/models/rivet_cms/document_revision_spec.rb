@@ -35,6 +35,26 @@ module RivetCms
         expect(snapshot.content_values.find_by(field: field).string_value).to eq("Original")
       end
 
+      it "publishes cleanly when the draft holds values for soft-deleted fields" do
+        kept = create(:field, :string, key: "work_email", content_type: content_type, organization: org)
+        removed = create(:field, :string, key: "email", content_type: content_type, organization: org)
+        removed_ref = create(:field, field_type: :reference, key: "old_ref", content_type: content_type, organization: org)
+        target = create(:document, content_type: content_type, organization: org)
+
+        draft = create(:document_revision, document: document, state: :draft)
+        draft.content_values.create!(field: kept, string_value: "a@b.co")
+        draft.content_values.create!(field: removed, string_value: "stale@old.co")
+        draft.relations.create!(field: removed_ref, target_document: target, position: 0)
+        removed.discard!
+        removed_ref.discard!
+
+        snapshot = draft.publish!
+
+        expect(snapshot.content_values.count).to eq(1)
+        expect(snapshot.content_values.first.field_id).to eq(kept.id)
+        expect(snapshot.relations.count).to eq(0)
+      end
+
       it "deep-copies relations pointing at the target document" do
         target = create(:document, content_type: content_type, organization: org)
         ref_field = create(:field, field_type: :reference, content_type: content_type, organization: org)
