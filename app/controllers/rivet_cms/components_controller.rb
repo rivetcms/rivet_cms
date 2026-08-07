@@ -32,6 +32,7 @@ module RivetCms
       component = Component.new(component_params)
 
       if component.save
+        audit "component.created", component
         redirect_to component_path(component), notice: "Component created successfully"
       else
         redirect_to new_component_path, inertia: { errors: component.errors }
@@ -52,6 +53,7 @@ module RivetCms
 
     def update
       if @component.update(component_params)
+        audit "component.updated", @component
         redirect_to component_path(@component), notice: "Component updated successfully"
       else
         redirect_to component_path(@component), inertia: { errors: @component.errors }
@@ -60,6 +62,7 @@ module RivetCms
 
     def destroy
       @component.destroy
+      audit "component.deleted", @component
       redirect_to components_path, notice: "Component deleted"
     rescue ActiveRecord::InvalidForeignKey
       redirect_to components_path, alert: "Component is in use and cannot be deleted"
@@ -71,6 +74,7 @@ module RivetCms
       category.system = false if category.system.nil?
 
       if category.save
+        audit "category.created", category
         render json: { id: category.id, name: category.name }
       else
         render json: { errors: category.errors.full_messages }, status: :unprocessable_entity

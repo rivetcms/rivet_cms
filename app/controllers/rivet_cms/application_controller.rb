@@ -88,6 +88,12 @@ module RivetCms
         .select { |document| can?(:read, :content, record: document.content_type) }
     end
 
+    # Emits onto the :audit stream; call after a mutation succeeded
+    def audit(action, subject, **metadata)
+      RivetCms::Audit.record(action, subject: subject, actor: Current.user,
+                             organization: Current.organization, metadata: metadata)
+    end
+
     def deny_authorization
       message = "You do not have permission to do that"
       # Inertia visits redirect (the client follows and shows the flash).

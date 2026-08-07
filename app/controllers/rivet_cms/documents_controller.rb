@@ -57,6 +57,7 @@ module RivetCms
       document.update!(draft_revision: draft)
       writer = DraftWriter.new(draft).tap { |w| w.write(values_param) }
 
+      audit "entry.created", document
       redirect_to edit_content_type_document_path(@content_type, document), notice: write_notice(writer, "Draft saved")
     rescue ActiveRecord::RecordInvalid => e
       redirect_to new_content_type_document_path(@content_type), inertia: { errors: e.record.errors }
@@ -69,6 +70,7 @@ module RivetCms
     def update
       @document.draft_revision.update!(author_attributes)
       writer = DraftWriter.new(@document.draft_revision).tap { |w| w.write(values_param) }
+      audit "entry.updated", @document
       redirect_to edit_content_type_document_path(@content_type, @document), notice: write_notice(writer, "Draft saved")
     end
 
@@ -83,6 +85,7 @@ module RivetCms
       end
       # The snapshot records who published, which is not always the last editor
       draft.publish!(publisher: author_attributes[:author], publisher_name: author_attributes[:author_name])
+      audit "entry.published", @document
       redirect_to edit_content_type_document_path(@content_type, @document), notice: write_notice(writer, "Published")
     rescue ContentInvalidError => e
       redirect_to edit_content_type_document_path(@content_type, @document),
@@ -91,6 +94,7 @@ module RivetCms
 
     def destroy
       @document.discard!
+      audit "entry.trashed", @document
       redirect_to content_type_documents_path(@content_type),
                   notice: "#{@document.slug} was moved to the trash"
     end
@@ -116,6 +120,7 @@ module RivetCms
 
     def restore
       @document.undiscard!
+      audit "entry.restored", @document
       redirect_to edit_content_type_document_path(@content_type, @document),
                   notice: "#{@document.slug} was restored"
     end
@@ -128,6 +133,7 @@ module RivetCms
         Relation.where(target_document_id: @document.id).delete_all
         @document.destroy!
       end
+      audit "entry.purged", @document
       redirect_to trash_content_type_documents_path(@content_type),
                   notice: "#{slug} was permanently deleted"
     rescue ActiveRecord::ActiveRecordError => error

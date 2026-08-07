@@ -35,6 +35,7 @@ module RivetCms
       asset = MediaAsset.new(file: params[:file])
 
       if asset.save
+        audit "media.uploaded", asset
         render json: media_asset_json(asset), status: :created
       else
         render json: { errors: asset.errors.full_messages }, status: :unprocessable_entity
@@ -45,6 +46,7 @@ module RivetCms
       asset = media_assets.find(params[:id])
       authorize! :write, :media, record: asset
       if asset.update(params.permit(:title, :alt, :description))
+        audit "media.updated", asset
         render json: media_asset_json(asset)
       else
         render json: { errors: asset.errors.full_messages }, status: :unprocessable_entity
@@ -59,6 +61,7 @@ module RivetCms
       end
 
       asset.destroy
+      audit "media.deleted", asset
       redirect_to media_assets_path, notice: "Media deleted"
     rescue ActiveRecord::InvalidForeignKey
       redirect_to media_assets_path, alert: "Media is in use by content and cannot be deleted"

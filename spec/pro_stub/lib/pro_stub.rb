@@ -20,6 +20,10 @@ module ProStub
       @pruned ||= []
     end
 
+    def audits
+      @audits ||= []
+    end
+
     def install!
       RivetCms.register_nav :pro_panel,
         label: "Pro Panel",
@@ -33,6 +37,7 @@ module ProStub
 
       RivetCms.on(:publish, key: :pro_stub_publish) { |revision| ProStub.received << revision }
       RivetCms.on(:prune, key: :pro_stub_prune) { |revision| ProStub.pruned << revision.id }
+      RivetCms.on(:audit, key: :pro_stub_audit) { |event| ProStub.audits << event }
     end
   end
 end

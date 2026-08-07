@@ -19,6 +19,7 @@ module RivetCms
     def create
       scope = params[:scope].presence_in(%w[published preview]) || "published"
       token = ApiToken.generate!(name: params[:name].to_s, scope: scope)
+      audit "api_token.created", token, scope: scope
       flash[:new_token] = token.plaintext
       redirect_to api_tokens_path, notice: "API token created — copy it now; it won't be shown again."
     rescue ActiveRecord::RecordInvalid => e
@@ -29,6 +30,7 @@ module RivetCms
       token = api_tokens.find(params[:id])
       authorize! :delete, :api, record: token
       token.destroy
+      audit "api_token.revoked", token
       redirect_to api_tokens_path, notice: "API token revoked"
     end
 

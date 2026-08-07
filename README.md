@@ -112,47 +112,15 @@ and resources may appear in minor releases and must fail closed. A raising
 policy denies (fail closed) and logs. Denials redirect back with a flash in
 the admin UI and return 403 JSON on API-shaped endpoints.
 
-Checks run in two phases. First without a `record`, before anything is
-loaded: that check asks whether the action is available to the user *at all*
-(it also drives sidebar visibility). Then, once the controller has loaded
-the thing being acted on, the same check runs again with `record` set: the
-entry, content type (for entry lists and creation, the type they belong to),
-field, component, media asset, or API token. A per-record policy must return
-true for the recordless phase whenever the user could pass it for at least
-one record, and put the real decision in the record phase:
+The policy also receives the affected record when one applies (`check.record`
+is nil otherwise), so per-record decisions are possible; a denied record is
+hidden from admin surfaces as well as refused. RivetCMS Pro provides packaged
+roles and record-scoped permission management on top of this contract.
 
-```ruby
-config.can = lambda do |check|
-  case check.record
-  when nil then true                    # phase one: available at all?
-  when RivetCms::Document then check.user.can_edit?(check.record)
-  else true
-  end
-end
-```
-
-Denials compose downward. Checking `(action, :content, record: content_type)`
-means "may the user <action> this type's content": entry actions check the
-type as well as the entry (verb-matched), field actions check their owning
-type or component, and the API docs suppress schemas, references, and
-embedded component structures for anything the schema phase denies. Denying
-a parent therefore denies its children even on direct URLs.
-
-List surfaces (entry lists, the cross-type Content page, dashboards,
-media/type/component/token lists, trash pages, and the editor's reference
-picker) filter every row through the record phase, so a record the policy
-hides is not shown anywhere. Two consequences worth knowing: filtering
-happens after pagination, so a page can come up short when rows are hidden,
-and stat counts are aggregates that are not filtered per record; a policy
-hiding individual records still lets their existence be counted.
-
-Notes: the editor screen is a `:read` surface (mutations are gated
-separately); minting an API token additionally requires `:read, :content`
-since tokens read content through the delivery API; the dashboard is
-reachable by any authenticated user but filters every section through the
-same checks. This policy governs the admin UI only — the delivery API is
-token-gated and media blob URLs are served by Active Storage outside the
-seam.
+This policy governs the admin UI only — the delivery API is token-gated and
+media blob URLs are served by Active Storage outside the seam. Minting an
+API token additionally requires `:read, :content`, since tokens read content
+through the delivery API.
 
 ## Deleting content
 
@@ -228,10 +196,8 @@ is logged and swallowed, exactly like the other lifecycle hooks, so the
 revision is still destroyed. If you need archive-or-abort semantics, set
 `revision_retention = :all` and prune out of band instead.
 
-Keeping history is what a revision-history and rollback UI builds on;
-`RivetCms::DocumentRevision.restore_owned_into(snapshot, draft)` is the
-rollback primitive (it replaces the draft's values rather than merging into
-them). RivetCMS Pro ships the history UI on top of these.
+RivetCMS Pro ships a revision-history and rollback UI on top of the kept
+snapshots.
 
 ## Lifecycle hooks and webhooks
 
@@ -276,70 +242,34 @@ can forge it. Treat webhooks as a trigger, not as trusted data; re-fetch
 content through the delivery API rather than acting on payload fields. Signed
 deliveries with managed retries are part of RivetCMS Pro.
 
-## Extending the admin
+### The audit stream
 
-An engine (or the host app) can add sidebar items and admin pages. Nav items
-register server-side; the sidebar is computed per request and filtered
-through the authorization policy, so an item a user cannot reach is never
-rendered, core items included:
-
-```ruby
-RivetCms.register_nav :audit_log,
-  label: "Audit Log",
-  section: "Manage",                 # existing section, or a new one
-  icon: :content,                    # built-in icon name; unknown names get a dot
-  requires: [:read, :content],       # can? gate, nil means always visible
-  path: -> { audit_log_path },       # instance_exec'd in the controller, or a string
-  position: 80                       # items sort by position across sections
-```
-
-Always use a lambda for routes inside the admin: it resolves through the
-route helpers per request, so links follow the host's mount point
-(`/cms`, `/back-office`, ...). String paths are emitted verbatim and are only
-right for external URLs.
-
-Pages are React components served by the extension's own controllers
-(`render inertia: "AuditLog/Index"`). The extension ships a precompiled
-bundle, registered so the layout loads it after the core bundle:
+Named events are behavior hooks for specific moments. The `:audit` event is
+different: one uniform stream over every admin mutation, for consumers that
+want all of it (audit logs, activity feeds, SIEM pipelines):
 
 ```ruby
-RivetCms.register_admin_script "my_extension"      # and register_admin_stylesheet
+RivetCms.on(:audit) do |event|
+  event.action         # "entry.trashed", "field.created", "media.uploaded", ...
+  event.subject_type   # "document"
+  event.subject_id     # "doc_abc123" (prefixed id)
+  event.subject_label  # "hello-world" (slug, name, or filename)
+  event.actor          # whatever your current_user lambda returns
+  event.organization_id
+  event.metadata       # sparse extras, e.g. { change: "layout" }
+  event.at
+end
 ```
 
-```js
-// my_extension.js: runs before the admin app boots. Mark react, react-dom
-// and @inertiajs/react as externals and use the shared instances, so there
-// is exactly one React in the page.
-const { React, Inertia } = window.RivetCMS
-window.RivetCMS.registerPages({ "AuditLog/Index": AuditLogIndex })
-```
-
-Extensions can also mount components inside core pages at named slots.
-Components render in registration order, receive the listed props, and a
-component that throws is logged and dropped without taking the page down:
-
-```js
-window.RivetCMS.registerSlot("entry.actions", ScheduleButton)
-```
-
-Current slots, all in the entry editor and only rendered for saved entries,
-each receiving `{ document, contentType }`:
-
-| Slot | Where |
-|---|---|
-| `entry.status` | next to the Draft/Published badge |
-| `entry.actions` | header buttons, before Delete and Publish |
-| `entry.panels` | below the entry form |
-
-Registration is reload-safe: re-registering a nav key replaces the item, and
-asset names are deduplicated. A registered bundle that cannot be resolved is
-logged and skipped rather than failing the admin, so check the log if an
-extension's assets are not loading.
-
-A complete working example lives in `spec/pro_stub`: a second engine that
-adds an admin route, page, nav item, hook subscriptions, and assets through
-these seams. Its specs (`spec/requests/rivet_cms/pro_stub_engine_spec.rb`)
-exercise every seam end to end from the extension's side.
+Events fire only after the mutation succeeded, from the admin UI; console
+and seed changes are not recorded. Subscribers must tolerate unknown
+actions: the vocabulary grows in minor releases, and an audit consumer
+should record new actions, not drop them. Current actions: `entry.created`,
+`entry.updated`, `entry.published`, `entry.trashed`, `entry.restored`,
+`entry.purged`, `content_type.created/updated/removed/restored/purged`,
+`field.created/updated/removed`, `schema.layout_updated`,
+`component.created/updated/deleted`, `category.created`,
+`media.uploaded/updated/deleted`, `api_token.created/revoked`.
 
 ## Development
 

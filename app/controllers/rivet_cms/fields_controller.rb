@@ -18,6 +18,7 @@ module RivetCms
       field.organization = @owner.organization
 
       if field.save
+        audit "field.created", field
         redirect_to owner_path, notice: "Field created"
       else
         redirect_to owner_path, inertia: { errors: field.errors }
@@ -26,6 +27,7 @@ module RivetCms
 
     def update
       if @field.update(field_params)
+        audit "field.updated", @field
         redirect_to owner_path, notice: "Field updated"
       else
         redirect_to owner_path, inertia: { errors: @field.errors }
@@ -34,6 +36,7 @@ module RivetCms
 
     def destroy
       @field.discard
+      audit "field.removed", @field
       redirect_to owner_path, notice: "Field removed"
     end
 
@@ -50,11 +53,13 @@ module RivetCms
         end
       end
 
+      audit "field.updated", @field, change: "layout"
       redirect_to owner_path
     end
 
     def unpair
       @field.unpair!
+      audit "field.updated", @field, change: "layout"
       redirect_to owner_path
     end
 
@@ -66,6 +71,7 @@ module RivetCms
       # Both fields must be half-width and not already paired
       if @field.width_half? && other_field.width_half? && !@field.paired? && !other_field.paired?
         @field.pair_with!(other_field)
+        audit "field.updated", @field, change: "layout"
       end
 
       redirect_to owner_path
@@ -77,6 +83,7 @@ module RivetCms
       moved = @owner.fields.where(id: Array(params[:rows]).flatten)
       moved.each { |field| authorize! :write, :schema, record: field }
       @owner.fields.update_layout!(params[:rows])
+      audit "schema.layout_updated", @owner
       redirect_to owner_path
     end
 

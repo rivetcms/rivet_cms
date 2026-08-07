@@ -27,8 +27,10 @@ module RivetCms
   #   :prune   - a superseded revision is about to be destroyed by retention
   #              (fires inside the publish transaction, before the delete, so
   #              a subscriber can archive it elsewhere first)
+  #   :audit   - an admin mutation happened (receives a RivetCms::AuditEvent;
+  #              see RivetCms::Audit for the payload contract)
   module Hooks
-    BUILT_IN_EVENTS = %i[publish prune].freeze
+    BUILT_IN_EVENTS = %i[publish prune audit].freeze
     MUTEX = Mutex.new
 
     class << self

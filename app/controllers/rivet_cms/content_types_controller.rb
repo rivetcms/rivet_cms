@@ -52,6 +52,7 @@ module RivetCms
       content_type = ContentType.new(content_type_params)
 
       if content_type.save
+        audit "content_type.created", content_type
         redirect_to content_type_path(content_type), notice: "Content type created successfully"
       else
         redirect_to new_content_type_path, inertia: { errors: content_type.errors }
@@ -60,6 +61,7 @@ module RivetCms
 
     def update
       if @content_type.update(content_type_params)
+        audit "content_type.updated", @content_type
         redirect_to content_type_path(@content_type), notice: "Content type updated successfully"
       else
         redirect_to content_type_path(@content_type), inertia: { errors: @content_type.errors }
@@ -84,6 +86,7 @@ module RivetCms
 
     def restore
       @content_type.undiscard!
+      audit "content_type.restored", @content_type
       redirect_to content_type_path(@content_type), notice: "#{@content_type.name} was restored with its entries"
     end
 
@@ -104,6 +107,7 @@ module RivetCms
         @content_type.destroy!
       end
 
+      audit "content_type.purged", @content_type
       redirect_to trash_content_types_path, notice: "#{name} and its entries were permanently deleted"
     rescue ActiveRecord::ActiveRecordError => error
       Rails.logger&.error("[RivetCms] purge failed for content type #{@content_type.id}: #{error.class}")
@@ -112,6 +116,7 @@ module RivetCms
 
     def destroy
       @content_type.discard!
+      audit "content_type.removed", @content_type
       redirect_to content_types_path,
                   notice: "#{@content_type.name} was removed. Its entries are kept and it can be restored from the trash."
     end

@@ -26,6 +26,7 @@ module RivetCms
       ProStub.install!
       ProStub.received.clear
       ProStub.pruned.clear
+      ProStub.audits.clear
     end
 
     it "serves its admin page through the shared layout with its bundle after core's" do
@@ -61,6 +62,16 @@ module RivetCms
       get rivet_cms.pro_stub_panel_path
       expect(response).not_to have_http_status(:ok)
       expect(flash[:alert]).to include("permission")
+    end
+
+    it "hears admin mutations through the audit stream" do
+      draft = draft_for("audited-entry")
+
+      delete rivet_cms.content_type_document_path(content_type, draft.document)
+
+      event = ProStub.audits.last
+      expect(event.action).to eq("entry.trashed")
+      expect(event.subject_id).to eq(draft.document.prefix_id)
     end
 
     it "hears retention pruning through the prune hook" do
