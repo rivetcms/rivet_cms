@@ -11,6 +11,21 @@ module RivetCms
     end
 
     describe "#publish!" do
+      it "attributes the snapshot to the publisher, not the last draft editor" do
+        draft = create(:document_revision, document: document, state: :draft, author_name: "Alice")
+
+        snapshot = draft.publish!(publisher_name: "Bob")
+
+        expect(snapshot.author_name).to eq("Bob")
+        expect(draft.reload.author_name).to eq("Alice")
+      end
+
+      it "keeps the draft's attribution when no publisher is given" do
+        draft = create(:document_revision, document: document, state: :draft, author_name: "Alice")
+
+        expect(draft.publish!.author_name).to eq("Alice")
+      end
+
       it "creates a published snapshot and points the document at it" do
         field = create(:field, :string, content_type: content_type, organization: org)
         draft = create(:document_revision, document: document, state: :draft)

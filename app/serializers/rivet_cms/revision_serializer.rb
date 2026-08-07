@@ -74,10 +74,13 @@ module RivetCms
     end
 
     # Published scope must not reveal draft-only documents, even as {id, slug}.
+    # Targets whose content type has been removed are hidden the same way, in
+    # both scopes: their type is no longer served, so neither are they.
     def visible_relations(relations)
-      return relations if @preview
+      visible = relations.reject { |relation| relation.target_document.content_type.nil? }
+      return visible if @preview
 
-      relations.reject { |relation| relation.target_document.published_revision_id.nil? }
+      visible.reject { |relation| relation.target_document.published_revision_id.nil? }
     end
 
     def reference_json(relation)

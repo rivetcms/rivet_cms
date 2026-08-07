@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_06_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_06_000002) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -101,6 +101,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_06_000001) do
     t.integer "organization_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_rivet_cms_content_types_on_deleted_at"
     t.index ["name"], name: "index_rivet_cms_content_types_on_name"
     t.index ["organization_id", "slug"], name: "index_rivet_cms_content_types_on_organization_id_and_slug", unique: true
     t.index ["organization_id"], name: "index_rivet_cms_content_types_on_organization_id"

@@ -11,7 +11,7 @@ module RivetCms
 
       organization = Current.organization
       content_types = read_content || read_schema ? organization.content_types.order(:name).to_a : []
-      documents = Document.where(organization: organization)
+      documents = Document.where(organization: organization).in_visible_types
       entry_counts = read_content ? documents.group(:content_type_id).count : {}
 
       stats = {}

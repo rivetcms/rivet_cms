@@ -6,7 +6,7 @@ module RivetCms
 
     def index
       content_types = Current.organization.content_types.order(:name)
-      documents = Document.where(organization: Current.organization).order(updated_at: :desc)
+      documents = Document.where(organization: Current.organization).in_visible_types.order(updated_at: :desc)
       if params[:type].present?
         documents = documents.joins(:content_type).where(rivet_cms_content_types: { slug: params[:type] })
       end

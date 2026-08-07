@@ -17,6 +17,9 @@ module RivetCms
     validate :content_type_in_same_organization
 
     scope :recent, -> { order(created_at: :desc) }
+    # ContentType is soft-deletable, so a document can outlive its type's
+    # visibility; cross-type queries must exclude those or content_type is nil.
+    scope :in_visible_types, -> { where(content_type_id: ContentType.select(:id)) }
     scope :search, ->(query) { where("LOWER(#{table_name}.slug) LIKE ?", "%#{sanitize_sql_like(query.downcase)}%") }
 
     private

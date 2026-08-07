@@ -93,7 +93,7 @@ module RivetCms
     end
 
     def reference_options
-      Document.where(organization: Current.organization).recent
+      Document.where(organization: Current.organization).in_visible_types.recent
               .map { |document| { id: document.id, slug: document.slug, content_type: document.content_type.name } }
     end
 

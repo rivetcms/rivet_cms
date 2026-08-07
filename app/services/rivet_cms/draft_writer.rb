@@ -5,7 +5,10 @@ module RivetCms
     end
 
     def write(values)
-      write_values(@revision, @revision.document.content_type.fields.kept, values)
+      content_type = @revision.document.content_type
+      raise RemovedContentTypeError, "content type was removed; restore it before editing" if content_type.nil?
+
+      write_values(@revision, content_type.fields.kept, values)
       @revision
     end
 

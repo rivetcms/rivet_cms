@@ -8,6 +8,11 @@ module RivetCms
     end
   end
 
+  # Raised when content is written or published into a content type that has
+  # been removed. Its entries are kept but no longer served, so they must not
+  # be edited or republished until the type is restored.
+  class RemovedContentTypeError < StandardError; end
+
   class DocumentRevision < ApplicationRecord
     has_prefix_id :rev
 
@@ -29,6 +34,8 @@ module RivetCms
     # publisher attributes the snapshot to whoever published it, which is not
     # always the person who last saved the draft.
     def publish!(publisher: nil, publisher_name: nil)
+      raise RemovedContentTypeError, "content type was removed; restore it before publishing" unless ContentType.exists?(id: document.content_type_id)
+
       validator = ContentValidator.new(self).validate
       raise ContentInvalidError, validator.errors unless validator.valid?
 

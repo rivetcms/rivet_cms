@@ -129,7 +129,7 @@ module RivetCms
           content_type_records = @content_types.map { |attrs| upsert_content_type(attrs) }
 
           @components.each_with_index { |attrs, i| build_fields(component_records[i], attrs[:fields]) }
-          @content_types.each_with_index { |attrs, i| build_fields(content_type_records[i], attrs[:fields]) }
+          @content_types.each_with_index { |attrs, i| build_fields(content_type_records[i], attrs[:fields]) if content_type_records[i] }
         end
         self
       end
@@ -164,7 +164,15 @@ module RivetCms
       end
 
       def upsert_content_type(attrs)
-        content_type = RivetCms::ContentType.find_or_initialize_by(organization: @organization, slug: attrs[:slug])
+        # with_discarded so a removed type is recognised rather than colliding
+        # with its reserved slug. A removal is deliberate, so seeding leaves it
+        # alone instead of silently restoring it and its entries.
+        content_type = RivetCms::ContentType.with_discarded.find_or_initialize_by(organization: @organization, slug: attrs[:slug])
+        # Skipped entirely, not just left undiscarded: keeping it out of the
+        # index stops build_fields rewriting its schema. Reference fields
+        # pointing at it are dropped by build_fields rather than seeded broken.
+        return nil if content_type.discarded?
+
         content_type.name = attrs[:name]
         content_type.description = attrs[:description]
         content_type.single = attrs[:single] || false
@@ -174,11 +182,21 @@ module RivetCms
       end
 
       def build_fields(owner, definitions)
+        # A reference to a removed type cannot be seeded, so its definition is
+        # dropped alongside the field it would have produced; layout_rows pairs
+        # the two lists positionally and must not see a gap.
+        definitions = definitions.reject { |definition| removed_reference?(definition) }
         return if definitions.empty?
 
         owner_key = owner.is_a?(RivetCms::ContentType) ? :content_type_id : :component_id
         records = definitions.map { |definition| upsert_field(owner, owner_key, definition) }
         RivetCms::Field.update_layout!(layout_rows(definitions, records))
+      end
+
+      def removed_reference?(definition)
+        return false unless definition[:type] == :reference
+
+        lookup_content_type(definition[:to]).nil?
       end
 
       def upsert_field(owner, owner_key, definition)
@@ -210,9 +228,14 @@ module RivetCms
         attributes
       end
 
+      # nil when the target exists but has been removed; raises only when the
+      # template names a type that was never seeded at all.
       def lookup_content_type(slug)
-        @content_type_index[slug] || RivetCms::ContentType.find_by(organization: @organization, slug: slug) ||
-          raise(ArgumentError, "reference target content type not found: #{slug}")
+        found = @content_type_index[slug] || RivetCms::ContentType.find_by(organization: @organization, slug: slug)
+        return found if found
+        return nil if RivetCms::ContentType.with_discarded.exists?(organization: @organization, slug: slug)
+
+        raise ArgumentError, "reference target content type not found: #{slug}"
       end
 
       def lookup_component(name)

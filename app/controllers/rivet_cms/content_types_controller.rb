@@ -10,7 +10,7 @@ module RivetCms
 
     def index
       # Entry counts are content data, not schema; omit them without content read
-      entry_counts = can?(:read, :content) ? Document.where(organization: Current.organization).group(:content_type_id).count : nil
+      entry_counts = can?(:read, :content) ? Document.where(organization: Current.organization).in_visible_types.group(:content_type_id).count : nil
 
       render inertia: "ContentTypes/Index", props: {
         content_types: Current.organization.content_types.map { |ct|
@@ -56,13 +56,15 @@ module RivetCms
     end
 
     def destroy
-      @content_type.destroy
-      redirect_to content_types_path, notice: "Content type deleted"
+      @content_type.discard!
+      redirect_to content_types_path,
+                  notice: "#{@content_type.name} was removed. Its entries are kept, not deleted."
     end
 
     private
 
-    # Destroying a type cascades to its documents, so it is also a content delete
+    # Removing a type hides its entries from the admin and the delivery API,
+    # so it is a content-level action as well as a schema one.
     def authorize_cascade!
       authorize! :delete, :content if @content_type.documents.exists?
     end

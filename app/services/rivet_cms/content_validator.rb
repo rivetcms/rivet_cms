@@ -14,6 +14,8 @@ module RivetCms
     end
 
     def validate
+      raise RemovedContentTypeError, "content type was removed; restore it before validating" if content_type.nil?
+
       validate_owner(@revision, content_type.fields.kept)
       self
     end

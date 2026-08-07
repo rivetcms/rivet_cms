@@ -28,7 +28,9 @@ module RivetCms
         event: EVENT_NAMES.fetch(event),
         document_id: document.prefix_id,
         slug: document.slug,
-        content_type: document.content_type.slug,
+        # with_discarded: publishing into a removed type is reachable from host
+        # code, and the payload should still say which type it was.
+        content_type: ContentType.with_discarded.where(id: document.content_type_id).pick(:slug),
         organization: document.organization.subdomain,
         locale: revision.locale,
         published_at: revision.published_at&.iso8601,

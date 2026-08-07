@@ -101,6 +101,14 @@ module RivetCms
       # only engages outside them.
       self.use_transactional_tests = false
 
+      # Rows written here are real commits, so a failure partway through would
+      # otherwise leak into the test database and poison every later run.
+      after do
+        clear_enqueued_jobs
+        RivetCms::Document.where(slug: "tx-hello").find_each(&:destroy)
+        RivetCms::ContentType.with_discarded.where(slug: "tx-articles").find_each(&:destroy)
+      end
+
       it "defers hooks past an outer transaction and drops them on rollback" do
         RivetCms.webhooks = [ { url: "https://example.com/hooks" } ]
         type = create(:content_type, slug: "tx-articles", organization: organization)
@@ -121,10 +129,6 @@ module RivetCms
         end
         expect(enqueued_inside).to eq(0)
         expect(enqueued_jobs.size).to eq(1)
-      ensure
-        clear_enqueued_jobs
-        document&.destroy
-        type&.destroy
       end
     end
 
