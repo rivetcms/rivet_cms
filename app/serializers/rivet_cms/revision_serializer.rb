@@ -77,7 +77,9 @@ module RivetCms
     # Targets whose content type has been removed are hidden the same way, in
     # both scopes: their type is no longer served, so neither are they.
     def visible_relations(relations)
-      visible = relations.reject { |relation| relation.target_document.content_type.nil? }
+      # A target can be missing entirely (trashed entry) or belong to a removed
+      # type; either way it is no longer served, so neither is the reference.
+      visible = relations.reject { |relation| relation.target_document.nil? || relation.target_document.content_type.nil? }
       return visible if @preview
 
       visible.reject { |relation| relation.target_document.published_revision_id.nil? }

@@ -120,6 +120,28 @@ same checks. This policy governs the admin UI only — the delivery API is
 token-gated and media blob URLs are served by Active Storage outside the
 seam.
 
+## Deleting content
+
+Deleting is recoverable by default. Removing a content type or an entry moves
+it to a trash: it disappears from the admin and stops being served by the
+delivery API, but every revision and value is kept, and restoring brings it
+all back. Both trashes are reachable from their list pages.
+
+Permanent deletion lives only inside the trash, so removing and destroying are
+always two deliberate steps. Purging a content type additionally requires
+typing its name, since it destroys every entry of that type; purging a single
+entry asks for a plain confirmation naming it. Both require `:delete` on the
+content domain.
+
+```ruby
+# Restoring is also available from the console
+RivetCms::ContentType.with_discarded.find_by(slug: "articles").undiscard!
+RivetCms::Document.with_discarded.find_by(slug: "hello-world").undiscard!
+```
+
+A trashed type or entry keeps its slug reserved, so restoring can never
+collide with something created in the meantime.
+
 ## Revisions and retention
 
 Publishing snapshots the draft into a new published revision, so a document

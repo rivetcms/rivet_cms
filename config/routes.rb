@@ -7,6 +7,7 @@ RivetCms::Engine.routes.draw do
     end
     member do
       patch :restore
+      delete :purge
     end
     resources :fields, only: [ :create, :update, :destroy ] do
       member do
@@ -46,8 +47,13 @@ RivetCms::Engine.routes.draw do
 
   resources :content_types, only: [] do
     resources :documents, except: [ :show ] do
+      collection do
+        get :trash
+      end
       member do
         post :publish
+        patch :restore
+        delete :purge
       end
     end
   end

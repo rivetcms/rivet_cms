@@ -14,6 +14,7 @@ module RivetCms
     end
 
     def validate
+      raise TrashedEntryError, "entry is in the trash; restore it before validating" if @revision.document.nil?
       raise RemovedContentTypeError, "content type was removed; restore it before validating" if content_type.nil?
 
       validate_owner(@revision, content_type.fields.kept)
@@ -32,7 +33,9 @@ module RivetCms
 
     def validate_owner(owner, fields)
       values_by_field = owner.content_values.includes(:field, :media_asset).index_by(&:field_id)
-      relation_counts = owner.relations.group(:field_id).count
+      # Only targets that still exist: copy_owned_into drops the rest, so
+      # counting them would let a required reference publish empty.
+      relation_counts = owner.relations.where(target_document_id: Document.select(:id)).group(:field_id).count
       instances_by_field = owner.component_instances.includes(component: :fields).group_by(&:field_id)
 
       fields.each do |field|

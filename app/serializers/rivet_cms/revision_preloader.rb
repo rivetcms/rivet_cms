@@ -119,7 +119,7 @@ module RivetCms
         (@relations[owner_key(revision)] || {})
           .select { |field_id, _| @populate_field_ids.include?(field_id) }
           .values.flatten.map(&:target_document)
-      }.uniq
+      }.compact.uniq # a target can be trashed, leaving the association nil
 
       revision_id_by_document = targets.each_with_object({}) do |document, map|
         revision_id = @preview ? (document.draft_revision_id || document.published_revision_id) : document.published_revision_id

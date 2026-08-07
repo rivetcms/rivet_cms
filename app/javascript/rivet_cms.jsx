@@ -14,6 +14,7 @@ import ComponentsShow from "./pages/Components/Show"
 import ContentManagerIndex from "./pages/ContentManager/Index"
 import DocumentsIndex from "./pages/Documents/Index"
 import DocumentsEdit from "./pages/Documents/Edit"
+import DocumentsTrash from "./pages/Documents/Trash"
 import MediaIndex from "./pages/Media/Index"
 import ApiTokensIndex from "./pages/ApiTokens/Index"
 import ApiIndex from "./pages/Api/Index"
@@ -30,6 +31,7 @@ const pages = {
   "ContentManager/Index": ContentManagerIndex,
   "Documents/Index": DocumentsIndex,
   "Documents/Edit": DocumentsEdit,
+  "Documents/Trash": DocumentsTrash,
   "Media/Index": MediaIndex,
   "ApiTokens/Index": ApiTokensIndex,
   "Api/Index": ApiIndex,

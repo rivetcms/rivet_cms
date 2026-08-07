@@ -27,7 +27,8 @@ module RivetCms
       types = ContentType.with_discarded.where(organization_id: id)
       # organization_id, not the type join: that column is what holds the FK
       # Either column can hold the link if data has drifted, so cover both
-      documents = Document.where(organization_id: id).or(Document.where(content_type_id: types.select(:id)))
+      documents = Document.with_discarded.where(organization_id: id)
+                          .or(Document.with_discarded.where(content_type_id: types.select(:id)))
       # Relations point at documents by foreign key, so incoming links have to
       # go before their targets or the cascade order decides whether we crash.
       Relation.where(target_document_id: documents.select(:id)).delete_all

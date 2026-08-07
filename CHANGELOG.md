@@ -5,6 +5,10 @@ All notable changes to RivetCMS are documented here.
 ## Unreleased
 
 ### Added
+- Entries are soft-deleted and have a trash, matching content types: deleting
+  keeps every revision and value, the entry stops being served by the delivery
+  API, and it can be restored. Permanent deletion is available from the trash
+  only, and requires typing the name for a content type.
 - Revision retention: `RivetCms.revision_retention` (`:all` by default, or an
   integer) controls how many superseded published snapshots each document
   keeps. The default keeps everything; pruning is opt-in and applies as each

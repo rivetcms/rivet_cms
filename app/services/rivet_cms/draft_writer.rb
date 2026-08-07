@@ -1,10 +1,17 @@
 module RivetCms
   class DraftWriter
+    # References whose target was trashed are dropped on save; the caller
+    # reports that rather than letting the link vanish silently.
+    attr_reader :dropped_references
+
     def initialize(revision)
       @revision = revision
+      @dropped_references = 0
     end
 
     def write(values)
+      raise TrashedEntryError, "entry is in the trash; restore it before editing" if @revision.document.nil?
+
       content_type = @revision.document.content_type
       raise RemovedContentTypeError, "content type was removed; restore it before editing" if content_type.nil?
 
@@ -41,7 +48,13 @@ module RivetCms
     def write_relations(owner, field, ids)
       owner.relations.where(field_id: field.id).destroy_all
 
-      Array(ids).reject(&:blank?).each_with_index do |target_id, index|
+      # Silently drop targets that have been trashed since: the editor round
+      # trips their ids, and a required belongs_to would raise on save.
+      given = Array(ids).reject(&:blank?)
+      live_ids = Document.where(id: given).pluck(:id).to_set
+      live = given.select { |id| live_ids.include?(id.to_i) }
+      @dropped_references += given.size - live.size
+      live.each_with_index do |target_id, index|
         owner.relations.create!(field: field, target_document_id: target_id, position: index)
       end
     end

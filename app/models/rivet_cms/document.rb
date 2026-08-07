@@ -1,6 +1,7 @@
 module RivetCms
   class Document < ApplicationRecord
     include OrganizationScoped
+    include SoftDeletable
 
     has_prefix_id :doc
 
@@ -12,6 +13,8 @@ module RivetCms
     before_validation :assign_singleton_key
     before_destroy :detach_revisions, prepend: true
 
+    # Unscoped like ContentType: a trashed entry keeps its slug reserved so
+    # restoring it can never collide with something created since.
     validates :slug, presence: true, uniqueness: { scope: :content_type_id }
     validates :singleton_key, uniqueness: { scope: :content_type_id }, if: -> { singleton_key.present? }
     validate :content_type_in_same_organization

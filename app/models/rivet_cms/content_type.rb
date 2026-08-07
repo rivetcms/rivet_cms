@@ -11,6 +11,9 @@ module RivetCms
     # type and its entries; a real destroy is refused while entries exist, so
     # there is no path from one click to a wiped library.
     has_many :documents, dependent: :restrict_with_error
+    # documents is soft-delete scoped, so restrict_with_error cannot see a
+    # trashed entry; without this a destroy would slip past it into an FK error.
+    before_destroy :restrict_when_entries_remain, prepend: true
 
     validates :name, presence: true
     # The unique index spans removed rows too, so a removed type keeps its slug
@@ -27,6 +30,13 @@ module RivetCms
     end
 
     private
+
+    def restrict_when_entries_remain
+      return unless Document.with_discarded.where(content_type_id: id).exists?
+
+      errors.add(:base, "Cannot delete record because dependent documents exist")
+      throw :abort
+    end
 
     # Rails' uniqueness validator ignores the kept default scope, so a slug held
     # by a removed type does produce "has already been taken". Declared after it

@@ -13,6 +13,11 @@ module RivetCms
   # be edited or republished until the type is restored.
   class RemovedContentTypeError < StandardError; end
 
+  # Raised when a revision is written or published while its entry sits in the
+  # trash. Document's kept scope makes revision.document nil, so without this
+  # every such path would NoMethodError instead of saying what is wrong.
+  class TrashedEntryError < StandardError; end
+
   class DocumentRevision < ApplicationRecord
     has_prefix_id :rev
 
@@ -34,6 +39,7 @@ module RivetCms
     # publisher attributes the snapshot to whoever published it, which is not
     # always the person who last saved the draft.
     def publish!(publisher: nil, publisher_name: nil)
+      raise TrashedEntryError, "entry is in the trash; restore it before publishing" if document.nil?
       raise RemovedContentTypeError, "content type was removed; restore it before publishing" unless ContentType.exists?(id: document.content_type_id)
 
       validator = ContentValidator.new(self).validate
@@ -96,7 +102,9 @@ module RivetCms
         clone.save!
       end
 
-      source.relations.where(field_id: Field.select(:id)).find_each do |relation|
+      # Same shape as the kept-field filter: a trashed target would fail the
+      # clone's required belongs_to, so it is dropped rather than raising.
+      source.relations.where(field_id: Field.select(:id), target_document_id: Document.select(:id)).find_each do |relation|
         target.relations.create!(
           field_id: relation.field_id,
           target_document_id: relation.target_document_id,

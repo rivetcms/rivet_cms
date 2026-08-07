@@ -4,13 +4,13 @@ import EmptyState from "../../components/EmptyState"
 import { timeAgo } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
 
-export default function Index({ content_type: contentType, documents, pagination, q: initialQ }) {
+export default function Index({ content_type: contentType, documents, pagination, q: initialQ, trashed_count: trashedCount, trash_path: trashPath }) {
   const [q, setQ] = useSearch(initialQ, (value) =>
     router.get(contentType.paths.documents, value ? { q: value } : {}, { preserveState: true, replace: true })
   )
 
   const destroy = (document) => {
-    if (confirm("Delete this entry? This cannot be undone.")) router.delete(document.paths.destroy)
+    if (confirm("Move this entry to the trash? You can restore it later.")) router.delete(document.paths.destroy)
   }
 
   const goToPage = (page) =>
@@ -26,6 +26,12 @@ export default function Index({ content_type: contentType, documents, pagination
       </div>
 
       <PageHeader title={`${contentType.name} entries`} description="Create and publish content entries.">
+        {trashedCount > 0 && (
+          <Link href={trashPath} className="btn btn-ghost border border-base-300">
+            Trash
+            <span className="badge badge-sm font-mono">{trashedCount}</span>
+          </Link>
+        )}
         <Link href={contentType.paths.new_document} className="btn btn-primary">New Entry</Link>
       </PageHeader>
 

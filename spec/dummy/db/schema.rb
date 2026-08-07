@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_06_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_07_000001) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -154,9 +154,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_06_000002) do
     t.bigint "draft_revision_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
     t.index ["content_type_id", "singleton_key"], name: "index_rivet_cms_documents_on_content_type_id_and_singleton_key", unique: true
     t.index ["content_type_id", "slug"], name: "index_rivet_cms_documents_on_content_type_id_and_slug", unique: true
     t.index ["content_type_id"], name: "index_rivet_cms_documents_on_content_type_id"
+    t.index ["deleted_at"], name: "index_rivet_cms_documents_on_deleted_at"
     t.index ["draft_revision_id"], name: "index_rivet_cms_documents_on_draft_revision_id"
     t.index ["organization_id"], name: "index_rivet_cms_documents_on_organization_id"
     t.index ["published_revision_id"], name: "index_rivet_cms_documents_on_published_revision_id"

@@ -3,10 +3,12 @@ module RivetCms
     include InertiaProps
 
     before_action -> { authorize! :read, :schema }, only: [ :index, :show, :trash ]
-    before_action -> { authorize! :delete, :schema }, only: [ :destroy ]
-    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :trash, :destroy ]
+    before_action -> { authorize! :delete, :schema }, only: [ :destroy, :purge ]
+    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :trash, :destroy, :purge ]
     before_action :set_content_type, only: [ :show, :update, :destroy ]
-    before_action :set_removed_content_type, only: [ :restore ]
+    before_action :set_removed_content_type, only: [ :restore, :purge ]
+    # Purging destroys content, so it needs the content gate as well as schema
+    before_action -> { authorize! :delete, :content }, only: [ :purge ]
     before_action :authorize_cascade!, only: [ :destroy ]
 
     def index
@@ -60,13 +62,13 @@ module RivetCms
     # Removed types are kept, so they need somewhere to be seen and restored
     def trash
       removed = ContentType.with_discarded.discarded.where(organization: Current.organization).order(:deleted_at)
-      entry_counts = can?(:read, :content) ? Document.where(content_type_id: removed.select(:id)).group(:content_type_id).count : nil
+      entry_counts = can?(:read, :content) ? Document.with_discarded.where(content_type_id: removed.select(:id)).group(:content_type_id).count : nil
 
       render inertia: "ContentTypes/Trash", props: {
         content_types: removed.map { |content_type|
           props = content_type_props(content_type).merge(
             removed_at: content_type.deleted_at.iso8601,
-            paths: { restore: restore_content_type_path(content_type) }
+            paths: { restore: restore_content_type_path(content_type), purge: purge_content_type_path(content_type) }
           )
           entry_counts ? props.merge(documents_count: entry_counts.fetch(content_type.id, 0)) : props
         }
@@ -76,6 +78,29 @@ module RivetCms
     def restore
       @content_type.undiscard!
       redirect_to content_type_path(@content_type), notice: "#{@content_type.name} was restored with its entries"
+    end
+
+    # The one place content is really destroyed. Only reachable from the trash,
+    # and only when the typed name matches, so it cannot be a slip.
+    def purge
+      unless params[:confirm].to_s.strip == @content_type.name.to_s.strip
+        return redirect_to trash_content_types_path, alert: "Type the name exactly to permanently delete it"
+      end
+
+      name = @content_type.name
+      ContentType.transaction do
+        # with_discarded: trashed entries still hold the FK and must go too
+        documents = Document.with_discarded.where(content_type_id: @content_type.id)
+        # Incoming links hold a foreign key, so they go before their targets
+        Relation.where(target_document_id: documents.select(:id)).delete_all
+        documents.find_each(&:destroy!)
+        @content_type.destroy!
+      end
+
+      redirect_to trash_content_types_path, notice: "#{name} and its entries were permanently deleted"
+    rescue ActiveRecord::ActiveRecordError => error
+      Rails.logger&.error("[RivetCms] purge failed for content type #{@content_type.id}: #{error.class}")
+      redirect_to trash_content_types_path, alert: "#{name} could not be deleted; nothing was removed"
     end
 
     def destroy
@@ -89,7 +114,7 @@ module RivetCms
     # Removing a type hides its entries from the admin and the delivery API,
     # so it is a content-level action as well as a schema one.
     def authorize_cascade!
-      authorize! :delete, :content if @content_type.documents.exists?
+      authorize! :delete, :content if Document.with_discarded.where(content_type_id: @content_type.id).exists?
     end
 
     def set_removed_content_type
