@@ -115,7 +115,7 @@ the admin UI and return 403 JSON on API-shaped endpoints.
 The policy also receives the affected record when one applies (`check.record`
 is nil otherwise), so per-record decisions are possible; a denied record is
 hidden from admin surfaces as well as refused. RivetCMS Pro provides packaged
-roles and record-scoped permission management on top of this contract.
+roles and record-scoped permission management.
 
 This policy governs the admin UI only — the delivery API is token-gated and
 media blob URLs are served by Active Storage outside the seam. Minting an
@@ -196,9 +196,6 @@ is logged and swallowed, exactly like the other lifecycle hooks, so the
 revision is still destroyed. If you need archive-or-abort semantics, set
 `revision_retention = :all` and prune out of band instead.
 
-RivetCMS Pro ships a revision-history and rollback UI on top of the kept
-snapshots.
-
 ## Lifecycle hooks and webhooks
 
 Run host code when content changes. Hooks fire after the database commit and
@@ -237,39 +234,10 @@ config raises at boot. Delivery failures (connection errors and non-2xx
 responses alike) raise inside the job, so retries follow your queue adapter's
 defaults. Current events: `entry.published`.
 
-CE delivery is a single **unsigned** POST: anyone who learns the endpoint URL
-can forge it. Treat webhooks as a trigger, not as trusted data; re-fetch
-content through the delivery API rather than acting on payload fields. Signed
-deliveries with managed retries are part of RivetCMS Pro.
-
-### The audit stream
-
-Named events are behavior hooks for specific moments. The `:audit` event is
-different: one uniform stream over every admin mutation, for consumers that
-want all of it (audit logs, activity feeds, SIEM pipelines):
-
-```ruby
-RivetCms.on(:audit) do |event|
-  event.action         # "entry.trashed", "field.created", "media.uploaded", ...
-  event.subject_type   # "document"
-  event.subject_id     # "doc_abc123" (prefixed id)
-  event.subject_label  # "hello-world" (slug, name, or filename)
-  event.actor          # whatever your current_user lambda returns
-  event.organization_id
-  event.metadata       # sparse extras, e.g. { change: "layout" }
-  event.at
-end
-```
-
-Events fire only after the mutation succeeded, from the admin UI; console
-and seed changes are not recorded. Subscribers must tolerate unknown
-actions: the vocabulary grows in minor releases, and an audit consumer
-should record new actions, not drop them. Current actions: `entry.created`,
-`entry.updated`, `entry.published`, `entry.trashed`, `entry.restored`,
-`entry.purged`, `content_type.created/updated/removed/restored/purged`,
-`field.created/updated/removed`, `schema.layout_updated`,
-`component.created/updated/deleted`, `category.created`,
-`media.uploaded/updated/deleted`, `api_token.created/revoked`.
+Webhook delivery is a single **unsigned** POST: anyone who learns the
+endpoint URL can forge it. Treat webhooks as a trigger, not as trusted data;
+re-fetch content through the delivery API rather than acting on payload
+fields.
 
 ## Development
 
