@@ -7,6 +7,7 @@ import DashboardShow from "./pages/Dashboard/Show"
 import ContentTypesIndex from "./pages/ContentTypes/Index"
 import ContentTypesNew from "./pages/ContentTypes/New"
 import ContentTypesShow from "./pages/ContentTypes/Show"
+import ContentTypesTrash from "./pages/ContentTypes/Trash"
 import ComponentsIndex from "./pages/Components/Index"
 import ComponentsNew from "./pages/Components/New"
 import ComponentsShow from "./pages/Components/Show"
@@ -22,6 +23,7 @@ const pages = {
   "ContentTypes/Index": ContentTypesIndex,
   "ContentTypes/New": ContentTypesNew,
   "ContentTypes/Show": ContentTypesShow,
+  "ContentTypes/Trash": ContentTypesTrash,
   "Components/Index": ComponentsIndex,
   "Components/New": ComponentsNew,
   "Components/Show": ComponentsShow,

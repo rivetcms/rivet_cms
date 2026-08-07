@@ -2,10 +2,11 @@ module RivetCms
   class ContentTypesController < ApplicationController
     include InertiaProps
 
-    before_action -> { authorize! :read, :schema }, only: [ :index, :show ]
+    before_action -> { authorize! :read, :schema }, only: [ :index, :show, :trash ]
     before_action -> { authorize! :delete, :schema }, only: [ :destroy ]
-    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :destroy ]
+    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :trash, :destroy ]
     before_action :set_content_type, only: [ :show, :update, :destroy ]
+    before_action :set_removed_content_type, only: [ :restore ]
     before_action :authorize_cascade!, only: [ :destroy ]
 
     def index
@@ -13,6 +14,7 @@ module RivetCms
       entry_counts = can?(:read, :content) ? Document.where(organization: Current.organization).in_visible_types.group(:content_type_id).count : nil
 
       render inertia: "ContentTypes/Index", props: {
+        removed_count: ContentType.with_discarded.discarded.where(organization: Current.organization).count,
         content_types: Current.organization.content_types.map { |ct|
           props = content_type_props(ct)
           entry_counts ? props.merge(documents_count: entry_counts.fetch(ct.id, 0)) : props
@@ -55,10 +57,31 @@ module RivetCms
       end
     end
 
+    # Removed types are kept, so they need somewhere to be seen and restored
+    def trash
+      removed = ContentType.with_discarded.discarded.where(organization: Current.organization).order(:deleted_at)
+      entry_counts = can?(:read, :content) ? Document.where(content_type_id: removed.select(:id)).group(:content_type_id).count : nil
+
+      render inertia: "ContentTypes/Trash", props: {
+        content_types: removed.map { |content_type|
+          props = content_type_props(content_type).merge(
+            removed_at: content_type.deleted_at.iso8601,
+            paths: { restore: restore_content_type_path(content_type) }
+          )
+          entry_counts ? props.merge(documents_count: entry_counts.fetch(content_type.id, 0)) : props
+        }
+      }
+    end
+
+    def restore
+      @content_type.undiscard!
+      redirect_to content_type_path(@content_type), notice: "#{@content_type.name} was restored with its entries"
+    end
+
     def destroy
       @content_type.discard!
       redirect_to content_types_path,
-                  notice: "#{@content_type.name} was removed. Its entries are kept, not deleted."
+                  notice: "#{@content_type.name} was removed. Its entries are kept and it can be restored from the trash."
     end
 
     private
@@ -67,6 +90,10 @@ module RivetCms
     # so it is a content-level action as well as a schema one.
     def authorize_cascade!
       authorize! :delete, :content if @content_type.documents.exists?
+    end
+
+    def set_removed_content_type
+      @content_type = ContentType.with_discarded.discarded.where(organization: Current.organization).find(params[:id])
     end
 
     def set_content_type

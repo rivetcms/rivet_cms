@@ -26,6 +26,7 @@ module RivetCms
                       media: media_assets_path,
                       content_types: content_types_path,
                       new_content_type: new_content_type_path,
+                      content_types_trash: trash_content_types_path,
                       components: components_path,
                       new_component: new_component_path,
                       api_tokens: api_tokens_path,

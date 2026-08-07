@@ -2,11 +2,11 @@ import { Link, usePage, router } from "@inertiajs/react"
 import EmptyState from "../../components/EmptyState"
 import PageHeader from "../../components/PageHeader"
 
-export default function Index({ content_types: contentTypes }) {
+export default function Index({ content_types: contentTypes, removed_count: removedCount }) {
   const { paths } = usePage().props
 
   const destroy = (contentType) => {
-    if (confirm(`Delete "${contentType.name}" and all its entries? This cannot be undone.`)) {
+    if (confirm(`Remove "${contentType.name}"? Its entries are kept and you can restore it from the trash.`)) {
       router.delete(contentType.paths.destroy)
     }
   }
@@ -14,6 +14,12 @@ export default function Index({ content_types: contentTypes }) {
   return (
     <>
       <PageHeader title="Content Types" description="Define the structure of your content.">
+        {removedCount > 0 && (
+          <Link href={paths.content_types_trash} className="btn btn-ghost border border-base-300">
+            Trash
+            <span className="badge badge-sm font-mono">{removedCount}</span>
+          </Link>
+        )}
         <Link href={paths.new_content_type} className="btn btn-primary">New Content Type</Link>
       </PageHeader>
 

@@ -2,6 +2,12 @@ RivetCms::Engine.routes.draw do
   root to: "dashboard#show"
 
   resources :content_types, except: [ :edit ] do
+    collection do
+      get :trash
+    end
+    member do
+      patch :restore
+    end
     resources :fields, only: [ :create, :update, :destroy ] do
       member do
         patch :toggle_width
