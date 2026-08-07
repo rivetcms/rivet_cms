@@ -2,6 +2,13 @@ module RivetCms
   class ApiTokensController < ApplicationController
     include InertiaProps
 
+    before_action -> { authorize! :read, :api }, only: [ :index ]
+    before_action -> { authorize! :write, :api }, except: [ :index, :destroy ]
+    before_action -> { authorize! :delete, :api }, only: [ :destroy ]
+    # Tokens read content through the delivery API, so minting one requires
+    # content read; otherwise a content-denied user could escalate via a token.
+    before_action -> { authorize! :read, :content }, only: [ :create ]
+
     def index
       render inertia: "ApiTokens/Index", props: {
         tokens: api_tokens.recent.map { |token| api_token_json(token) },

@@ -45,6 +45,12 @@
 #   # because scripted SVGs can carry XSS. Set to nil to allow anything.
 #   # config.allowed_media_types += %w[image/svg+xml]
 #
+#   # Authorization: receives a RivetCms::AccessCheck (user, action, resource,
+#   # organization), returns a boolean; default allow. Actions: :read, :write,
+#   # :publish, :delete. Resources: :content, :schema, :media, :api. Allowlist
+#   # known pairs and deny the rest; the vocabulary grows in minor releases.
+#   # config.can = ->(check) { check.user&.admin? || check.action == :read }
+#
 #   # Delivery API: false (default) requires an API token; true allows anonymous
 #   # reads of published content. Preview (draft) reads always need a token.
 #   # config.public_api = false

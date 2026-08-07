@@ -2,6 +2,7 @@ require "rivet_cms/version"
 require "rivet_cms/engine"
 require "rivet_cms/safe_pattern"
 require "rivet_cms/hooks"
+require "rivet_cms/access_check"
 require "image_processing"
 require "prefixed_ids"
 require "kaminari"
@@ -38,6 +39,15 @@ module RivetCms
     # When false (default) every request needs an API token. A preview-scoped
     # token is always required to read drafts, regardless of this setting.
     attr_accessor :public_api
+
+    # Authorization seam: receives one RivetCms::AccessCheck and returns a
+    # boolean; default allow. check.action is :read, :write, :publish, or
+    # :delete; check.resource is a coarse domain (:content, :schema, :media,
+    # :api). The vocabulary grows over time, so policies should allowlist
+    # known pairs and deny anything unrecognized. A raising policy denies
+    # (fail closed) and logs. Governs the admin UI only; the delivery API
+    # is token-gated separately.
+    attr_accessor :can
 
     # Authentication is delegated to the host app. See the initializer template
     # (rails g rivet_cms:install) for a full example.
@@ -164,6 +174,8 @@ module RivetCms
   self.authenticate = DEFAULT_AUTHENTICATE
 
   self.current_user = ->(_controller) { nil }
+
+  self.can = ->(_check) { true }
 
   self.user_name = lambda do |user|
     %i[full_name name display_name email email_address].each do |attr|

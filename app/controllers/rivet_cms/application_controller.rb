@@ -36,7 +36,46 @@ module RivetCms
                     }
                   }
 
+    rescue_from RivetCms::AccessDenied, with: :deny_authorization
+
     private
+
+    # Fails closed: a raising policy denies and logs rather than 500ing the admin
+    def can?(action, resource, record: nil)
+      check = RivetCms::AccessCheck.new(
+        user: Current.user, action: action, resource: resource,
+        organization: Current.organization, record: record
+      )
+      RivetCms.can.call(check) == true
+    rescue Exception => error
+      Rails.logger&.error("[RivetCms] can policy raised (denying): #{error.class}: #{error.message}")
+      false
+    end
+
+    def authorize!(action, resource, record: nil)
+      raise RivetCms::AccessDenied, "#{action} #{resource}" unless can?(action, resource, record: record)
+    end
+
+    def deny_authorization
+      message = "You do not have permission to do that"
+      # Inertia visits redirect (the client follows and shows the flash).
+      # Everything else that is not a plain browser page load — API clients,
+      # axios calls whose Accept header Rails reads as browser-like, any
+      # non-GET — must get a real 403 so failures surface as failures.
+      if !request.inertia? && (request.format.json? || request.xhr? || !request.get?)
+        render json: { errors: [ message ] }, status: :forbidden
+      else
+        # Redirecting to the page we just denied would loop, so only trust a
+        # referer that points somewhere else; the dashboard is always reachable.
+        referer_path = URI.parse(request.referer.to_s).path rescue nil
+        if referer_path.present? && referer_path != request.path
+          redirect_back fallback_location: root_path, allow_other_host: false,
+                        status: (request.get? ? :found : :see_other), alert: message
+        else
+          redirect_to root_path, status: (request.get? ? :found : :see_other), alert: message
+        end
+      end
+    end
 
     # Inertia (axios) reads the XSRF-TOKEN cookie and sends it back as a header.
     def set_csrf_cookie

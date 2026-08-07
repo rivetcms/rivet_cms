@@ -25,6 +25,22 @@ module RivetCms
       }
     end
 
+    # Identity a content page needs, without schema detail or management paths
+    def content_type_ref_props(content_type)
+      {
+        id: content_type.id,
+        param: content_type.to_param,
+        name: content_type.name,
+        slug: content_type.slug,
+        single: content_type.single?,
+        paths: {
+          show: content_type_path(content_type),
+          documents: content_type_documents_path(content_type),
+          new_document: new_content_type_document_path(content_type)
+        }
+      }
+    end
+
     def field_props(field)
       {
         id: field.id,

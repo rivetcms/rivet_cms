@@ -2,6 +2,10 @@ module RivetCms
   class ApiDocsController < ApplicationController
     include InertiaProps
 
+    before_action -> { authorize! :read, :api }
+    # The docs render every type's fields, the same data /content_types gates
+    before_action -> { authorize! :read, :schema }
+
     def show
       content_types = Current.organization.content_types.order(:name)
 

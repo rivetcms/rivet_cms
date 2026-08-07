@@ -1,5 +1,7 @@
 module RivetCms
   class FieldsController < ApplicationController
+    before_action -> { authorize! :delete, :schema }, only: [ :destroy ]
+    before_action -> { authorize! :write, :schema }, except: [ :destroy ]
     before_action :set_owner
     before_action :set_field, only: [ :update, :destroy, :toggle_width, :unpair, :pair ]
 

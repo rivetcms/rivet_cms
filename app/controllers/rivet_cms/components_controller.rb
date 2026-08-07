@@ -2,6 +2,9 @@ module RivetCms
   class ComponentsController < ApplicationController
     include InertiaProps
 
+    before_action -> { authorize! :read, :schema }, only: [ :index, :show ]
+    before_action -> { authorize! :delete, :schema }, only: [ :destroy ]
+    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :destroy ]
     before_action :set_component, only: [ :show, :update, :destroy ]
 
     def index

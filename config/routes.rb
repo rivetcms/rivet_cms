@@ -39,7 +39,7 @@ RivetCms::Engine.routes.draw do
   get "api-docs/openapi", to: "api_docs#spec", as: :api_openapi
 
   resources :content_types, only: [] do
-    resources :documents do
+    resources :documents, except: [ :show ] do
       member do
         post :publish
       end

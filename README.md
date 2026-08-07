@@ -85,6 +85,41 @@ organization); pass `organization:` explicitly in jobs and scripts. Unknown
 option values — sort/filter/populate/fields keys — raise
 `RivetCms::ContentQuery::Error`, mirroring the API's 400s.
 
+## Authorization
+
+Admin access control is a single policy receiving a `RivetCms::AccessCheck`
+(fields: `user`, `action`, `resource`, `organization`, and a reserved
+`record`) and returning a boolean; default allow. `action` is `:read`,
+`:write`, `:publish`, or `:delete`; `resource` is a coarse domain: `:content`
+(entries), `:schema` (content types, fields, components), `:media`, or `:api`
+(docs and tokens). The user is whatever your `current_user` lambda returns:
+
+```ruby
+RivetCms.configure do |config|
+  # Editors draft content; only admins publish, delete, or touch schema/API
+  config.can = lambda do |check|
+    next true if check.user&.admin?
+    case [ check.action, check.resource ]
+    in [ :read, _ ] | [ :write, :content ] | [ :write, :media ] then true
+    else false # unknown pairs deny: the vocabulary grows in minor releases
+    end
+  end
+end
+```
+
+Write policies to allowlist known pairs and deny everything else; new actions
+and resources may appear in minor releases and must fail closed. A raising
+policy denies (fail closed) and logs. Denials redirect back with a flash in
+the admin UI and return 403 JSON on API-shaped endpoints.
+
+Notes: the editor screen is a `:read` surface (mutations are gated
+separately); minting an API token additionally requires `:read, :content`
+since tokens read content through the delivery API; the dashboard is
+reachable by any authenticated user but filters every section through the
+same checks. This policy governs the admin UI only — the delivery API is
+token-gated and media blob URLs are served by Active Storage outside the
+seam.
+
 ## Lifecycle hooks and webhooks
 
 Run host code when content changes. Hooks fire after the database commit and

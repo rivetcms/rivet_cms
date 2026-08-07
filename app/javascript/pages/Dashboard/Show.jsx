@@ -148,15 +148,15 @@ function GettingStarted({ stats, hasFields, paths, firstType }) {
   )
 }
 
-export default function Show({ stats, has_fields: hasFields, recent_documents: recentDocuments, content_types: contentTypes, api }) {
+export default function Show({ stats, has_fields: hasFields, recent_documents: recentDocuments, content_types: contentTypes, api, permissions }) {
   const { paths } = usePage().props
   const typesWithEntries = contentTypes.filter((t) => t.entry_count > 0)
 
   return (
     <>
       <PageHeader title="Dashboard" description="Your content at a glance.">
-        <Link href={paths.new_content_type} className="btn">New Content Type</Link>
-        {contentTypes.length > 0 && (
+        {permissions.write_schema && <Link href={paths.new_content_type} className="btn">New Content Type</Link>}
+        {permissions.write_content && contentTypes.length > 0 && (
           <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="btn btn-primary">New Entry</div>
             <ul tabIndex={0} className="dropdown-content menu z-10 mt-1 max-h-80 w-52 flex-nowrap overflow-y-auto rounded-box border border-base-300 bg-base-100 p-1.5 shadow-(--shadow-raised)">
@@ -171,20 +171,20 @@ export default function Show({ stats, has_fields: hasFields, recent_documents: r
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <StatTile href={paths.content} label="Entries" value={stats.entries} />
-        <StatTile href={paths.content_types} label="Content Types" value={stats.content_types} />
-        <StatTile href={paths.components} label="Components" value={stats.components} />
-        <StatTile href={paths.media} label="Media" value={stats.media_assets} />
-        <StatTile href={paths.api_tokens} label="API Tokens" value={stats.api_tokens} />
+        {stats.entries !== undefined && <StatTile href={paths.content} label="Entries" value={stats.entries} />}
+        {stats.content_types !== undefined && <StatTile href={paths.content_types} label="Content Types" value={stats.content_types} />}
+        {stats.components !== undefined && <StatTile href={paths.components} label="Components" value={stats.components} />}
+        {stats.media_assets !== undefined && <StatTile href={paths.media} label="Media" value={stats.media_assets} />}
+        {stats.api_tokens !== undefined && <StatTile href={paths.api_tokens} label="API Tokens" value={stats.api_tokens} />}
       </div>
 
       <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           {recentDocuments.length > 0 ? (
             <RecentEntries documents={recentDocuments} />
-          ) : (
+          ) : permissions.write_schema ? (
             <GettingStarted stats={stats} hasFields={hasFields} paths={paths} firstType={contentTypes[0]} />
-          )}
+          ) : null}
         </div>
         <div className="space-y-4">
           {typesWithEntries.length > 0 && <ByType contentTypes={typesWithEntries} />}

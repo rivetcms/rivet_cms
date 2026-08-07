@@ -2,6 +2,10 @@ module RivetCms
   class DocumentsController < ApplicationController
     include InertiaProps
 
+    before_action -> { authorize! :read, :content }, only: [ :index, :edit, :new ]
+    before_action -> { authorize! :write, :content }, except: [ :index, :edit, :publish, :destroy ]
+    before_action -> { authorize! :publish, :content }, only: [ :publish ]
+    before_action -> { authorize! :delete, :content }, only: [ :destroy ]
     before_action :set_content_type
     before_action :set_document, only: [ :edit, :update, :destroy, :publish ]
 

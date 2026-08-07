@@ -2,14 +2,20 @@ module RivetCms
   class ContentTypesController < ApplicationController
     include InertiaProps
 
+    before_action -> { authorize! :read, :schema }, only: [ :index, :show ]
+    before_action -> { authorize! :delete, :schema }, only: [ :destroy ]
+    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :destroy ]
     before_action :set_content_type, only: [ :show, :update, :destroy ]
+    before_action :authorize_cascade!, only: [ :destroy ]
 
     def index
-      entry_counts = Document.where(organization: Current.organization).group(:content_type_id).count
+      # Entry counts are content data, not schema; omit them without content read
+      entry_counts = can?(:read, :content) ? Document.where(organization: Current.organization).group(:content_type_id).count : nil
 
       render inertia: "ContentTypes/Index", props: {
         content_types: Current.organization.content_types.map { |ct|
-          content_type_props(ct).merge(documents_count: entry_counts.fetch(ct.id, 0))
+          props = content_type_props(ct)
+          entry_counts ? props.merge(documents_count: entry_counts.fetch(ct.id, 0)) : props
         }
       }
     end
@@ -55,6 +61,11 @@ module RivetCms
     end
 
     private
+
+    # Destroying a type cascades to its documents, so it is also a content delete
+    def authorize_cascade!
+      authorize! :delete, :content if @content_type.documents.exists?
+    end
 
     def set_content_type
       @content_type = Current.organization.content_types.find(params[:id])

@@ -50,9 +50,11 @@ export default function Index({ content_types: contentTypes }) {
                     </span>
                   </td>
                   <td>
-                    <Link href={contentType.paths.documents} className="badge badge-ghost badge-sm font-mono hover:badge-primary">
-                      {contentType.documents_count}
-                    </Link>
+                    {contentType.documents_count !== undefined && (
+                      <Link href={contentType.paths.documents} className="badge badge-ghost badge-sm font-mono hover:badge-primary">
+                        {contentType.documents_count}
+                      </Link>
+                    )}
                   </td>
                   <td>
                     <div className="flex justify-end gap-0.5">

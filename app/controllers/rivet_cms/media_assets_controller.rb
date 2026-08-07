@@ -2,6 +2,10 @@ module RivetCms
   class MediaAssetsController < ApplicationController
     include InertiaProps
 
+    before_action -> { authorize! :read, :media }, only: [ :index ]
+    before_action -> { authorize! :delete, :media }, only: [ :destroy ]
+    before_action -> { authorize! :write, :media }, except: [ :index, :destroy ]
+
     def index
       scope = media_assets.recent
       scope = scope.search(params[:q]) if params[:q].present?

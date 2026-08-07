@@ -2,6 +2,8 @@ module RivetCms
   class ContentManagerController < ApplicationController
     include InertiaProps
 
+    before_action -> { authorize! :read, :content }
+
     def index
       content_types = Current.organization.content_types.order(:name)
       documents = Document.where(organization: Current.organization).order(updated_at: :desc)
@@ -13,7 +15,7 @@ module RivetCms
       titles = document_titles(page)
 
       render inertia: "ContentManager/Index", props: {
-        content_types: content_types.map { |content_type| content_type_props(content_type) },
+        content_types: content_types.map { |content_type| content_type_ref_props(content_type) },
         documents: page.map { |document|
           document_list_props(document, titles).merge(
             content_type_name: document.content_type.name,
