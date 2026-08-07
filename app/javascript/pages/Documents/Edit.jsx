@@ -2,6 +2,7 @@ import { Link, useForm, router } from "@inertiajs/react"
 import PageHeader from "../../components/PageHeader"
 import { TextInput, FormActions } from "../../components/forms"
 import FieldGrid from "../../components/entries/FieldGrid"
+import Slot from "../../components/Slot"
 import { cleanSlug } from "../../lib/slug"
 
 const FILE_TYPES = ["image", "video", "file"]
@@ -52,13 +53,17 @@ export default function Edit({ content_type: contentType, fields, document, valu
       <PageHeader
         title={isNew ? "New Entry" : document.slug}
         meta={!isNew && (
-          <span className={`badge badge-sm font-medium ${document.published ? "badge-success badge-soft" : "badge-ghost"}`}>
-            {document.published ? "Published" : "Draft"}
-          </span>
+          <>
+            <span className={`badge badge-sm font-medium ${document.published ? "badge-success badge-soft" : "badge-ghost"}`}>
+              {document.published ? "Published" : "Draft"}
+            </span>
+            <Slot name="entry.status" document={document} contentType={contentType} />
+          </>
         )}
       >
         {!isNew && (
           <>
+            <Slot name="entry.actions" document={document} contentType={contentType} />
             <button type="button" className="btn btn-ghost border border-base-300 text-error" onClick={destroy}>Delete</button>
             <button type="button" className="btn btn-primary" onClick={publish}>Publish</button>
           </>
@@ -93,6 +98,8 @@ export default function Edit({ content_type: contentType, fields, document, valu
           <button type="submit" className="btn btn-primary" disabled={form.processing}>Save Draft</button>
         </FormActions>
       </form>
+
+      {!isNew && <Slot name="entry.panels" document={document} contentType={contentType} />}
     </>
   )
 }

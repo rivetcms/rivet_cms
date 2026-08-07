@@ -280,6 +280,23 @@ const { React, Inertia } = window.RivetCMS
 window.RivetCMS.registerPages({ "AuditLog/Index": AuditLogIndex })
 ```
 
+Extensions can also mount components inside core pages at named slots.
+Components render in registration order, receive the listed props, and a
+component that throws is logged and dropped without taking the page down:
+
+```js
+window.RivetCMS.registerSlot("entry.actions", ScheduleButton)
+```
+
+Current slots, all in the entry editor and only rendered for saved entries,
+each receiving `{ document, contentType }`:
+
+| Slot | Where |
+|---|---|
+| `entry.status` | next to the Draft/Published badge |
+| `entry.actions` | header buttons, before Delete and Publish |
+| `entry.panels` | below the entry form |
+
 Registration is reload-safe: re-registering a nav key replaces the item, and
 asset names are deduplicated. A registered bundle that cannot be resolved is
 logged and skipped rather than failing the admin, so check the log if an

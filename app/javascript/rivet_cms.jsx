@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client"
 import axios from "axios"
 
 import Layout from "./components/Layout"
+import { registerSlot } from "./lib/slots"
 import DashboardShow from "./pages/Dashboard/Show"
 import ContentTypesIndex from "./pages/ContentTypes/Index"
 import ContentTypesNew from "./pages/ContentTypes/New"
@@ -64,6 +65,7 @@ window.RivetCMS = {
   registerPages(map) {
     Object.assign(pages, map)
   },
+  registerSlot,
   React,
   Inertia,
 }
