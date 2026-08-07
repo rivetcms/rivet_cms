@@ -17,7 +17,7 @@ export default function Index({ content_types: contentTypes, documents, paginati
   const [q, setQ] = useSearch(initialQ, (value) => visit(filterParams({ q: value })))
 
   const destroy = (document) => {
-    if (confirm("Delete this entry? This cannot be undone.")) router.delete(document.paths.destroy)
+    if (confirm("Move this entry to the trash? You can restore it later.")) router.delete(document.paths.destroy)
   }
 
   const goToPage = (page) =>

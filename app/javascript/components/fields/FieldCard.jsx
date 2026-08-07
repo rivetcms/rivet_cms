@@ -26,7 +26,7 @@ export default function FieldCard({ field, onEdit, onDragStart, onDragEnd, dragg
   }
 
   const remove = () => {
-    if (confirm(`Remove "${field.label}"? This cannot be undone.`)) {
+    if (confirm(`Remove "${field.label}"? Entries keep their saved values for this field.`)) {
       router.delete(field.paths.destroy, { preserveScroll: true })
     }
   }

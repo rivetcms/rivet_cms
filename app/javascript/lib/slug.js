@@ -24,12 +24,13 @@ export function slugFromName(name, { singular = false } = {}) {
   return slug.replace(/[^a-z\-]/g, "")
 }
 
-// Clean a slug as the user types (spaces/underscores → hyphens, strip invalid chars)
+// Clean a slug as the user types (spaces/underscores → hyphens, strip invalid
+// chars). Digits stay: the server allows them for both types and entries.
 export function cleanSlug(value) {
   return value
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/_+/g, "-")
-    .replace(/[^a-z\-]/g, "")
+    .replace(/[^a-z0-9\-]/g, "")
     .replace(/\-\-+/g, "-")
 }

@@ -20,6 +20,25 @@ module RivetCms
         expect(dup.errors[:slug]).to include("has already been taken")
       end
 
+      it "rejects slugs that are not lowercase alphanumeric with hyphens" do
+        [ "fdsaf ^&", "Hello", "spaced out", "trailing-", "-leading", "under_score" ].each do |bad|
+          subject.slug = bad
+          expect(subject).not_to be_valid, "expected #{bad.inspect} to be invalid"
+          expect(subject.errors[:slug]).to include("must be lowercase alphanumeric with hyphens")
+        end
+      end
+
+      it "accepts hyphenated lowercase slugs" do
+        subject.slug = "hello-world-2"
+        expect(subject).to be_valid
+      end
+
+      it "does not block entries whose slug predates the format rule" do
+        doc = create(:document)
+        doc.update_column(:slug, "legacy slug ^&")
+        expect(doc.reload).to be_valid
+      end
+
       it "allows the same slug in different content_types" do
         ct1 = create(:content_type)
         ct2 = create(:content_type)

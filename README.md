@@ -125,13 +125,17 @@ seam.
 Deleting is recoverable by default. Removing a content type or an entry moves
 it to a trash: it disappears from the admin and stops being served by the
 delivery API, but every revision and value is kept, and restoring brings it
-all back. Both trashes are reachable from their list pages.
+all back. Both trashes are reachable from their list pages. Trash and restore
+share one gate: whichever `:delete` permission removing something required,
+restoring it requires too, since restoring puts content back on the delivery
+API.
 
 Permanent deletion lives only inside the trash, so removing and destroying are
 always two deliberate steps. Purging a content type additionally requires
 typing its name, since it destroys every entry of that type; purging a single
-entry asks for a plain confirmation naming it. Both require `:delete` on the
-content domain.
+entry asks for a plain confirmation naming it. Purging an entry requires
+`:delete` on the content domain; purging a content type requires `:delete` on
+both the schema and content domains.
 
 ```ruby
 # Restoring is also available from the console

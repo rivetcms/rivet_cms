@@ -34,7 +34,7 @@ module RivetCms
     def restrict_when_entries_remain
       return unless Document.with_discarded.where(content_type_id: id).exists?
 
-      errors.add(:base, "Cannot delete record because dependent documents exist")
+      errors.add(:base, :"restrict_dependent_destroy.has_many", record: Document.model_name.human.downcase.pluralize)
       throw :abort
     end
 

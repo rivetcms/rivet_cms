@@ -3,13 +3,15 @@ module RivetCms
     include InertiaProps
 
     before_action -> { authorize! :read, :schema }, only: [ :index, :show, :trash ]
-    before_action -> { authorize! :delete, :schema }, only: [ :destroy, :purge ]
-    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :trash, :destroy, :purge ]
+    # Restore mirrors removal, gates included: un-removing a type puts its
+    # entries back on the delivery API, so it is no smaller an action.
+    before_action -> { authorize! :delete, :schema }, only: [ :destroy, :purge, :restore ]
+    before_action -> { authorize! :write, :schema }, except: [ :index, :show, :trash, :destroy, :purge, :restore ]
     before_action :set_content_type, only: [ :show, :update, :destroy ]
     before_action :set_removed_content_type, only: [ :restore, :purge ]
     # Purging destroys content, so it needs the content gate as well as schema
     before_action -> { authorize! :delete, :content }, only: [ :purge ]
-    before_action :authorize_cascade!, only: [ :destroy ]
+    before_action :authorize_cascade!, only: [ :destroy, :restore ]
 
     def index
       # Entry counts are content data, not schema; omit them without content read

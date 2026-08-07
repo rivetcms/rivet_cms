@@ -32,7 +32,7 @@ export default function Show({
   const close = () => setDrawer(null)
 
   const destroy = () => {
-    if (confirm(`Delete "${contentType.name}" and all its entries? This cannot be undone.`)) {
+    if (confirm(`Remove "${contentType.name}"? Its entries are kept and you can restore it from the trash.`)) {
       router.delete(contentType.paths.destroy)
     }
   }

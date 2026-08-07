@@ -4,7 +4,9 @@ module RivetCms
 
     before_action -> { authorize! :read, :content }, only: [ :index, :edit, :new, :trash ]
     before_action -> { authorize! :write, :content }, except: [ :index, :edit, :trash, :publish, :destroy, :restore, :purge ]
-    before_action -> { authorize! :write, :content }, only: [ :restore ]
+    # Restore mirrors trash: whoever can put an entry in can take it out,
+    # since restoring flips it back onto the delivery API.
+    before_action -> { authorize! :delete, :content }, only: [ :restore ]
     before_action -> { authorize! :delete, :content }, only: [ :purge ]
     before_action -> { authorize! :publish, :content }, only: [ :publish ]
     before_action -> { authorize! :delete, :content }, only: [ :destroy ]
@@ -113,6 +115,10 @@ module RivetCms
       end
       redirect_to trash_content_type_documents_path(@content_type),
                   notice: "#{slug} was permanently deleted"
+    rescue ActiveRecord::ActiveRecordError => error
+      Rails.logger&.error("[RivetCms] purge failed for document #{@document.id}: #{error.class}")
+      redirect_to trash_content_type_documents_path(@content_type),
+                  alert: "#{slug} could not be deleted; nothing was removed"
     end
 
     private
@@ -123,8 +129,8 @@ module RivetCms
       dropped = writer&.dropped_references.to_i
       return base if dropped.zero?
 
-      detail = dropped == 1 ? "1 reference was removed because the entry it pointed to is in the trash." \
-                            : "#{dropped} references were removed because the entries they pointed to are in the trash."
+      detail = dropped == 1 ? "1 reference was removed because the entry it pointed to is in the trash or was deleted." \
+                            : "#{dropped} references were removed because the entries they pointed to are in the trash or were deleted."
       "#{base}. #{detail}"
     end
 

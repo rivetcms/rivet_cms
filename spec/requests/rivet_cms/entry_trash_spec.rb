@@ -161,14 +161,24 @@ module RivetCms
       expect(flash[:notice]).to include("Published. 1 reference was removed")
     end
 
-    it "restore requires content write" do
+    it "restore requires content delete, the same gate as trashing" do
+      entry = published_entry
+      delete rivet_cms.content_type_document_path(content_type, entry)
+      RivetCms.can = ->(check) { !(check.action == :delete && check.resource == :content) }
+
+      patch rivet_cms.restore_content_type_document_path(content_type, entry)
+
+      expect(Document.find_by(id: entry.id)).to be_nil
+    end
+
+    it "restore does not need content write" do
       entry = published_entry
       delete rivet_cms.content_type_document_path(content_type, entry)
       RivetCms.can = ->(check) { !(check.action == :write && check.resource == :content) }
 
       patch rivet_cms.restore_content_type_document_path(content_type, entry)
 
-      expect(Document.find_by(id: entry.id)).to be_nil
+      expect(Document.find_by(id: entry.id)).to be_present
     end
 
     it "a required reference to a trashed entry fails validation instead of publishing empty" do
@@ -266,6 +276,34 @@ module RivetCms
       expect(CGI.unescapeHTML(response.body)).to include('"trashed_count":1')
     end
 
+    it "points at the trash when recreating a slug held by a trashed entry" do
+      entry = published_entry
+      delete rivet_cms.content_type_document_path(content_type, entry)
+
+      post rivet_cms.content_type_documents_path(content_type), params: { slug: "keeper" }
+
+      follow_redirect!
+      body = CGI.unescapeHTML(response.body)
+      expect(body).to include("belongs to an entry in the trash")
+      expect(body).not_to include("has already been taken")
+      expect(Document.with_discarded.where(slug: "keeper").count).to eq(1)
+    end
+
+    it "explains a trashed single instead of a singleton key error" do
+      single_type = create(:content_type, :single, slug: "homepage", organization: organization)
+      entry = create(:document, slug: "homepage", content_type: single_type, organization: organization)
+      draft = create(:document_revision, document: entry, state: :draft)
+      entry.update!(draft_revision: draft)
+      delete rivet_cms.content_type_document_path(single_type, entry)
+
+      post rivet_cms.content_type_documents_path(single_type), params: { slug: "homepage-2" }
+
+      follow_redirect!
+      body = CGI.unescapeHTML(response.body)
+      expect(body).to include("restore it instead of creating a new one")
+      expect(body).not_to include("has already been taken")
+    end
+
     describe "permanent delete" do
       it "destroys the entry and its revisions" do
         entry = published_entry
@@ -312,6 +350,17 @@ module RivetCms
 
         delete rivet_cms.purge_content_type_document_path(content_type, entry)
 
+        expect(Document.with_discarded.find_by(id: entry.id)).to be_present
+      end
+
+      it "reports a failed purge instead of crashing, keeping the entry" do
+        entry = published_entry
+        delete rivet_cms.content_type_document_path(content_type, entry)
+        allow_any_instance_of(Document).to receive(:destroy!).and_raise(ActiveRecord::InvalidForeignKey, "boom")
+
+        delete rivet_cms.purge_content_type_document_path(content_type, entry)
+
+        expect(flash[:alert]).to include("could not be deleted")
         expect(Document.with_discarded.find_by(id: entry.id)).to be_present
       end
     end

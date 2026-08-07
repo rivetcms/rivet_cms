@@ -104,6 +104,9 @@ module RivetCms
 
       # Same shape as the kept-field filter: a trashed target would fail the
       # clone's required belongs_to, so it is dropped rather than raising.
+      # For restore_owned_into that drop is permanent: the copied draft loses
+      # the link even if the target later leaves the trash. A rollback UI
+      # should count these and tell the user, as DraftWriter does.
       source.relations.where(field_id: Field.select(:id), target_document_id: Document.select(:id)).find_each do |relation|
         target.relations.create!(
           field_id: relation.field_id,

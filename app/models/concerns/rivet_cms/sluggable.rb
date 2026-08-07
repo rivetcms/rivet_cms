@@ -2,11 +2,13 @@ module RivetCms
   module Sluggable
     extend ActiveSupport::Concern
 
+    SLUG_FORMAT = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
+
     included do
       before_validation :generate_slug, if: -> { slug.blank? && respond_to?(:name) && name.present? }
 
       validates :slug, presence: true,
-                       format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must be lowercase alphanumeric with hyphens" }
+                       format: { with: SLUG_FORMAT, message: "must be lowercase alphanumeric with hyphens" }
     end
 
     private

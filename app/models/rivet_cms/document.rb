@@ -16,7 +16,12 @@ module RivetCms
     # Unscoped like ContentType: a trashed entry keeps its slug reserved so
     # restoring it can never collide with something created since.
     validates :slug, presence: true, uniqueness: { scope: :content_type_id }
+    # Guarded by slug_changed? so entries created before this rule can still
+    # save and publish; the format applies once someone touches the slug.
+    validates :slug, format: { with: Sluggable::SLUG_FORMAT, message: "must be lowercase alphanumeric with hyphens" }, if: :slug_changed?
     validates :singleton_key, uniqueness: { scope: :content_type_id }, if: -> { singleton_key.present? }
+    validate :slug_not_held_by_trashed_entry
+    validate :singleton_not_held_by_trashed_entry
     validate :content_type_in_same_organization
 
     scope :recent, -> { order(created_at: :desc) }
@@ -33,6 +38,27 @@ module RivetCms
 
     def detach_revisions
       update_columns(published_revision_id: nil, draft_revision_id: nil)
+    end
+
+    # Like ContentType, the uniqueness validators ignore the kept scope, so a
+    # trashed entry produces "has already been taken". Replace that with a
+    # message that points at the trash.
+    def slug_not_held_by_trashed_entry
+      return if slug.blank?
+      return if persisted? && !slug_changed?
+      return unless self.class.with_discarded.discarded.exists?(content_type_id: content_type_id, slug: slug)
+
+      errors.delete(:slug, :taken)
+      errors.add(:slug, "belongs to an entry in the trash; restore that entry instead of recreating it")
+    end
+
+    def singleton_not_held_by_trashed_entry
+      return if singleton_key.blank?
+      return if persisted? && !singleton_key_changed?
+      return unless self.class.with_discarded.discarded.exists?(content_type_id: content_type_id, singleton_key: singleton_key)
+
+      errors.delete(:singleton_key, :taken)
+      errors.add(:base, "This single's entry is in the trash; restore it instead of creating a new one")
     end
 
     def content_type_in_same_organization

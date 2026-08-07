@@ -2,6 +2,7 @@ import { Link, useForm, router } from "@inertiajs/react"
 import PageHeader from "../../components/PageHeader"
 import { TextInput, FormActions } from "../../components/forms"
 import FieldGrid from "../../components/entries/FieldGrid"
+import { cleanSlug } from "../../lib/slug"
 
 const FILE_TYPES = ["image", "video", "file"]
 
@@ -36,7 +37,7 @@ export default function Edit({ content_type: contentType, fields, document, valu
   // Publish saves the on-screen values first so unsaved edits are validated.
   const publish = () => router.post(document.paths.publish, { values: form.data.values }, { preserveScroll: true, forceFormData: hasFile })
   const destroy = () => {
-    if (confirm("Delete this entry? This cannot be undone.")) router.delete(document.paths.destroy)
+    if (confirm("Move this entry to the trash? You can restore it later.")) router.delete(document.paths.destroy)
   }
 
   return (
@@ -76,7 +77,7 @@ export default function Edit({ content_type: contentType, fields, document, valu
           required
           hint="Unique identifier for this entry within the content type"
           value={form.data.slug}
-          onChange={(e) => form.setData("slug", e.target.value)}
+          onChange={(e) => form.setData("slug", cleanSlug(e.target.value))}
         />
 
         <FieldGrid

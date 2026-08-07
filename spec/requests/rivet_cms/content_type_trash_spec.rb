@@ -240,14 +240,34 @@ module RivetCms
       end
     end
 
-    it "requires schema write to restore" do
+    it "requires schema delete to restore, the same gate as removal" do
       entry
       delete rivet_cms.content_type_path(content_type)
-      RivetCms.can = ->(check) { !(check.action == :write && check.resource == :schema) }
+      RivetCms.can = ->(check) { !(check.action == :delete && check.resource == :schema) }
 
       patch rivet_cms.restore_content_type_path(content_type)
 
       expect(ContentType.find_by(id: content_type.id)).to be_nil
+    end
+
+    it "restoring a type with entries requires content delete, like removing it did" do
+      entry
+      delete rivet_cms.content_type_path(content_type)
+      RivetCms.can = ->(check) { !(check.action == :delete && check.resource == :content) }
+
+      patch rivet_cms.restore_content_type_path(content_type)
+
+      expect(ContentType.find_by(id: content_type.id)).to be_nil
+    end
+
+    it "restoring an empty type needs only the schema gate" do
+      content_type
+      delete rivet_cms.content_type_path(content_type)
+      RivetCms.can = ->(check) { check.resource == :schema }
+
+      patch rivet_cms.restore_content_type_path(content_type)
+
+      expect(ContentType.find_by(id: content_type.id)).to be_present
     end
 
     it "requires schema read to view the trash" do
