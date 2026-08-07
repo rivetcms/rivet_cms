@@ -45,6 +45,11 @@
 #   # because scripted SVGs can carry XSS. Set to nil to allow anything.
 #   # config.allowed_media_types += %w[image/svg+xml]
 #
+#   # Superseded published revisions to keep per document. The default :all
+#   # never deletes anything; set an integer to prune on publish (0 keeps only
+#   # the live snapshot). The live snapshot and working draft are never pruned.
+#   # config.revision_retention = :all
+#
 #   # Authorization: receives a RivetCms::AccessCheck (user, action, resource,
 #   # organization), returns a boolean; default allow. Actions: :read, :write,
 #   # :publish, :delete. Resources: :content, :schema, :media, :api. Allowlist

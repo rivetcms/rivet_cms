@@ -58,7 +58,8 @@ module RivetCms
         draft.update!(author_attributes)
         DraftWriter.new(draft).write(values_param)
       end
-      draft.publish!
+      # The snapshot records who published, which is not always the last editor
+      draft.publish!(publisher: author_attributes[:author], publisher_name: author_attributes[:author_name])
       redirect_to edit_content_type_document_path(@content_type, @document), notice: "Published"
     rescue ContentInvalidError => e
       redirect_to edit_content_type_document_path(@content_type, @document),

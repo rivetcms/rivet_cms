@@ -120,6 +120,59 @@ same checks. This policy governs the admin UI only — the delivery API is
 token-gated and media blob URLs are served by Active Storage outside the
 seam.
 
+## Revisions and retention
+
+Publishing snapshots the draft into a new published revision, so a document
+always has a working draft plus the revision the delivery API serves. By
+default **nothing is ever deleted**: every snapshot is kept. Pruning is
+opt-in, because storage you can watch grow is a smaller problem than content
+that quietly disappeared:
+
+```ruby
+RivetCms.configure do |config|
+  config.revision_retention = :all # default: keep every snapshot
+  # config.revision_retention = 10 # keep the last 10 superseded snapshots
+  # config.revision_retention = 0  # keep only the live snapshot
+end
+```
+
+Only `:all` or a non-negative integer are accepted; anything else raises at
+assignment rather than risking a silent misread (`"all"` is normalized, but a
+stray `nil` or `90.days` is rejected because there is no safe interpretation).
+
+The current published revision and the working draft are never pruned, and
+pruning is skipped entirely for a document with nothing published. Retention
+applies as documents are published, so lowering it takes effect gradually,
+one document at a time, rather than sweeping the corpus at once.
+
+Things worth knowing about `:all`: superseded snapshots keep referencing their
+media, so the library will refuse to delete an asset that only an old revision
+still uses. Draft and archived revisions are never pruned at any setting.
+
+Extensions can subscribe to `:prune` to archive a revision before it is
+destroyed, and can override `RivetCms.retention_for(document)` to vary
+retention per organization or content type:
+
+```ruby
+RivetCms.on(:prune, key: :cold_storage) do |revision|
+  # Read what you need here and now: the row is destroyed the moment this
+  # returns, so a background job handed only the id would find nothing.
+  ColdStorage.put(revision.id, revision.content_values.map(&:attributes))
+end
+```
+
+Two caveats this hook cannot paper over. It runs inside the publish
+transaction, so a rolled-back publish leaves any external write (S3, an HTTP
+call) describing a publish that never happened. And a subscriber that raises
+is logged and swallowed, exactly like the other lifecycle hooks, so the
+revision is still destroyed. If you need archive-or-abort semantics, set
+`revision_retention = :all` and prune out of band instead.
+
+Keeping history is what a revision-history and rollback UI builds on;
+`RivetCms::DocumentRevision.restore_owned_into(snapshot, draft)` is the
+rollback primitive (it replaces the draft's values rather than merging into
+them). RivetCMS Pro ships the history UI on top of these.
+
 ## Lifecycle hooks and webhooks
 
 Run host code when content changes. Hooks fire after the database commit and

@@ -40,6 +40,31 @@ module RivetCms
     # token is always required to read drafts, regardless of this setting.
     attr_accessor :public_api
 
+    # How many superseded published revisions to keep per document. The
+    # default :all never deletes anything: pruning is something a host opts
+    # into, because unbounded storage is a visible problem you can fix later
+    # and deleted content is not. Set an integer to prune on publish. The
+    # current published revision and the working draft are never pruned.
+    attr_reader :revision_retention
+
+    # Validated at assignment: a bad value here would otherwise surface as a
+    # failed publish, or worse, silently mean 0 and destroy history.
+    def revision_retention=(value)
+      @revision_retention = normalize_retention(value)
+    end
+
+    # Retention for one document. Override to vary by organization or content
+    # type; the scalar config is the default resolver.
+    def retention_for(_document)
+      revision_retention
+    end
+
+    # What the pruner actually reads: an override is validated the same way
+    # the config setter is, so a bad override cannot silently destroy history.
+    def normalized_retention_for(document)
+      normalize_retention(retention_for(document))
+    end
+
     # Authorization seam: receives one RivetCms::AccessCheck and returns a
     # boolean; default allow. check.action is :read, :write, :publish, or
     # :delete; check.resource is a coarse domain (:content, :schema, :media,
@@ -117,6 +142,24 @@ module RivetCms
 
     private
 
+    # Values above this are a misconfiguration, not a retention policy, and a
+    # large enough offset makes the prune query fail at publish time.
+    MAX_RETENTION = 1_000_000
+
+    def normalize_retention(value)
+      return :all if value == :all || (value.to_s.casecmp("all").zero? rescue false)
+      # Compare the class directly: ActiveSupport::Duration answers both is_a?
+      # and instance_of? for Integer, so 90.days would otherwise slip through
+      # and silently mean 7,776,000 revisions.
+      return value if value.class == Integer && !value.negative? && value <= MAX_RETENTION
+      # Base 10 explicitly: Integer("0010") would otherwise read as octal
+      return Integer(value, 10) if value.is_a?(String) && value.match?(/\A\d+\z/) && Integer(value, 10) <= MAX_RETENTION
+
+      raise ArgumentError,
+            "RivetCms.revision_retention must be :all or an Integer between 0 and #{MAX_RETENTION}, " \
+            "got #{value.inspect}. Time-based retention is not supported."
+    end
+
     def find_content_type!(type_slug, organization)
       org = organization || Current.organization ||
             Organization.find_by(default: true) || Organization.first
@@ -153,6 +196,7 @@ module RivetCms
   self.media_host = nil
   self.public_api = false
   self.webhooks = []
+  self.revision_retention = :all
 
   self.parent_controller = "ActionController::Base"
   self.login_path = nil

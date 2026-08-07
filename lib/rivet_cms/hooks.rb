@@ -24,8 +24,11 @@ module RivetCms
   # Built-in events:
   #   :publish - a document revision was published (fires after commit,
   #              receives the published snapshot revision)
+  #   :prune   - a superseded revision is about to be destroyed by retention
+  #              (fires inside the publish transaction, before the delete, so
+  #              a subscriber can archive it elsewhere first)
   module Hooks
-    BUILT_IN_EVENTS = %i[publish].freeze
+    BUILT_IN_EVENTS = %i[publish prune].freeze
     MUTEX = Mutex.new
 
     class << self
@@ -59,9 +62,23 @@ module RivetCms
         end
       end
 
+      # Test-only: capture subscriptions so an example can register handlers
+      # and hand the registry back exactly as it found it.
+      def snapshot
+        mutex.synchronize { registry.transform_values(&:dup) }
+      end
+
+      def restore(snapshot)
+        return if snapshot.nil? # never mistake a failed snapshot for "no subscribers"
+
+        mutex.synchronize do
+          @registry = Hash.new { |hash, event| hash[event] = {} }
+          snapshot&.each { |event, handlers| @registry[event] = handlers.dup }
+        end
+      end
+
       # Test-only: wipes ALL subscribers including the engine's boot-time
-      # registrations (initializers do not rerun). Save and restore the
-      # registry around use, as the engine's own specs do.
+      # registrations (initializers do not rerun). Pair with snapshot/restore.
       def reset!
         mutex.synchronize do
           @registry = nil
