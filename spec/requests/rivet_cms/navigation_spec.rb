@@ -19,7 +19,7 @@ module RivetCms
       get rivet_cms.root_path
 
       expect(nav.map { |group| group["section"] }).to eq([ "", "Manage", "Deliver" ])
-      expect(item_keys).to eq(%w[dashboard content content_types components media api api_tokens])
+      expect(item_keys).to eq(%w[dashboard content content_types components media trash api api_tokens])
     end
 
     it "drops items a user cannot reach" do
@@ -57,7 +57,7 @@ module RivetCms
       audit = manage["items"].find { |item| item["key"] == "audit" }
       expect(audit["label"]).to eq("Audit Log")
       expect(audit["path"]).to eq(rivet_cms.root_path)
-      expect(manage["items"].map { |item| item["key"] }).to eq(%w[content content_types components media audit])
+      expect(manage["items"].map { |item| item["key"] }).to eq(%w[content content_types components media trash audit])
     end
 
     it "a registered item honors its requires gate" do

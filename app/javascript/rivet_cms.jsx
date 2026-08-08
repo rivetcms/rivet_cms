@@ -19,6 +19,7 @@ import DocumentsIndex from "./pages/Documents/Index"
 import DocumentsEdit from "./pages/Documents/Edit"
 import DocumentsTrash from "./pages/Documents/Trash"
 import MediaIndex from "./pages/Media/Index"
+import TrashShow from "./pages/Trash/Show"
 import ApiTokensIndex from "./pages/ApiTokens/Index"
 import ApiIndex from "./pages/Api/Index"
 
@@ -36,6 +37,7 @@ const pages = {
   "Documents/Edit": DocumentsEdit,
   "Documents/Trash": DocumentsTrash,
   "Media/Index": MediaIndex,
+  "Trash/Show": TrashShow,
   "ApiTokens/Index": ApiTokensIndex,
   "Api/Index": ApiIndex,
 }

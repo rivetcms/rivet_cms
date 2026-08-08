@@ -84,6 +84,8 @@ module RivetCms
              requires: [ :read, :schema ], path: -> { components_path }, position: 40
     register :media, label: "Media", section: "Manage", icon: :media,
              requires: [ :read, :media ], path: -> { media_assets_path }, position: 50
+    register :trash, label: "Trash", section: "Manage", icon: :trash,
+             requires: [ :read, :content ], path: -> { trash_path }, position: 55
     register :api, label: "API", section: "Deliver", icon: :api,
              requires: [ :read, :api ], path: -> { api_docs_path }, position: 60
     register :api_tokens, label: "API Tokens", section: "Deliver", icon: :api_tokens,

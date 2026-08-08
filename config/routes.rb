@@ -38,6 +38,7 @@ RivetCms::Engine.routes.draw do
   end
 
   get "content", to: "content_manager#index", as: :content
+  get "trash", to: "trash#show", as: :trash
 
   resources :media_assets, only: [ :index, :create, :update, :destroy ]
   resources :api_tokens, only: [ :index, :create, :destroy ]
