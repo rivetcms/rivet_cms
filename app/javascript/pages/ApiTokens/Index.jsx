@@ -2,6 +2,7 @@ import { useState } from "react"
 import { router, usePage } from "@inertiajs/react"
 import PageHeader from "../../components/PageHeader"
 import { TextInput, SelectInput, FormActions } from "../../components/forms"
+import { useConfirm } from "../../lib/confirm"
 
 function NewTokenBanner({ token }) {
   const [copied, setCopied] = useState(false)
@@ -23,6 +24,7 @@ function NewTokenBanner({ token }) {
 }
 
 export default function Index({ tokens, new_token: newToken }) {
+  const confirm = useConfirm()
   const tokensPath = usePage().props.paths.api_tokens
   const [name, setName] = useState("")
   const [scope, setScope] = useState("published")
@@ -32,8 +34,14 @@ export default function Index({ tokens, new_token: newToken }) {
     router.post(tokensPath, { name, scope }, { onSuccess: () => setName("") })
   }
 
-  const revoke = (token) => {
-    if (confirm(`Revoke "${token.name}"? Any consumer using it will lose access.`)) router.delete(token.paths.destroy)
+  const revoke = async (token) => {
+    const ok = await confirm({
+      title: `Revoke "${token.name}"?`,
+      message: "Any consumer using it will lose access.",
+      confirmLabel: "Revoke",
+      danger: true,
+    })
+    if (ok) router.delete(token.paths.destroy)
   }
 
   return (

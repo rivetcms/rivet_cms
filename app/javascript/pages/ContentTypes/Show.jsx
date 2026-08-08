@@ -5,6 +5,7 @@ import ContentTypeForm from "../../components/ContentTypeForm"
 import SettingsModal from "../../components/SettingsModal"
 import FieldsBuilder from "../../components/fields/FieldsBuilder"
 import FieldDrawer from "../../components/fields/FieldDrawer"
+import { useConfirm } from "../../lib/confirm"
 
 function AddFieldButton({ onClick, children }) {
   return (
@@ -22,6 +23,7 @@ export default function Show({
   reference_targets: referenceTargets,
   embeddable_components: embeddableComponents,
 }) {
+  const confirm = useConfirm()
   const { paths } = usePage().props
   // null = closed, { field: null } = new field, { field } = edit field
   const [drawer, setDrawer] = useState(null)
@@ -31,8 +33,13 @@ export default function Show({
   const openEdit = (field) => setDrawer({ field })
   const close = () => setDrawer(null)
 
-  const destroy = () => {
-    if (confirm(`Remove "${contentType.name}"? Its entries are kept and you can restore it from the trash.`)) {
+  const destroy = async () => {
+    const ok = await confirm({
+      title: `Remove "${contentType.name}"?`,
+      message: "Its entries are kept and you can restore it from the trash.",
+      confirmLabel: "Remove",
+    })
+    if (ok) {
       router.delete(contentType.paths.destroy)
     }
   }

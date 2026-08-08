@@ -1,12 +1,19 @@
 import { Link, usePage, router } from "@inertiajs/react"
 import EmptyState from "../../components/EmptyState"
 import PageHeader from "../../components/PageHeader"
+import { useConfirm } from "../../lib/confirm"
 
 export default function Index({ content_types: contentTypes, removed_count: removedCount }) {
+  const confirm = useConfirm()
   const { paths } = usePage().props
 
-  const destroy = (contentType) => {
-    if (confirm(`Remove "${contentType.name}"? Its entries are kept and you can restore it from the trash.`)) {
+  const destroy = async (contentType) => {
+    const ok = await confirm({
+      title: `Remove "${contentType.name}"?`,
+      message: "Its entries are kept and you can restore it from the trash.",
+      confirmLabel: "Remove",
+    })
+    if (ok) {
       router.delete(contentType.paths.destroy)
     }
   }

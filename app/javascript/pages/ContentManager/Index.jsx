@@ -4,8 +4,10 @@ import EmptyState from "../../components/EmptyState"
 import FilterSelect from "../../components/FilterSelect"
 import { timeAgo } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
+import { useConfirm } from "../../lib/confirm"
 
 export default function Index({ content_types: contentTypes, documents, pagination, q: initialQ, type: initialType }) {
+  const confirm = useConfirm()
   const { paths } = usePage().props
 
   const visit = (params) => router.get(paths.content, params, { preserveState: true, replace: true })
@@ -16,8 +18,13 @@ export default function Index({ content_types: contentTypes, documents, paginati
 
   const [q, setQ] = useSearch(initialQ, (value) => visit(filterParams({ q: value })))
 
-  const destroy = (document) => {
-    if (confirm("Move this entry to the trash? You can restore it later.")) router.delete(document.paths.destroy)
+  const destroy = async (document) => {
+    const ok = await confirm({
+      title: "Move this entry to the trash?",
+      message: "You can restore it later.",
+      confirmLabel: "Move to trash",
+    })
+    if (ok) router.delete(document.paths.destroy)
   }
 
   const goToPage = (page) =>

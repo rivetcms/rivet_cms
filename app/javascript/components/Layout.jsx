@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import { Link, usePage } from "@inertiajs/react"
 import Flash from "./Flash"
 import ThemeToggle from "./ThemeToggle"
+import { ConfirmProvider } from "../lib/confirm"
 
 const NAV_ICONS = {
   dashboard: (
@@ -174,7 +175,7 @@ export default function Layout({ children }) {
   }, [paths.login])
 
   return (
-    <>
+    <ConfirmProvider>
       <Flash />
       <div className="drawer lg:drawer-open">
         <input id="sidebar-drawer" type="checkbox" className="drawer-toggle" />
@@ -186,6 +187,6 @@ export default function Layout({ children }) {
         </div>
         <Aside nav={nav} paths={paths} auth={auth} appVersion={appVersion} url={url} />
       </div>
-    </>
+    </ConfirmProvider>
   )
 }

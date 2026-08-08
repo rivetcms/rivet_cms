@@ -4,10 +4,12 @@ import { TextInput, FormActions } from "../../components/forms"
 import FieldGrid from "../../components/entries/FieldGrid"
 import Slot from "../../components/Slot"
 import { cleanSlug } from "../../lib/slug"
+import { useConfirm } from "../../lib/confirm"
 
 const FILE_TYPES = ["image", "video", "file"]
 
 export default function Edit({ content_type: contentType, fields, document, values, reference_options: referenceOptions, form_paths: formPaths }) {
+  const confirm = useConfirm()
   const isNew = !document
 
   const form = useForm({
@@ -37,8 +39,13 @@ export default function Edit({ content_type: contentType, fields, document, valu
 
   // Publish saves the on-screen values first so unsaved edits are validated.
   const publish = () => router.post(document.paths.publish, { values: form.data.values }, { preserveScroll: true, forceFormData: hasFile })
-  const destroy = () => {
-    if (confirm("Move this entry to the trash? You can restore it later.")) router.delete(document.paths.destroy)
+  const destroy = async () => {
+    const ok = await confirm({
+      title: "Move this entry to the trash?",
+      message: "You can restore it later.",
+      confirmLabel: "Move to trash",
+    })
+    if (ok) router.delete(document.paths.destroy)
   }
 
   return (

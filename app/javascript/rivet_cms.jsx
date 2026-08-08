@@ -6,6 +6,7 @@ import axios from "axios"
 
 import Layout from "./components/Layout"
 import { registerSlot } from "./lib/slots"
+import { useConfirm } from "./lib/confirm"
 import DashboardShow from "./pages/Dashboard/Show"
 import ContentTypesIndex from "./pages/ContentTypes/Index"
 import ContentTypesNew from "./pages/ContentTypes/New"
@@ -68,6 +69,7 @@ window.RivetCMS = {
     Object.assign(pages, map)
   },
   registerSlot,
+  useConfirm,
   React,
   Inertia,
 }

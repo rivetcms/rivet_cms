@@ -3,14 +3,21 @@ import PageHeader from "../../components/PageHeader"
 import EmptyState from "../../components/EmptyState"
 import { timeAgo } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
+import { useConfirm } from "../../lib/confirm"
 
 export default function Index({ content_type: contentType, documents, pagination, q: initialQ, trashed_count: trashedCount, trash_path: trashPath }) {
+  const confirm = useConfirm()
   const [q, setQ] = useSearch(initialQ, (value) =>
     router.get(contentType.paths.documents, value ? { q: value } : {}, { preserveState: true, replace: true })
   )
 
-  const destroy = (document) => {
-    if (confirm("Move this entry to the trash? You can restore it later.")) router.delete(document.paths.destroy)
+  const destroy = async (document) => {
+    const ok = await confirm({
+      title: "Move this entry to the trash?",
+      message: "You can restore it later.",
+      confirmLabel: "Move to trash",
+    })
+    if (ok) router.delete(document.paths.destroy)
   }
 
   const goToPage = (page) =>

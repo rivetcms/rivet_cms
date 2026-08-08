@@ -1,16 +1,22 @@
 import { Link, router } from "@inertiajs/react"
 import PageHeader from "../../components/PageHeader"
 import { timeAgo } from "../../lib/format"
+import { useConfirm } from "../../lib/confirm"
 
 export default function Trash({ content_type: contentType, documents }) {
+  const confirm = useConfirm()
   const restore = (document) => router.patch(document.paths.restore)
 
-  const purge = (document) => {
+  const purge = async (document) => {
     const revisions = document.revision_count
     const detail = `${revisions} ${revisions === 1 ? "revision" : "revisions"}`
-    if (confirm(`Permanently delete "${document.slug}" and its ${detail}? This cannot be undone.`)) {
-      router.delete(document.paths.purge)
-    }
+    const ok = await confirm({
+      title: `Permanently delete "${document.slug}"?`,
+      message: `Its ${detail} will be deleted too. This cannot be undone.`,
+      confirmLabel: "Delete permanently",
+      danger: true,
+    })
+    if (ok) router.delete(document.paths.purge)
   }
 
   return (

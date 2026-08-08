@@ -1,5 +1,6 @@
 import { router } from "@inertiajs/react"
 import FieldTypeIcon from "./FieldTypeIcon"
+import { useConfirm } from "../../lib/confirm"
 
 function ActionButton({ label, onClick, danger = false, children }) {
   return (
@@ -17,6 +18,7 @@ function ActionButton({ label, onClick, danger = false, children }) {
 }
 
 export default function FieldCard({ field, onEdit, onDragStart, onDragEnd, dragging }) {
+  const confirm = useConfirm()
   const toggleWidth = () => {
     router.patch(field.paths.toggle_width, {}, { preserveScroll: true })
   }
@@ -25,8 +27,13 @@ export default function FieldCard({ field, onEdit, onDragStart, onDragEnd, dragg
     router.patch(field.paths.unpair, {}, { preserveScroll: true })
   }
 
-  const remove = () => {
-    if (confirm(`Remove "${field.label}"? Entries keep their saved values for this field.`)) {
+  const remove = async () => {
+    const ok = await confirm({
+      title: `Remove "${field.label}"?`,
+      message: "Entries keep their saved values for this field.",
+      confirmLabel: "Remove",
+    })
+    if (ok) {
       router.delete(field.paths.destroy, { preserveScroll: true })
     }
   }

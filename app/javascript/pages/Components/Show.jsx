@@ -5,6 +5,7 @@ import ComponentForm from "../../components/ComponentForm"
 import SettingsModal from "../../components/SettingsModal"
 import FieldsBuilder from "../../components/fields/FieldsBuilder"
 import FieldDrawer from "../../components/fields/FieldDrawer"
+import { useConfirm } from "../../lib/confirm"
 
 function AddFieldButton({ onClick, children }) {
   return (
@@ -24,6 +25,7 @@ export default function Show({
   reference_targets: referenceTargets,
   embeddable_components: embeddableComponents,
 }) {
+  const confirm = useConfirm()
   const { paths } = usePage().props
   const [drawer, setDrawer] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -32,8 +34,14 @@ export default function Show({
   const openEdit = (field) => setDrawer({ field })
   const close = () => setDrawer(null)
 
-  const destroy = () => {
-    if (confirm(`Delete "${component.name}"? This cannot be undone.`)) {
+  const destroy = async () => {
+    const ok = await confirm({
+      title: `Delete "${component.name}"?`,
+      message: "This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    })
+    if (ok) {
       router.delete(component.paths.destroy)
     }
   }

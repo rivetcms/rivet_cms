@@ -1,12 +1,20 @@
 import { Link, usePage, router } from "@inertiajs/react"
 import EmptyState from "../../components/EmptyState"
 import PageHeader from "../../components/PageHeader"
+import { useConfirm } from "../../lib/confirm"
 
 export default function Index({ components }) {
+  const confirm = useConfirm()
   const { paths } = usePage().props
 
-  const destroy = (component) => {
-    if (confirm(`Delete "${component.name}"? This cannot be undone.`)) router.delete(component.paths.destroy)
+  const destroy = async (component) => {
+    const ok = await confirm({
+      title: `Delete "${component.name}"?`,
+      message: "This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    })
+    if (ok) router.delete(component.paths.destroy)
   }
 
   return (

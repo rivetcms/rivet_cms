@@ -5,6 +5,7 @@ import PurgeDialog from "../../components/PurgeDialog"
 import FilterSelect from "../../components/FilterSelect"
 import { timeAgo } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
+import { useConfirm } from "../../lib/confirm"
 
 function SectionHeading({ children }) {
   return <h2 className="mb-2 mt-8 text-[11px] font-semibold uppercase tracking-wider text-base-content/40">{children}</h2>
@@ -19,6 +20,7 @@ function EmptyRow({ children }) {
 }
 
 export default function Show({ documents, content_types: contentTypes, types, pagination, q: initialQ, type: initialType }) {
+  const confirm = useConfirm()
   const [purging, setPurging] = useState(null)
 
   const visit = (params) => router.get(window.location.pathname, params, { preserveState: true, replace: true })
@@ -32,12 +34,16 @@ export default function Show({ documents, content_types: contentTypes, types, pa
   const restore = (path) => router.patch(path)
   const goToPage = (page) => router.get(window.location.pathname, { ...filterParams(), page }, { preserveScroll: true })
 
-  const purgeDocument = (document) => {
+  const purgeDocument = async (document) => {
     const revisions = document.revision_count
     const detail = `${revisions} ${revisions === 1 ? "revision" : "revisions"}`
-    if (confirm(`Permanently delete "${document.slug}" and its ${detail}? This cannot be undone.`)) {
-      router.delete(document.paths.purge)
-    }
+    const ok = await confirm({
+      title: `Permanently delete "${document.slug}"?`,
+      message: `Its ${detail} will be deleted too. This cannot be undone.`,
+      confirmLabel: "Delete permanently",
+      danger: true,
+    })
+    if (ok) router.delete(document.paths.purge)
   }
 
   const filtered = initialQ || initialType

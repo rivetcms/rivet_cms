@@ -9,6 +9,7 @@ import FileIcon from "../../components/FileIcon"
 import { formatBytes } from "../../lib/format"
 import { useSearch } from "../../lib/use_search"
 import { useUploadQueue } from "../../lib/use_upload_queue"
+import { useConfirm } from "../../lib/confirm"
 
 function CopyUrlButton({ asset }) {
   const [copied, setCopied] = useState(false)
@@ -39,6 +40,7 @@ function CopyUrlButton({ asset }) {
 const KIND_LABELS = { image: "Images", video: "Videos", file: "Files" }
 
 export default function Index({ assets, pagination, q: initialQ, kind: initialKind, kinds = [] }) {
+  const confirm = useConfirm()
   const { paths, media_accept: mediaAccept } = usePage().props
   const mediaPath = paths.media
   const [selected, setSelected] = useState(null)
@@ -59,8 +61,14 @@ export default function Index({ assets, pagination, q: initialQ, kind: initialKi
     dropQueue.clearDone()
   })
 
-  const destroy = (asset) => {
-    if (confirm(`Delete "${asset.filename}"? This cannot be undone.`)) {
+  const destroy = async (asset) => {
+    const ok = await confirm({
+      title: `Delete "${asset.filename}"?`,
+      message: "This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    })
+    if (ok) {
       setSelected(null)
       router.delete(asset.paths.destroy)
     }
