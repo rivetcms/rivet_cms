@@ -88,6 +88,43 @@ module RivetCms
       expect(props["documents"].map { |d| d["slug"] }).to eq([ "entry-0" ])
     end
 
+    it "purging from the global trash returns there with filters intact" do
+      entry = trashed_entry(articles, "goner")
+      here = rivet_cms.trash_path(q: "gon", type: "articles", page: 1)
+
+      delete rivet_cms.purge_content_type_document_path(articles, entry), headers: { "HTTP_REFERER" => here }
+
+      expect(response).to redirect_to(here)
+    end
+
+    it "purging a removed type from the global trash returns there too" do
+      articles.discard!
+      here = rivet_cms.trash_path
+
+      delete rivet_cms.purge_content_type_path(articles), params: { confirm: articles.name }, headers: { "HTTP_REFERER" => here }
+
+      expect(response).to redirect_to(here)
+      expect(ContentType.with_discarded.find_by(id: articles.id)).to be_nil
+    end
+
+    it "a failed typed-name check also returns to the page it came from" do
+      articles.discard!
+      here = rivet_cms.trash_path
+
+      delete rivet_cms.purge_content_type_path(articles), params: { confirm: "wrong" }, headers: { "HTTP_REFERER" => here }
+
+      expect(response).to redirect_to(here)
+      expect(ContentType.with_discarded.find_by(id: articles.id)).to be_present
+    end
+
+    it "purging without a referer falls back to the scoped trash" do
+      entry = trashed_entry(articles, "goner")
+
+      delete rivet_cms.purge_content_type_document_path(articles, entry)
+
+      expect(response).to redirect_to(rivet_cms.trash_content_type_documents_path(articles))
+    end
+
     it "requires content read" do
       RivetCms.can = ->(check) { !(check.action == :read && check.resource == :content) }
 

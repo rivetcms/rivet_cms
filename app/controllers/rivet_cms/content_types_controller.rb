@@ -94,7 +94,8 @@ module RivetCms
     # and only when the typed name matches, so it cannot be a slip.
     def purge
       unless params[:confirm].to_s.strip == @content_type.name.to_s.strip
-        return redirect_to trash_content_types_path, alert: "Type the name exactly to permanently delete it"
+        return redirect_back fallback_location: trash_content_types_path, allow_other_host: false,
+                             status: :see_other, alert: "Type the name exactly to permanently delete it"
       end
 
       name = @content_type.name
@@ -108,10 +109,13 @@ module RivetCms
       end
 
       audit "content_type.purged", @content_type
-      redirect_to trash_content_types_path, notice: "#{name} and its entries were permanently deleted"
+      # Back to whichever trash (global or scoped) the purge came from
+      redirect_back fallback_location: trash_content_types_path, allow_other_host: false,
+                    status: :see_other, notice: "#{name} and its entries were permanently deleted"
     rescue ActiveRecord::ActiveRecordError => error
       Rails.logger&.error("[RivetCms] purge failed for content type #{@content_type.id}: #{error.class}")
-      redirect_to trash_content_types_path, alert: "#{name} could not be deleted; nothing was removed"
+      redirect_back fallback_location: trash_content_types_path, allow_other_host: false,
+                    status: :see_other, alert: "#{name} could not be deleted; nothing was removed"
     end
 
     def destroy

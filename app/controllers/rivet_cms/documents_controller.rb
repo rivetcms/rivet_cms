@@ -134,12 +134,15 @@ module RivetCms
         @document.destroy!
       end
       audit "entry.purged", @document
-      redirect_to trash_content_type_documents_path(@content_type),
-                  notice: "#{slug} was permanently deleted"
+      # Back to whichever trash (global or scoped) the purge came from
+      redirect_back fallback_location: trash_content_type_documents_path(@content_type),
+                    allow_other_host: false, status: :see_other,
+                    notice: "#{slug} was permanently deleted"
     rescue ActiveRecord::ActiveRecordError => error
       Rails.logger&.error("[RivetCms] purge failed for document #{@document.id}: #{error.class}")
-      redirect_to trash_content_type_documents_path(@content_type),
-                  alert: "#{slug} could not be deleted; nothing was removed"
+      redirect_back fallback_location: trash_content_type_documents_path(@content_type),
+                    allow_other_host: false, status: :see_other,
+                    alert: "#{slug} could not be deleted; nothing was removed"
     end
 
     private
