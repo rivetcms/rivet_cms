@@ -53,9 +53,22 @@ module RivetCms
         path = item.path.respond_to?(:call) ? instance_exec(&item.path) : item.path
         section = sections.find { |s| s[:section] == item.section } ||
                   (sections << { section: item.section, items: [] }).last
-        section[:items] << { key: item.key, label: item.label, icon: item.icon, path: path, exact: item.exact }
+        entry = { key: item.key, label: item.label, icon: item.icon, path: path, exact: item.exact }
+        badge = nav_badge(item)
+        entry[:badge] = badge if badge&.positive?
+        section[:items] << entry
       end
       sections
+    end
+
+    # A raising badge lambda loses its badge, not the sidebar
+    def nav_badge(item)
+      return nil unless item.badge
+
+      Integer(instance_exec(&item.badge))
+    rescue StandardError => error
+      Rails.logger&.error("[RivetCms] nav badge for #{item.key} raised (skipping): #{error.class}: #{error.message}")
+      nil
     end
 
     # Fails closed: a raising policy denies and logs rather than 500ing the admin
@@ -86,6 +99,21 @@ module RivetCms
     def permitted_documents(documents)
       permitted(documents, :read, :content)
         .select { |document| can?(:read, :content, record: document.content_type) }
+    end
+
+    # Trashing something should land back where the delete came from, except
+    # when the referer is a page that just died with the trashed record.
+    def redirect_after_trash(dead_path, fallback, **flash)
+      referer_path = begin
+        URI.parse(request.referer.to_s).path
+      rescue URI::Error
+        nil
+      end
+      if referer_path == dead_path
+        redirect_to fallback, status: :see_other, **flash
+      else
+        redirect_back fallback_location: fallback, allow_other_host: false, status: :see_other, **flash
+      end
     end
 
     # Emits onto the :audit stream; call after a mutation succeeded

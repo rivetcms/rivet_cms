@@ -95,8 +95,11 @@ module RivetCms
     def destroy
       @document.discard!
       audit "entry.trashed", @document
-      redirect_to content_type_documents_path(@content_type),
-                  notice: "#{@document.slug} was moved to the trash"
+      # Back to whichever list the delete came from, except the entry's own
+      # editor, whose URL just died with the trashing
+      dead = edit_content_type_document_path(@content_type, @document)
+      redirect_after_trash(dead, content_type_documents_path(@content_type),
+                           notice: "#{@document.slug} was moved to the trash")
     end
 
     def trash

@@ -67,7 +67,7 @@ module RivetCms
       expect(ContentType.where(name: "Blocked")).to be_empty
 
       delete rivet_cms.content_type_path(content_type)
-      expect(response).to have_http_status(:found)
+      expect(response).to have_http_status(:see_other)
       expect(ContentType.exists?(content_type.id)).to be false
     end
 

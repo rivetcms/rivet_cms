@@ -19,23 +19,25 @@ module RivetCms
   # sections; a section appears where its lowest-position item falls.
   # Re-registering a key replaces the item, so registration is reload-safe.
   module Navigation
-    Item = Struct.new(:key, :label, :section, :icon, :requires, :path, :position, :exact, keyword_init: true)
+    Item = Struct.new(:key, :label, :section, :icon, :requires, :path, :position, :exact, :badge, keyword_init: true)
 
     MUTEX = Mutex.new
 
     class << self
-      def register(key, label:, section:, path:, icon: nil, requires: nil, position: 100, exact: false)
+      def register(key, label:, section:, path:, icon: nil, requires: nil, position: 100, exact: false, badge: nil)
         raise ArgumentError, "label required" if label.to_s.strip.empty?
         raise ArgumentError, "path must be a String or callable" unless path.is_a?(String) || path.respond_to?(:call)
         # Class equality, not is_a?: ActiveSupport::Duration answers is_a?(Integer)
         raise ArgumentError, "position must be an Integer" unless position.class == Integer
+        raise ArgumentError, "badge must be callable" unless badge.nil? || badge.respond_to?(:call)
         unless requires.nil? || (requires.is_a?(Array) && requires.size == 2 && requires.all? { |part| part.respond_to?(:to_sym) })
           raise ArgumentError, "requires must be nil or [action, resource]"
         end
 
         item = Item.new(
           key: key.to_sym, label: label.to_s, section: section.to_s, icon: icon&.to_sym,
-          requires: requires&.map(&:to_sym), path: path, position: position, exact: exact == true
+          requires: requires&.map(&:to_sym), path: path, position: position, exact: exact == true,
+          badge: badge
         )
         mutex.synchronize { registry[item.key] = item }
         item
@@ -84,8 +86,17 @@ module RivetCms
              requires: [ :read, :schema ], path: -> { components_path }, position: 40
     register :media, label: "Media", section: "Manage", icon: :media,
              requires: [ :read, :media ], path: -> { media_assets_path }, position: 50
+    # The badge counts what the trash page would show this user: entries
+    # always (the item itself is content-gated), removed types only with
+    # schema read, mirroring the page's sections. Within a domain the count
+    # is an aggregate, not filtered per record, like stat counts.
     register :trash, label: "Trash", section: "Manage", icon: :trash,
-             requires: [ :read, :content ], path: -> { trash_path }, position: 55
+             requires: [ :read, :content ], path: -> { trash_path }, position: 55,
+             badge: -> {
+               count = Document.with_discarded.discarded.in_visible_types.where(organization: Current.organization).count
+               count += ContentType.with_discarded.discarded.where(organization: Current.organization).count if can?(:read, :schema)
+               count
+             }
     register :api, label: "API", section: "Deliver", icon: :api,
              requires: [ :read, :api ], path: -> { api_docs_path }, position: 60
     register :api_tokens, label: "API Tokens", section: "Deliver", icon: :api_tokens,

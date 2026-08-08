@@ -88,6 +88,73 @@ module RivetCms
       expect(props["documents"].map { |d| d["slug"] }).to eq([ "entry-0" ])
     end
 
+    it "trashing an entry from the Content page returns there with filters intact" do
+      document = create(:document, slug: "leaving", content_type: articles, organization: organization)
+      document.update!(draft_revision: create(:document_revision, document: document, state: :draft))
+      here = rivet_cms.content_path(type: "articles", q: "leav")
+
+      delete rivet_cms.content_type_document_path(articles, document), headers: { "HTTP_REFERER" => here }
+
+      expect(response).to redirect_to(here)
+    end
+
+    it "trashing an entry from its own editor falls back to the entry list" do
+      document = create(:document, slug: "self-delete", content_type: articles, organization: organization)
+      document.update!(draft_revision: create(:document_revision, document: document, state: :draft))
+      dead = rivet_cms.edit_content_type_document_path(articles, document)
+
+      delete rivet_cms.content_type_document_path(articles, document), headers: { "HTTP_REFERER" => dead }
+
+      expect(response).to redirect_to(rivet_cms.content_type_documents_path(articles))
+    end
+
+    it "removing a type from its own page falls back to the types index" do
+      dead = rivet_cms.content_type_path(articles)
+
+      delete rivet_cms.content_type_path(articles), headers: { "HTTP_REFERER" => dead }
+
+      expect(response).to redirect_to(rivet_cms.content_types_path)
+    end
+
+    it "counts the trash's contents in the sidebar badge, hiding zero" do
+      get rivet_cms.root_path
+      nav = JSON.parse(CGI.unescapeHTML(response.body[/data-page="([^"]*)"/, 1]))["props"]["nav"]
+      trash_item = nav.flat_map { |g| g["items"] }.find { |i| i["key"] == "trash" }
+      expect(trash_item).not_to have_key("badge")
+
+      trashed_entry(articles, "counted")
+      notes.discard!
+
+      get rivet_cms.root_path
+      nav = JSON.parse(CGI.unescapeHTML(response.body[/data-page="([^"]*)"/, 1]))["props"]["nav"]
+      trash_item = nav.flat_map { |g| g["items"] }.find { |i| i["key"] == "trash" }
+      expect(trash_item["badge"]).to eq(2)
+    end
+
+    it "the badge counts removed types only with schema read, like the page" do
+      trashed_entry(articles, "counted")
+      notes.discard!
+      RivetCms.can = ->(check) { !(check.action == :read && check.resource == :schema) }
+
+      get rivet_cms.root_path
+
+      nav = JSON.parse(CGI.unescapeHTML(response.body[/data-page="([^"]*)"/, 1]))["props"]["nav"]
+      trash_item = nav.flat_map { |g| g["items"] }.find { |i| i["key"] == "trash" }
+      expect(trash_item["badge"]).to eq(1)
+    end
+
+    it "a raising badge keeps the sidebar alive without a count" do
+      Navigation.register :flaky, label: "Flaky", section: "Pro", path: "/flaky", badge: -> { raise "boom" }
+
+      get rivet_cms.root_path
+
+      expect(response).to have_http_status(:ok)
+      nav = JSON.parse(CGI.unescapeHTML(response.body[/data-page="([^"]*)"/, 1]))["props"]["nav"]
+      flaky = nav.flat_map { |g| g["items"] }.find { |i| i["key"] == "flaky" }
+      expect(flaky).to be_present
+      expect(flaky).not_to have_key("badge")
+    end
+
     it "purging from the global trash returns there with filters intact" do
       entry = trashed_entry(articles, "goner")
       here = rivet_cms.trash_path(q: "gon", type: "articles", page: 1)

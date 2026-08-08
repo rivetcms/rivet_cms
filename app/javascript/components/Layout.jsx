@@ -53,7 +53,7 @@ const DEFAULT_ICON = (
   </svg>
 )
 
-function NavLink({ href, icon, active, children }) {
+function NavLink({ href, icon, active, badge, children }) {
   return (
     <li>
       <Link
@@ -62,6 +62,9 @@ function NavLink({ href, icon, active, children }) {
       >
         <span className={active ? "" : "text-base-content/50"}>{icon}</span>
         {children}
+        {badge > 0 && (
+          <span className={`badge badge-sm ml-auto font-mono tabular-nums ${active ? "badge-outline" : "badge-ghost"}`}>{badge}</span>
+        )}
       </Link>
     </li>
   )
@@ -114,7 +117,7 @@ function Aside({ nav, paths, auth, appVersion, url }) {
             )}
             <ul className="flex w-full list-none flex-col gap-0.5 p-0">
               {group.items.map((item) => (
-                <NavLink key={item.key} href={item.path} icon={NAV_ICONS[item.icon] || DEFAULT_ICON} active={isActive(item)}>
+                <NavLink key={item.key} href={item.path} icon={NAV_ICONS[item.icon] || DEFAULT_ICON} active={isActive(item)} badge={item.badge}>
                   {item.label}
                 </NavLink>
               ))}

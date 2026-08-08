@@ -121,8 +121,9 @@ module RivetCms
     def destroy
       @content_type.discard!
       audit "content_type.removed", @content_type
-      redirect_to content_types_path,
-                  notice: "#{@content_type.name} was removed. Its entries are kept and it can be restored from the trash."
+      # The type's own page dies with the removal; anywhere else goes back
+      redirect_after_trash(content_type_path(@content_type), content_types_path,
+                           notice: "#{@content_type.name} was removed. Its entries are kept and it can be restored from the trash.")
     end
 
     private
