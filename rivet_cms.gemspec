@@ -8,14 +8,14 @@ Gem::Specification.new do |spec|
   spec.homepage    = "https://github.com/narch/rivet_cms"
   spec.summary     = "A headless CMS for Rails applications"
   spec.description = "RivetCms is a headless CMS Rails engine, similar to Strapi, that provides content management functionality for Rails applications."
-  spec.license     = "MIT"
+  spec.license     = "LGPL-3.0-or-later"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/narch/rivet_cms"
   spec.metadata["changelog_uri"] = "https://github.com/narch/rivet_cms/blob/main/CHANGELOG.md"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+    Dir["{app,config,db,lib}/**/*", "COPYING", "COPYING.LESSER", "CHANGELOG.md", "Rakefile", "README.md"]
   end
 
   spec.add_dependency "rails", ">= 7.2"

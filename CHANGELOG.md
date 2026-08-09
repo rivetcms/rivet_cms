@@ -4,6 +4,11 @@ All notable changes to RivetCMS are documented here. While the version is
 below 1.0, minor releases may include breaking changes; each one is listed
 under a Breaking heading.
 
+## Unreleased
+
+### Changed
+- Licensed under LGPL-3.0-or-later.
+
 ## 0.2.0 - 2026-08-08
 
 Everything between the initial scaffold and built-in authentication.

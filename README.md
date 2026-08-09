@@ -294,4 +294,11 @@ Contribution directions go here.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+RivetCMS is licensed under the GNU Lesser General Public License v3.0 or
+later (LGPL-3.0-or-later). The full text is in [`COPYING.LESSER`](COPYING.LESSER)
+(the additional permissions) and [`COPYING`](COPYING) (the GPLv3 it builds on).
+
+In short: you can use RivetCMS in your own application, including a closed-
+source or commercial one, without that application becoming subject to the
+LGPL. If you modify RivetCMS itself and distribute or host that modified
+version, those modifications must be shared under the same license.
