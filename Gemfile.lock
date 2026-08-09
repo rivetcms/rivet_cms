@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rivet_cms (0.1.0)
+    rivet_cms (0.2.0)
       image_processing (~> 1.14)
       inertia_rails (~> 3.0)
       kaminari (~> 1.2)
