@@ -41,9 +41,9 @@ module RivetCms
       end
 
       it "redirects a full page load to login_path when set" do
-        RivetCms.login_path = "/login"
+        RivetCms.login_path = "/host/login"
         get rivet_cms.root_path
-        expect(response).to redirect_to("/login")
+        expect(response).to redirect_to("/host/login")
       end
 
       it "leaves the public read API open" do
@@ -55,7 +55,7 @@ module RivetCms
     end
 
     describe "with a configured current_user" do
-      let(:jane) { User.create!(name: "Jane Editor", email: "jane@example.com") }
+      let(:jane) { ::User.create!(name: "Jane Editor", email: "jane@example.com") }
 
       before do
         organization
@@ -75,7 +75,7 @@ module RivetCms
         post rivet_cms.content_type_documents_path(content_type), params: { slug: "hello" }
         document = Document.last
 
-        bob = User.create!(name: "Bob Writer", email: "bob@example.com")
+        bob = ::User.create!(name: "Bob Writer", email: "bob@example.com")
         RivetCms.current_user = ->(_controller) { bob }
         patch rivet_cms.content_type_document_path(content_type, document), params: { values: {} }
 
@@ -112,25 +112,25 @@ module RivetCms
         # be re-parented once the class is loaded, so read the session directly).
         # Return truthy to allow; the engine redirects to login_path on denial.
         RivetCms.authenticate = ->(c) { c.session[:user_id].present? }
-        RivetCms.current_user = ->(c) { User.find_by(id: c.session[:user_id]) }
-        RivetCms.login_path = "/login"
-        RivetCms.logout_path = "/logout"
+        RivetCms.current_user = ->(c) { ::User.find_by(id: c.session[:user_id]) }
+        RivetCms.login_path = "/host/login"
+        RivetCms.logout_path = "/host/logout"
       end
 
       it "walks the full login/use/logout cycle" do
         get rivet_cms.root_path
-        expect(response).to redirect_to("/login")
+        expect(response).to redirect_to("/host/login")
 
-        post "/login", params: { email: "dev@example.com" }
+        post "/host/login", params: { email: "dev@example.com" }
         expect(response).to redirect_to("/")
 
         get rivet_cms.root_path
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("dev@example.com")
 
-        delete "/logout"
+        delete "/host/logout"
         get rivet_cms.root_path
-        expect(response).to redirect_to("/login")
+        expect(response).to redirect_to("/host/login")
       end
     end
 

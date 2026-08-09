@@ -7,6 +7,13 @@ RIVET_AUTH_CONFIG_KEYS = %i[can revision_retention
 ].freeze
 
 RSpec.configure do |config|
+  # The suite runs in host-auth mode with a permissive lambda; built-in auth
+  # specs opt back in with RivetCms.authenticate = RivetCms::DEFAULT_AUTHENTICATE
+  config.before(:each) do
+    RivetCms.authenticate = ->(_controller) { true }
+    RivetCms.current_user = ->(_controller) { nil }
+  end
+
   # Hook subscriptions are process-global: snapshot and restore them so a
   # spec's handler cannot fire during every later example.
   config.around(:each) do |example|

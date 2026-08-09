@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     rivet_cms (0.2.0)
+      bcrypt (~> 3.1.7)
       image_processing (~> 1.14)
       inertia_rails (~> 3.0)
       kaminari (~> 1.2)
@@ -86,6 +87,7 @@ GEM
       tzinfo (~> 2.0, >= 2.0.5)
     ast (2.4.3)
     base64 (0.3.0)
+    bcrypt (3.1.22)
     benchmark (0.5.0)
     bigdecimal (3.3.1)
     builder (3.3.0)
@@ -332,6 +334,7 @@ PLATFORMS
   arm-linux-musl
   arm64-darwin
   x86_64-darwin
+  x86_64-linux
   x86_64-linux-gnu
   x86_64-linux-musl
 

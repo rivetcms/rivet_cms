@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_07_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -230,6 +230,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_07_000001) do
     t.index ["target_document_id"], name: "index_rivet_cms_relations_on_target_document_id"
   end
 
+  create_table "rivet_cms_users", force: :cascade do |t|
+    t.integer "organization_id", null: false
+    t.string "name", null: false
+    t.string "email", null: false
+    t.string "password_digest"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "email"], name: "index_rivet_cms_users_on_organization_id_and_email", unique: true
+    t.index ["organization_id"], name: "index_rivet_cms_users_on_organization_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -259,4 +271,5 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_07_000001) do
   add_foreign_key "rivet_cms_media_assets", "rivet_cms_organizations", column: "organization_id"
   add_foreign_key "rivet_cms_relations", "rivet_cms_documents", column: "target_document_id"
   add_foreign_key "rivet_cms_relations", "rivet_cms_fields", column: "field_id"
+  add_foreign_key "rivet_cms_users", "rivet_cms_organizations", column: "organization_id"
 end

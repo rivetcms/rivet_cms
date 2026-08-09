@@ -4,7 +4,7 @@ module RivetCms
   RSpec.describe Navigation do
     it "registers the core sidebar out of the box" do
       keys = described_class.items.map(&:key)
-      expect(keys).to eq(%i[dashboard content content_types components media trash api api_tokens])
+      expect(keys).to eq(%i[dashboard content content_types components media trash users api api_tokens])
     end
 
     it "core gates mirror the index actions they link to" do
@@ -16,6 +16,7 @@ module RivetCms
         components: %i[read schema],
         media: %i[read media],
         trash: %i[read content],
+        users: %i[read users],
         api: %i[read api],
         api_tokens: %i[read api]
       )

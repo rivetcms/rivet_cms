@@ -5,9 +5,10 @@ module RivetCms
   class ApplicationController < RivetCms.parent_controller.constantize
     layout "rivet_cms/application"
 
+    # Organization first: built-in authentication scopes its user lookup to it
+    before_action :set_current_organization
     before_action :authenticate_rivet_user
     before_action :set_rivet_current_user
-    before_action :set_current_organization
     after_action :set_csrf_cookie
 
     inertia_config version: -> { RivetCms.asset_version }
@@ -32,9 +33,9 @@ module RivetCms
                       new_component: new_component_path,
                       api_tokens: api_tokens_path,
                       api_docs: api_docs_path,
-                      login: RivetCms.login_path,
-                      logout: RivetCms.logout_path,
-                      logout_method: RivetCms.logout_method
+                      login: effective_login_path,
+                      logout: effective_logout_path,
+                      logout_method: RivetCms.builtin_auth? ? "delete" : RivetCms.logout_method
                     }
                   }
 
@@ -48,6 +49,7 @@ module RivetCms
     def navigation_props
       sections = []
       RivetCms::Navigation.items.each do |item|
+        next if item.visible && instance_exec(&item.visible) != true
         next if item.requires && !can?(*item.requires)
 
         path = item.path.respond_to?(:call) ? instance_exec(&item.path) : item.path
@@ -149,11 +151,37 @@ module RivetCms
     end
 
     def authenticate_rivet_user
+      return builtin_authenticate if RivetCms.builtin_auth?
+
       result = RivetCms.authenticate.call(self)
       return if performed? # the lambda rendered/redirected on its own
       return if result     # truthy => allowed
 
       deny_rivet_access    # falsy and unhandled => fail closed
+    end
+
+    def builtin_authenticate
+      return if builtin_session_user
+
+      if request.inertia?
+        head :unauthorized
+      elsif RivetCms::User.where(organization: Current.organization).none?
+        redirect_to setup_path # first run: create the owner account
+      else
+        redirect_to login_path
+      end
+    end
+
+    def builtin_session_user
+      return @builtin_session_user if defined?(@builtin_session_user)
+
+      user = RivetCms::User.where(organization: Current.organization)
+                           .find_by(id: session[:rivet_cms_user_id])
+      # can_sign_in?: deactivation and a wiped password both end the session.
+      # The salt comparison ends every session issued before a password change.
+      valid = user&.can_sign_in? &&
+              ActiveSupport::SecurityUtils.secure_compare(user.password_salt.to_s, session[:rivet_cms_password_salt].to_s)
+      @builtin_session_user = valid ? user : nil
     end
 
     def deny_rivet_access
@@ -167,7 +195,15 @@ module RivetCms
     end
 
     def set_rivet_current_user
-      Current.user = RivetCms.current_user.call(self)
+      Current.user = RivetCms.builtin_auth? ? builtin_session_user : RivetCms.current_user.call(self)
+    end
+
+    def effective_login_path
+      RivetCms.builtin_auth? ? login_path : RivetCms.login_path
+    end
+
+    def effective_logout_path
+      RivetCms.builtin_auth? ? logout_path : RivetCms.logout_path
     end
 
     def set_current_organization

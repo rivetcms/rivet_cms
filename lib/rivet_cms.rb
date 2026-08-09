@@ -5,6 +5,7 @@ require "rivet_cms/hooks"
 require "rivet_cms/audit"
 require "rivet_cms/navigation"
 require "rivet_cms/access_check"
+require "bcrypt"
 require "image_processing"
 require "prefixed_ids"
 require "kaminari"
@@ -158,18 +159,27 @@ module RivetCms
       serialize_document(content_type, document, preview: preview, populate: populate, fields: fields)
     end
 
-    def warn_unconfigured_authentication!
-      return if @auth_warning_logged
-
-      @auth_warning_logged = true
-      Rails.logger&.warn(
-        "[RivetCms] No authentication configured — the admin UI is open. " \
-        "Set RivetCms.configure { |c| c.authenticate = ... } before deploying."
-      )
+    # Built-in authentication is the default: it is active exactly while the
+    # host has not configured its own authenticate lambda. Setting one (as
+    # every existing host integration does) opts out entirely.
+    def builtin_auth?
+      authenticate.equal?(DEFAULT_AUTHENTICATE)
     end
 
-    def reset_auth_warning!
-      @auth_warning_logged = false
+    # First-run setup protection. Outside development/test the setup screen
+    # requires a code that is printed to the server log, so only someone with
+    # server access can claim a fresh deployment. Set explicitly to require a
+    # chosen code in every environment (or to share it out of band).
+    attr_writer :setup_code
+
+    # Derived, not memoized: memoizing would make the explicit-config check
+    # below true after any read
+    def setup_code
+      @setup_code || Digest::SHA256.hexdigest("#{Rails.application.secret_key_base}:rivet-cms-setup")[0, 12]
+    end
+
+    def setup_code_required?
+      !(Rails.env.development? || Rails.env.test?) || @setup_code.present?
     end
 
     private
@@ -237,20 +247,19 @@ module RivetCms
 
   # authenticate returns truthy to allow the request and falsy to deny it; the
   # engine turns a denial into a redirect to login_path or a 403 (a lambda may
-  # also render/redirect itself). Unconfigured: allow in dev/test with a
-  # warning, and FAIL CLOSED everywhere else — staging, production, custom envs.
-  DEFAULT_AUTHENTICATE = lambda do |_controller|
-    if Rails.env.development? || Rails.env.test?
-      RivetCms.warn_unconfigured_authentication!
-      true
-    else
-      false
-    end
-  end
+  # also render/redirect itself). Unconfigured means built-in authentication:
+  # this lambda is an identity sentinel for builtin_auth? and is never called
+  # (the controller branches to the built-in session flow first). Fails
+  # closed if something ever invokes it anyway.
+  DEFAULT_AUTHENTICATE = ->(_controller) { false }
   self.authenticate = DEFAULT_AUTHENTICATE
 
   self.current_user = ->(_controller) { nil }
 
+  # Default policy: allow everything. CE has no permission system, so any
+  # authenticated user can do anything in both built-in and host-auth mode.
+  # Installing config.can replaces this wholesale; that is the seam Pro's
+  # role and record-scoped permissions attach through.
   self.can = ->(_check) { true }
 
   self.user_name = lambda do |user|

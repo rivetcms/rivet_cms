@@ -254,6 +254,12 @@ module RivetCms
       organization
       RivetCms.can = ->(_check) { false }
       open_routes = [ "/", "/api/:content_type_slug", "/api/:content_type_slug/:slug" ]
+      # Built-in auth surfaces 404 under host auth (this suite's mode); their
+      # gating is covered by the built-in auth specs
+      builtin_only = [ "/login", "/logout", "/setup", "/join/:token",
+                       "/users", "/users/:id", "/users/:id/deactivate",
+                       "/users/:id/reactivate", "/users/:id/reset_link" ]
+      open_routes += builtin_only
 
       swept = 0
       RivetCms::Engine.routes.routes.each do |route|

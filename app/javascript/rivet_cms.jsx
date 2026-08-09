@@ -21,6 +21,10 @@ import DocumentsEdit from "./pages/Documents/Edit"
 import DocumentsTrash from "./pages/Documents/Trash"
 import MediaIndex from "./pages/Media/Index"
 import TrashShow from "./pages/Trash/Show"
+import AuthLogin from "./pages/Auth/Login"
+import AuthSetup from "./pages/Auth/Setup"
+import AuthSetPassword from "./pages/Auth/SetPassword"
+import UsersIndex from "./pages/Users/Index"
 import ApiTokensIndex from "./pages/ApiTokens/Index"
 import ApiIndex from "./pages/Api/Index"
 
@@ -39,6 +43,10 @@ const pages = {
   "Documents/Trash": DocumentsTrash,
   "Media/Index": MediaIndex,
   "Trash/Show": TrashShow,
+  "Auth/Login": AuthLogin,
+  "Auth/Setup": AuthSetup,
+  "Auth/SetPassword": AuthSetPassword,
+  "Users/Index": UsersIndex,
   "ApiTokens/Index": ApiTokensIndex,
   "Api/Index": ApiIndex,
 }

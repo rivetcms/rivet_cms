@@ -31,9 +31,33 @@ Run the migrations (the engine appends its migrations automatically):
 $ bin/rails db:migrate
 ```
 
-That's it. The admin UI's JavaScript and CSS are precompiled into the gem
-(`app/assets/builds/`) and served through the asset pipeline (Propshaft or
-Sprockets), so no frontend tooling is required in the host app.
+Visit `/cms` and create your admin account; that's it. The admin UI's
+JavaScript and CSS are precompiled into the gem (`app/assets/builds/`) and
+served through the asset pipeline (Propshaft or Sprockets), so no frontend
+tooling is required in the host app.
+
+## Authentication
+
+Out of the box RivetCMS handles sign-in itself: the first visit creates the
+first admin account, and a Users page invites more. CE has no roles, so every
+signed-in user can do everything; role and record-scoped permissions are a
+RivetCMS Pro feature. New users are invited with a copyable sign-in link
+(signed, expires in 3 days, dies once a password is set), so no mail delivery
+is required. There is no self-registration, and users are deactivated rather
+than deleted.
+
+Apps with their own authentication plug it in instead, which disables all of
+the above (no engine login routes, no Users page; manage people in your own
+admin):
+
+```ruby
+RivetCms.configure do |config|
+  config.authenticate = ->(controller) { controller.user_signed_in? }
+  config.current_user = ->(controller) { controller.current_user }
+  config.login_path   = "/login"
+  config.logout_path  = "/logout"
+end
+```
 
 ## Media processing (optional system dependencies)
 
@@ -91,8 +115,10 @@ Admin access control is a single policy receiving a `RivetCms::AccessCheck`
 (fields: `user`, `action`, `resource`, `organization`, and `record`) and
 returning a boolean; default allow. `action` is `:read`,
 `:write`, `:publish`, or `:delete`; `resource` is a coarse domain: `:content`
-(entries), `:schema` (content types, fields, components), `:media`, or `:api`
-(docs and tokens). The user is whatever your `current_user` lambda returns:
+(entries), `:schema` (content types, fields, components), `:media`, `:api`
+(docs and tokens), or `:users` (built-in user management). The default policy
+allows everything; installing your own replaces it, and the user it receives
+is whatever your `current_user` lambda returns (or the built-in account):
 
 ```ruby
 RivetCms.configure do |config|

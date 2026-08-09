@@ -1,7 +1,11 @@
-# RivetCms delegates authentication to your application — it ships no login of
-# its own. Wire your auth (Devise, Rails 8 authentication generator, custom
-# sessions) into the lambdas below. Without configuration the admin UI is OPEN
-# in development/test and BLOCKED (403) in production.
+# Without configuration RivetCms handles sign-in itself: the first visit
+# creates the first admin account, and the Users page invites more. CE has no
+# roles; every signed-in user can do everything (role and record-scoped
+# permissions are a RivetCMS Pro feature). Nothing below is required.
+#
+# To use your application's authentication instead (Devise, the Rails 8
+# authentication generator, custom sessions), wire the lambdas below;
+# configuring `authenticate` disables the built-in login and Users page.
 #
 # RivetCms.configure do |config|
 #   # Engine controllers inherit from this class, making your auth filters and

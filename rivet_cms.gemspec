@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "rails", ">= 7.2"
+  spec.add_dependency "bcrypt", "~> 3.1.7"
   spec.add_dependency "image_processing", "~> 1.14"
   spec.add_dependency "prefixed_ids", "~> 1.8"
   spec.add_dependency "kaminari", "~> 1.2"

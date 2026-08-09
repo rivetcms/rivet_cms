@@ -110,7 +110,7 @@ module RivetCms
 
     describe "authorship" do
       it "accepts any host class as a polymorphic author and copies it on publish" do
-        author = User.create!(name: "Jane", email: "jane@example.com")
+        author = ::User.create!(name: "Jane", email: "jane@example.com")
         draft = create(:document_revision, document: document, state: :draft, author: author, author_name: "Jane")
 
         snapshot = draft.publish!
@@ -120,7 +120,7 @@ module RivetCms
       end
 
       it "keeps the cached author name when the host user is deleted" do
-        author = User.create!(name: "Jane", email: "jane@example.com")
+        author = ::User.create!(name: "Jane", email: "jane@example.com")
         draft = create(:document_revision, document: document, state: :draft, author: author, author_name: "Jane")
         author.destroy!
 

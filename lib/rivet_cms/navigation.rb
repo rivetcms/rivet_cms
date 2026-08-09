@@ -19,17 +19,18 @@ module RivetCms
   # sections; a section appears where its lowest-position item falls.
   # Re-registering a key replaces the item, so registration is reload-safe.
   module Navigation
-    Item = Struct.new(:key, :label, :section, :icon, :requires, :path, :position, :exact, :badge, keyword_init: true)
+    Item = Struct.new(:key, :label, :section, :icon, :requires, :path, :position, :exact, :badge, :visible, keyword_init: true)
 
     MUTEX = Mutex.new
 
     class << self
-      def register(key, label:, section:, path:, icon: nil, requires: nil, position: 100, exact: false, badge: nil)
+      def register(key, label:, section:, path:, icon: nil, requires: nil, position: 100, exact: false, badge: nil, visible: nil)
         raise ArgumentError, "label required" if label.to_s.strip.empty?
         raise ArgumentError, "path must be a String or callable" unless path.is_a?(String) || path.respond_to?(:call)
         # Class equality, not is_a?: ActiveSupport::Duration answers is_a?(Integer)
         raise ArgumentError, "position must be an Integer" unless position.class == Integer
         raise ArgumentError, "badge must be callable" unless badge.nil? || badge.respond_to?(:call)
+        raise ArgumentError, "visible must be callable" unless visible.nil? || visible.respond_to?(:call)
         unless requires.nil? || (requires.is_a?(Array) && requires.size == 2 && requires.all? { |part| part.respond_to?(:to_sym) })
           raise ArgumentError, "requires must be nil or [action, resource]"
         end
@@ -37,7 +38,7 @@ module RivetCms
         item = Item.new(
           key: key.to_sym, label: label.to_s, section: section.to_s, icon: icon&.to_sym,
           requires: requires&.map(&:to_sym), path: path, position: position, exact: exact == true,
-          badge: badge
+          badge: badge, visible: visible
         )
         mutex.synchronize { registry[item.key] = item }
         item
@@ -97,6 +98,11 @@ module RivetCms
                count += ContentType.with_discarded.discarded.where(organization: Current.organization).count if can?(:read, :schema)
                count
              }
+    # Only exists in built-in auth mode; hosts with their own auth manage
+    # users in their own admin
+    register :users, label: "Users", section: "Manage", icon: :users,
+             requires: [ :read, :users ], path: -> { users_path }, position: 58,
+             visible: -> { RivetCms.builtin_auth? }
     register :api, label: "API", section: "Deliver", icon: :api,
              requires: [ :read, :api ], path: -> { api_docs_path }, position: 60
     register :api_tokens, label: "API Tokens", section: "Deliver", icon: :api_tokens,

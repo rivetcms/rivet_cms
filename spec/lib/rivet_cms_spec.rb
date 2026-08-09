@@ -41,26 +41,21 @@ RSpec.describe RivetCms do
     end
   end
 
-  describe "DEFAULT_AUTHENTICATE" do
-    let(:controller) { double("controller") }
+  describe "authentication mode detection" do
+    it "is built-in exactly while authenticate is untouched" do
+      RivetCms.authenticate = RivetCms::DEFAULT_AUTHENTICATE
+      expect(described_class.builtin_auth?).to be(true)
 
-    def with_env(name)
-      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new(name))
-      yield
-    ensure
-      allow(Rails).to receive(:env).and_call_original
+      RivetCms.authenticate = ->(_c) { true }
+      expect(described_class.builtin_auth?).to be(false)
+
+      # An identical-looking lambda is still host mode: identity, not shape
+      RivetCms.authenticate = ->(_c) { false }
+      expect(described_class.builtin_auth?).to be(false)
     end
 
-    it "fails closed (returns false) outside development and test" do
-      with_env("production") { expect(RivetCms::DEFAULT_AUTHENTICATE.call(controller)).to be(false) }
-      with_env("staging") { expect(RivetCms::DEFAULT_AUTHENTICATE.call(controller)).to be(false) }
-    end
-
-    it "allows (returns true) and warns once in development and test" do
-      described_class.reset_auth_warning!
-      expect(Rails.logger).to receive(:warn).once
-      expect(RivetCms::DEFAULT_AUTHENTICATE.call(controller)).to be(true)
-      RivetCms::DEFAULT_AUTHENTICATE.call(controller)
+    it "the sentinel fails closed if something calls it anyway" do
+      expect(RivetCms::DEFAULT_AUTHENTICATE.call(double("controller"))).to be(false)
     end
   end
 

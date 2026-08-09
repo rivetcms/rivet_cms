@@ -76,6 +76,14 @@ module RivetCms
         create(:media_asset, organization: org)
         expect { org.destroy }.to change { MediaAsset.count }.by(-1)
       end
+
+      it "destroys built-in users when destroyed, instead of hitting the FK" do
+        org = create(:organization)
+        RivetCms::User.create!(name: "U", email: "u@example.com", password: "supersecret", organization: org)
+
+        expect { org.destroy }.to change { RivetCms::User.count }.by(-1)
+        expect(org).to be_destroyed
+      end
     end
 
     describe "factory" do
