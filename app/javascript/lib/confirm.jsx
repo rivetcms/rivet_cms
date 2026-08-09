@@ -36,7 +36,7 @@ function ConfirmModal({ title, message, confirmLabel, danger, onResolve }) {
       role="alertdialog"
       aria-labelledby="rivet-confirm-title"
       aria-describedby={message ? "rivet-confirm-message" : undefined}
-      className="w-full max-w-sm rounded-box border border-base-300 bg-base-100 p-5 text-base-content shadow-(--shadow-overlay) backdrop:bg-black/40"
+      className="m-auto w-full max-w-sm rounded-box border border-base-300 bg-base-100 p-5 text-base-content shadow-(--shadow-overlay)"
       onClose={() => resolve(false)}
       onClick={(e) => e.target === dialogRef.current && resolve(false)}
     >

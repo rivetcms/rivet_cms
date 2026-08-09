@@ -140,3 +140,9 @@ input:user-invalid, .field_with_errors input {
 label:has(+ input:user-invalid), .field_with_errors label {
     @apply text-error;
 }
+
+/* Literal color: ::backdrop cannot be trusted to inherit custom properties,
+   so a variable-backed utility silently fails in some browsers */
+dialog::backdrop {
+    background-color: rgb(0 0 0 / 0.4);
+}
