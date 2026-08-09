@@ -6,8 +6,23 @@ under a Breaking heading.
 
 ## Unreleased
 
+### Added
+- Built-in authentication: with no `config.authenticate` set, RivetCMS runs
+  its own sign-in. First-run creates the admin account, and a Users page
+  invites and deactivates accounts. Invitations are copyable sign-in links
+  (signed, expiring, no mailer required). Every signed-in user can do
+  everything; roles are not part of CE. Apps that configure their own
+  authentication are unchanged and see none of this.
+- Login throttling per IP and per account, and a setup code (logged) that
+  protects first-run account creation outside development.
+
 ### Changed
 - Licensed under LGPL-3.0-or-later.
+
+### Breaking
+- With no authentication configured, the admin now presents a login screen
+  instead of being open. Configuring `config.authenticate` keeps the previous
+  behavior.
 
 ## 0.2.0 - 2026-08-08
 
