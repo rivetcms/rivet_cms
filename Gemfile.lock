@@ -1,13 +1,13 @@
 PATH
   remote: .
   specs:
-    rivet_cms (0.2.0)
+    rivet_cms (0.3.0)
       bcrypt (~> 3.1.7)
       image_processing (~> 1.14)
       inertia_rails (~> 3.0)
       kaminari (~> 1.2)
       prefixed_ids (~> 1.8)
-      rails (>= 7.2)
+      rails (>= 7.2, < 9)
 
 GEM
   remote: https://rubygems.org/

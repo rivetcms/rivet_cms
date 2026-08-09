@@ -4,7 +4,7 @@ All notable changes to RivetCMS are documented here. While the version is
 below 1.0, minor releases may include breaking changes; each one is listed
 under a Breaking heading.
 
-## Unreleased
+## 0.3.0 - 2026-08-09
 
 ### Added
 - Built-in authentication: with no `config.authenticate` set, RivetCMS runs

@@ -25,11 +25,23 @@ Mount the engine in `config/routes.rb`:
 mount RivetCms::Engine => "/cms"
 ```
 
-Run the migrations (the engine appends its migrations automatically):
+The media library uses Active Storage. If your app doesn't have it yet,
+install it first:
+
+```bash
+$ bin/rails active_storage:install
+```
+
+Run the migrations (the engine appends its own automatically, alongside
+Active Storage's):
 
 ```bash
 $ bin/rails db:migrate
 ```
+
+`rivet_cms:install:migrations` is also available if you'd rather copy the
+engine's migrations into your app's `db/migrate` than have them run from the
+gem; upgrading the gem then means re-running it to pull new migrations.
 
 Visit `/cms` and create your admin account; that's it. The admin UI's
 JavaScript and CSS are precompiled into the gem (`app/assets/builds/`) and
@@ -316,5 +328,5 @@ later (LGPL-3.0-or-later). The full text is in [`COPYING.LESSER`](COPYING.LESSER
 
 In short: you can use RivetCMS in your own application, including a closed-
 source or commercial one, without that application becoming subject to the
-LGPL. If you modify RivetCMS itself and distribute or host that modified
-version, those modifications must be shared under the same license.
+LGPL. If you modify RivetCMS itself and distribute that modified version,
+those modifications must be shared under the same license.
