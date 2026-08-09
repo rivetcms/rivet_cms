@@ -238,7 +238,7 @@ module RivetCms
   self.media_host = nil
   self.public_api = false
   self.webhooks = []
-  self.revision_retention = :all
+  self.revision_retention = 0
 
   self.parent_controller = "ActionController::Base"
   self.login_path = nil

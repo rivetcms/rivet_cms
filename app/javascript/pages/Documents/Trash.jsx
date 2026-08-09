@@ -8,11 +8,9 @@ export default function Trash({ content_type: contentType, documents }) {
   const restore = (document) => router.patch(document.paths.restore)
 
   const purge = async (document) => {
-    const revisions = document.revision_count
-    const detail = `${revisions} ${revisions === 1 ? "revision" : "revisions"}`
     const ok = await confirm({
       title: `Permanently delete "${document.slug}"?`,
-      message: `Its ${detail} will be deleted too. This cannot be undone.`,
+      message: "This cannot be undone.",
       confirmLabel: "Delete permanently",
       danger: true,
     })
@@ -40,7 +38,6 @@ export default function Trash({ content_type: contentType, documents }) {
             <thead>
               <tr className="text-[11px] uppercase tracking-wider text-base-content/50">
                 <th>Entry</th>
-                <th>Revisions kept</th>
                 <th>Trashed</th>
                 <th className="w-32 text-right">Actions</th>
               </tr>
@@ -52,7 +49,6 @@ export default function Trash({ content_type: contentType, documents }) {
                     <span className="block font-medium">{document.title || document.slug}</span>
                     <span className="block font-mono text-[11px] text-base-content/50">{document.slug}</span>
                   </td>
-                  <td className="font-mono text-xs tabular-nums">{document.revision_count}</td>
                   <td className="text-[13px] text-base-content/50">{timeAgo(document.trashed_at)}</td>
                   <td>
                     <div className="flex justify-end gap-1">

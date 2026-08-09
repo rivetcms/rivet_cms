@@ -14,7 +14,7 @@ export default function PurgeDialog({ contentType, onClose }) {
         <p className="text-[13px] text-base-content/70">
           This permanently deletes <span className="font-medium text-base-content">{contentType.name}</span>
           {entries !== undefined && <> and its <span className="font-medium text-base-content">{entries}</span> {entries === 1 ? "entry" : "entries"}</>}
-          , including every revision. This cannot be undone.
+          . This cannot be undone.
         </p>
         <label className="flex flex-col gap-1">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-base-content/50">
