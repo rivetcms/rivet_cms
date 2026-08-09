@@ -137,61 +137,17 @@ organization); pass `organization:` explicitly in jobs and scripts. Unknown
 option values — sort/filter/populate/fields keys — raise
 `RivetCms::ContentQuery::Error`, mirroring the API's 400s.
 
-## Authorization
-
-Admin access control is a single policy receiving a `RivetCms::AccessCheck`
-(fields: `user`, `action`, `resource`, `organization`, and `record`) and
-returning a boolean; default allow. `action` is `:read`,
-`:write`, `:publish`, or `:delete`; `resource` is a coarse domain: `:content`
-(entries), `:schema` (content types, fields, components), `:media`, `:api`
-(docs and tokens), or `:users` (built-in user management). The default policy
-allows everything; installing your own replaces it, and the user it receives
-is whatever your `current_user` lambda returns (or the built-in account):
-
-```ruby
-RivetCms.configure do |config|
-  # Editors draft content; only admins publish, delete, or touch schema/API
-  config.can = lambda do |check|
-    next true if check.user&.admin?
-    case [ check.action, check.resource ]
-    in [ :read, _ ] | [ :write, :content ] | [ :write, :media ] then true
-    else false # unknown pairs deny: the vocabulary grows in minor releases
-    end
-  end
-end
-```
-
-Write policies to allowlist known pairs and deny everything else; new actions
-and resources may appear in minor releases and must fail closed. A raising
-policy denies (fail closed) and logs. Denials redirect back with a flash in
-the admin UI and return 403 JSON on API-shaped endpoints.
-
-The policy also receives the affected record when one applies (`check.record`
-is nil otherwise), so per-record decisions are possible; a denied record is
-hidden from admin surfaces as well as refused. RivetCMS Pro provides packaged
-roles and record-scoped permission management.
-
-This policy governs the admin UI only — the delivery API is token-gated and
-media blob URLs are served by Active Storage outside the seam. Minting an
-API token additionally requires `:read, :content`, since tokens read content
-through the delivery API.
-
 ## Deleting content
 
 Deleting is recoverable by default. Removing a content type or an entry moves
 it to a trash: it disappears from the admin and stops being served by the
 delivery API, but every revision and value is kept, and restoring brings it
-all back. Both trashes are reachable from their list pages. Trash and restore
-share one gate: whichever `:delete` permission removing something required,
-restoring it requires too, since restoring puts content back on the delivery
-API.
+all back. Both trashes are reachable from their list pages.
 
 Permanent deletion lives only inside the trash, so removing and destroying are
 always two deliberate steps. Purging a content type additionally requires
 typing its name, since it destroys every entry of that type; purging a single
-entry asks for a plain confirmation naming it. Purging an entry requires
-`:delete` on the content domain; purging a content type requires `:delete` on
-both the schema and content domains.
+entry asks for a plain confirmation naming it.
 
 ```ruby
 # Restoring is also available from the console
@@ -201,97 +157,6 @@ RivetCms::Document.with_discarded.find_by(slug: "hello-world").undiscard!
 
 A trashed type or entry keeps its slug reserved, so restoring can never
 collide with something created in the meantime.
-
-## Revisions and retention
-
-Publishing snapshots the draft into a new published revision, so a document
-always has a working draft plus the revision the delivery API serves. By
-default **nothing is ever deleted**: every snapshot is kept. Pruning is
-opt-in, because storage you can watch grow is a smaller problem than content
-that quietly disappeared:
-
-```ruby
-RivetCms.configure do |config|
-  config.revision_retention = :all # default: keep every snapshot
-  # config.revision_retention = 10 # keep the last 10 superseded snapshots
-  # config.revision_retention = 0  # keep only the live snapshot
-end
-```
-
-Only `:all` or a non-negative integer are accepted; anything else raises at
-assignment rather than risking a silent misread (`"all"` is normalized, but a
-stray `nil` or `90.days` is rejected because there is no safe interpretation).
-
-The current published revision and the working draft are never pruned, and
-pruning is skipped entirely for a document with nothing published. Retention
-applies as documents are published, so lowering it takes effect gradually,
-one document at a time, rather than sweeping the corpus at once.
-
-Things worth knowing about `:all`: superseded snapshots keep referencing their
-media, so the library will refuse to delete an asset that only an old revision
-still uses. Draft and archived revisions are never pruned at any setting.
-
-Extensions can subscribe to `:prune` to archive a revision before it is
-destroyed, and can override `RivetCms.retention_for(document)` to vary
-retention per organization or content type:
-
-```ruby
-RivetCms.on(:prune, key: :cold_storage) do |revision|
-  # Read what you need here and now: the row is destroyed the moment this
-  # returns, so a background job handed only the id would find nothing.
-  ColdStorage.put(revision.id, revision.content_values.map(&:attributes))
-end
-```
-
-Two caveats this hook cannot paper over. It runs inside the publish
-transaction, so a rolled-back publish leaves any external write (S3, an HTTP
-call) describing a publish that never happened. And a subscriber that raises
-is logged and swallowed, exactly like the other lifecycle hooks, so the
-revision is still destroyed. If you need archive-or-abort semantics, set
-`revision_retention = :all` and prune out of band instead.
-
-## Lifecycle hooks and webhooks
-
-Run host code when content changes. Hooks fire after the database commit and
-receive the published snapshot revision; a failing hook is logged, never
-raised into the publish path:
-
-```ruby
-RivetCms.on(:publish) do |revision|
-  Rails.cache.delete("navigation")
-  BuildSiteJob.perform_later
-end
-```
-
-Register hooks in an initializer. If you must register from reloadable code
-(`to_prepare`), pass a `key:` — re-registering the same key replaces the
-handler instead of stacking a duplicate on every reload:
-
-```ruby
-RivetCms.on(:publish, key: :sitemap) { |revision| RefreshSitemapJob.perform_later }
-```
-
-For HTTP consumers, configure webhook endpoints instead; each matching event
-POSTs a JSON payload (event name, document id, slug, content type,
-organization, locale, published_at, author) through ActiveJob:
-
-```ruby
-RivetCms.configure do |config|
-  config.webhooks = [
-    { url: "https://example.com/deploy-hook", events: %w[entry.published] }
-  ]
-end
-```
-
-Omitting `events` subscribes an endpoint to everything. Malformed webhook
-config raises at boot. Delivery failures (connection errors and non-2xx
-responses alike) raise inside the job, so retries follow your queue adapter's
-defaults. Current events: `entry.published`.
-
-Webhook delivery is a single **unsigned** POST: anyone who learns the
-endpoint URL can forge it. Treat webhooks as a trigger, not as trusted data;
-re-fetch content through the delivery API rather than acting on payload
-fields.
 
 ## Development
 
