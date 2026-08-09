@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description = "RivetCms is a headless CMS Rails engine, similar to Strapi, that provides content management functionality for Rails applications."
   spec.license     = "LGPL-3.0-or-later"
 
-  spec.required_ruby_version = ">= 3.1"
+  spec.required_ruby_version = ">= 3.2"
 
   spec.metadata["source_code_uri"] = "https://github.com/rivetcms/rivetcms"
   spec.metadata["changelog_uri"] = "https://github.com/rivetcms/rivetcms/blob/main/CHANGELOG.md"
