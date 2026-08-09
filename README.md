@@ -59,6 +59,22 @@ RivetCms.configure do |config|
 end
 ```
 
+## Starter content types
+
+RivetCMS ships content-type templates (blog, pages, events, FAQ, team,
+testimonials, site settings) so a fresh install isn't a blank slate:
+
+```bash
+$ bin/rails rivet_cms:templates                 # list available templates
+$ bin/rails rivet_cms:seed                      # load all of them
+$ bin/rails rivet_cms:seed TEMPLATES=blog,pages # load a subset
+$ bin/rails rivet_cms:seed ORG=example.com      # into a specific org, by domain
+```
+
+Templates are a starting point, not a fixture: they create content types,
+fields, and components you then edit freely. Loading is idempotent, re-running
+updates the same records by slug rather than duplicating them.
+
 ## Media processing (optional system dependencies)
 
 The media library generates thumbnails through Active Storage. What renders
