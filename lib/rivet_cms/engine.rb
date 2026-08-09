@@ -28,5 +28,16 @@ module RivetCms
         end
       end
     end
+
+    # Register the precompiled admin bundles for Sprockets, which (unlike
+    # Propshaft) only precompiles an explicit list. Without this a Sprockets
+    # host raises AssetNotFound in production. The Array guard means it fires
+    # only under Sprockets; Propshaft precompiles the builds directory anyway.
+    initializer "rivet_cms.assets" do |app|
+      next unless app.config.respond_to?(:assets)
+
+      precompile = app.config.assets.precompile
+      app.config.assets.precompile |= %w[rivet_cms.js rivet_cms.css] if precompile.is_a?(Array)
+    end
   end
 end

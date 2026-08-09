@@ -111,7 +111,6 @@ module RivetCms
         documents: documents.map { |document|
           document_list_props(document, titles).merge(
             trashed_at: document.deleted_at.iso8601,
-            revision_count: document.revisions.count,
             paths: {
               restore: restore_content_type_document_path(@content_type, document),
               purge: purge_content_type_document_path(@content_type, document)

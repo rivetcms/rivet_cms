@@ -39,12 +39,13 @@ module RivetCms
       expect(document.draft_revision).to eq(draft)
     end
 
-    it "keeps everything by default" do
+    it "keeps only the live published revision by default" do
       publish("one")
       publish("two")
       publish("three")
 
-      expect(document.reload.revisions.published.count).to eq(3)
+      expect(document.reload.revisions.published.count).to eq(1)
+      expect(document.published_revision.content_values.first.string_value).to eq("three")
     end
 
     it "keeps the configured number of superseded snapshots" do

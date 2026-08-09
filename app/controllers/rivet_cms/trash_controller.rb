@@ -17,14 +17,12 @@ module RivetCms
       page = scope.includes(:content_type, :draft_revision).order(deleted_at: :desc).page(params[:page]).per(25)
       entries = permitted_documents(page)
       titles = document_titles(entries)
-      revision_counts = DocumentRevision.where(document_id: entries.map(&:id)).group(:document_id).count
 
       render inertia: "Trash/Show", props: {
         documents: entries.map { |document|
           document_list_props(document, titles).merge(
             content_type_name: document.content_type.name,
             trashed_at: document.deleted_at.iso8601,
-            revision_count: revision_counts.fetch(document.id, 0),
             paths: {
               restore: restore_content_type_document_path(document.content_type, document),
               purge: purge_content_type_document_path(document.content_type, document)

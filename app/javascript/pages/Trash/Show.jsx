@@ -35,11 +35,9 @@ export default function Show({ documents, content_types: contentTypes, types, pa
   const goToPage = (page) => router.get(window.location.pathname, { ...filterParams(), page }, { preserveScroll: true })
 
   const purgeDocument = async (document) => {
-    const revisions = document.revision_count
-    const detail = `${revisions} ${revisions === 1 ? "revision" : "revisions"}`
     const ok = await confirm({
       title: `Permanently delete "${document.slug}"?`,
-      message: `Its ${detail} will be deleted too. This cannot be undone.`,
+      message: "This cannot be undone.",
       confirmLabel: "Delete permanently",
       danger: true,
     })
