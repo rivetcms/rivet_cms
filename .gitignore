@@ -12,3 +12,6 @@ node_modules
 
 # Private release-planning doc, reviewed before every commit/PR
 /VERSIONING.md
+
+# macOS
+.DS_Store
