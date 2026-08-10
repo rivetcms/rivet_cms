@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rivet_cms (0.3.0)
+    rivet_cms (0.3.1)
       bcrypt (~> 3.1.7)
       image_processing (~> 1.14)
       inertia_rails (~> 3.0)
@@ -189,6 +189,13 @@ GEM
     parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
+    pg (1.6.3)
+    pg (1.6.3-aarch64-linux)
+    pg (1.6.3-aarch64-linux-musl)
+    pg (1.6.3-arm64-darwin)
+    pg (1.6.3-x86_64-darwin)
+    pg (1.6.3-x86_64-linux)
+    pg (1.6.3-x86_64-linux-musl)
     pp (0.6.3)
       prettyprint
     prefixed_ids (1.8.1)
@@ -341,6 +348,7 @@ PLATFORMS
 
 DEPENDENCIES
   factory_bot_rails (~> 6.2)
+  pg
   propshaft
   puma
   rivet_cms!
