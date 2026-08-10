@@ -26,18 +26,18 @@ module RivetCms
       expect(docs.limit_value).to eq(100)
     end
 
-    it "sorts by an integer field key in both directions" do
+    it "sorts by an integer field key, entries without the field last in both directions" do
       order_field = create(:field, field_type: :integer, key: "nav_order", content_type: content_type, organization: organization)
-      [ [ "second", 2 ], [ "first", 1 ] ].each do |slug, value|
+      [ [ "second", 2 ], [ "first", 1 ], [ "unordered", nil ] ].each do |slug, value|
         document = create(:document, slug: slug, content_type: content_type, organization: organization)
         draft = create(:document_revision, document: document, state: :draft)
         document.update!(draft_revision: draft)
-        draft.content_values.create!(field: order_field, integer_value: value)
+        draft.content_values.create!(field: order_field, integer_value: value) if value
         draft.publish!
       end
 
-      expect(described_class.new(content_type, sort: "nav_order").documents.map(&:slug)).to eq(%w[first second])
-      expect(described_class.new(content_type, sort: "-nav_order").documents.map(&:slug)).to eq(%w[second first])
+      expect(described_class.new(content_type, sort: "nav_order").documents.map(&:slug)).to eq(%w[first second unordered])
+      expect(described_class.new(content_type, sort: "-nav_order").documents.map(&:slug)).to eq(%w[second first unordered])
     end
 
     it "sorts by a string field key case-insensitively, excluding long-text types" do

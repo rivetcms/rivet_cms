@@ -113,7 +113,11 @@ module RivetCms
       # Case-insensitive for string-backed fields: binary collations (SQLite)
       # would otherwise sort every capitalized value before every lowercase one
       column = "LOWER(#{column})" if column.end_with?(".string_value")
-      scope.joins(field_join(field, "cv_sort")).order(Arel.sql("#{column} #{direction}"))
+      # Entries without the field come back NULL through the left join, and
+      # the databases disagree on where NULLs sort; pin them last in either
+      # direction. The id tiebreaker keeps pagination stable on equal values.
+      scope.joins(field_join(field, "cv_sort"))
+           .order(Arel.sql("(#{column} IS NULL), #{column} #{direction}, rivet_cms_documents.id"))
     end
 
     def sortable_field(key)
