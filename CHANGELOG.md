@@ -4,6 +4,16 @@ All notable changes to RivetCMS are documented here. While the version is
 below 1.0, minor releases may include breaking changes; each one is listed
 under a Breaking heading.
 
+## 0.3.1 - 2026-08-09
+
+### Fixed
+- Migrations aborted on PostgreSQL and MySQL. Two issues SQLite tolerated but
+  stricter databases did not: the components table declared a foreign key to
+  `rivet_cms_categories` before that table existed (now added afterward), and
+  the fields table set a default on a JSON column, which MySQL rejects (the
+  default now lives on the model). Migrations are exercised against Postgres
+  and MySQL in CI.
+
 ## 0.3.0 - 2026-08-09
 
 ### Added

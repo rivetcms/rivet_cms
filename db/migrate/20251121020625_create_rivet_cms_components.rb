@@ -4,7 +4,10 @@ class CreateRivetCmsComponents < ActiveRecord::Migration[7.0]
       t.string :name, null: false, index: true
       t.string :slug, null: false
       t.text :description
-      t.references :category, foreign_key: { to_table: :rivet_cms_categories }
+      # The FK is added in the categories migration, which runs later; adding
+      # it here would reference a table that does not exist yet (fine on
+      # SQLite, fatal on Postgres).
+      t.references :category
       t.references :organization, foreign_key: { to_table: :rivet_cms_organizations }, null: false
       t.timestamps
 

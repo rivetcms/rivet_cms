@@ -38,3 +38,70 @@ jobs:
 
       - name: Run tests
         run: bundle exec rspec
+
+  # The dummy app runs on SQLite, which does not enforce foreign keys at DDL
+  # time, so it hides migration-ordering bugs that break on Postgres. This job
+  # runs the engine's migrations against real Postgres to catch them.
+  migrations-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rivet_cms_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Run engine migrations on Postgres
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/rivet_cms_ci
+        run: cd spec/dummy && bin/rails db:migrate
+
+  # MySQL (InnoDB) also enforces foreign keys at DDL time and rejects some
+  # things SQLite and Postgres accept (e.g. defaults on JSON columns), so it
+  # gets its own migration run. Uses trilogy: no libmysqlclient to build.
+  migrations-mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: rivet_cms_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Run engine migrations on MySQL
+        env:
+          DATABASE_URL: trilogy://root:root@127.0.0.1:3306/rivet_cms_ci?encoding=utf8mb4
+        run: cd spec/dummy && bin/rails db:migrate

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rivet_cms (0.3.0)
+    rivet_cms (0.3.1)
       bcrypt (~> 3.1.7)
       image_processing (~> 1.14)
       inertia_rails (~> 3.0)
@@ -189,6 +189,13 @@ GEM
     parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
+    pg (1.6.3)
+    pg (1.6.3-aarch64-linux)
+    pg (1.6.3-aarch64-linux-musl)
+    pg (1.6.3-arm64-darwin)
+    pg (1.6.3-x86_64-darwin)
+    pg (1.6.3-x86_64-linux)
+    pg (1.6.3-x86_64-linux-musl)
     pp (0.6.3)
       prettyprint
     prefixed_ids (1.8.1)
@@ -315,6 +322,8 @@ GEM
     stringio (3.1.8)
     thor (1.4.0)
     timeout (0.4.4)
+    trilogy (2.12.6)
+      bigdecimal
     tsort (0.2.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -341,12 +350,14 @@ PLATFORMS
 
 DEPENDENCIES
   factory_bot_rails (~> 6.2)
+  pg
   propshaft
   puma
   rivet_cms!
   rspec-rails (~> 6.0)
   rubocop-rails-omakase
   sqlite3
+  trilogy
 
 BUNDLED WITH
    2.7.2

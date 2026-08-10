@@ -175,7 +175,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.boolean "required", default: false, null: false
     t.integer "min_items"
     t.integer "max_items"
-    t.json "config", default: {}
+    t.json "config"
     t.integer "position", default: 0, null: false
     t.integer "row", default: 0, null: false
     t.string "width", default: "full", null: false

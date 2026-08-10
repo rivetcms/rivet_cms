@@ -10,5 +10,8 @@ class CreateRivetCmsCategories < ActiveRecord::Migration[7.0]
       t.timestamps
       t.index [ :organization_id, :slug ], unique: true
     end
+
+    # Deferred from the components migration, which runs before this table exists
+    add_foreign_key :rivet_cms_components, :rivet_cms_categories, column: :category_id
   end
 end
