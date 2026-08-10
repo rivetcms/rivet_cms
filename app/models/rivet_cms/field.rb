@@ -9,6 +9,10 @@ module RivetCms
     belongs_to :component, optional: true
     has_many :content_values, dependent: :destroy
 
+    # Defaulted here rather than in the DB, since MySQL rejects defaults on
+    # JSON columns; keeps config a hash regardless of adapter.
+    attribute :config, default: -> { {} }
+
     enum :field_type, {
       string: 0,
       text: 1,

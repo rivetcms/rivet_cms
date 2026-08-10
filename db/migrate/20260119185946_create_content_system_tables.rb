@@ -11,7 +11,9 @@ class CreateContentSystemTables < ActiveRecord::Migration[7.0]
       t.boolean :required, default: false, null: false
       t.integer :min_items
       t.integer :max_items
-      t.json :config, default: {}
+      # No DB default: MySQL rejects defaults on JSON columns. The Field model
+      # defaults it to {} instead.
+      t.json :config
       t.integer :position, default: 0, null: false
       t.integer :row, default: 0, null: false
       t.string :width, default: "full", null: false

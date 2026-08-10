@@ -17,4 +17,5 @@ gem "rubocop-rails-omakase", require: false
 
 group :test do
   gem "pg"
+  gem "trilogy"
 end
