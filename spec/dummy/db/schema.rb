@@ -11,7 +11,7 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
-  create_table "active_storage_attachments", charset: "latin1", force: :cascade do |t|
+  create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
     t.bigint "record_id", null: false
@@ -21,7 +21,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
-  create_table "active_storage_blobs", charset: "latin1", force: :cascade do |t|
+  create_table "active_storage_blobs", force: :cascade do |t|
     t.string "key", null: false
     t.string "filename", null: false
     t.string "content_type"
@@ -33,14 +33,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", charset: "latin1", force: :cascade do |t|
+  create_table "active_storage_variant_records", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "rivet_cms_api_tokens", charset: "latin1", force: :cascade do |t|
-    t.bigint "organization_id", null: false
+  create_table "rivet_cms_api_tokens", force: :cascade do |t|
+    t.integer "organization_id", null: false
     t.string "name", null: false
     t.string "token_digest", null: false
     t.string "token_last4", null: false
@@ -53,12 +53,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["token_digest"], name: "index_rivet_cms_api_tokens_on_token_digest", unique: true
   end
 
-  create_table "rivet_cms_categories", charset: "latin1", force: :cascade do |t|
+  create_table "rivet_cms_categories", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
     t.integer "position", default: 0, null: false
     t.boolean "system", default: false, null: false
-    t.bigint "organization_id", null: false
+    t.integer "organization_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_rivet_cms_categories_on_name"
@@ -66,11 +66,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["organization_id"], name: "index_rivet_cms_categories_on_organization_id"
   end
 
-  create_table "rivet_cms_component_instances", charset: "latin1", force: :cascade do |t|
+  create_table "rivet_cms_component_instances", force: :cascade do |t|
     t.string "owner_type", null: false
-    t.bigint "owner_id", null: false
-    t.bigint "field_id", null: false
-    t.bigint "component_id", null: false
+    t.integer "owner_id", null: false
+    t.integer "field_id", null: false
+    t.integer "component_id", null: false
     t.integer "position", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -79,12 +79,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["owner_type", "owner_id", "field_id", "position"], name: "idx_cmpi_owner_field_pos"
   end
 
-  create_table "rivet_cms_components", charset: "latin1", force: :cascade do |t|
+  create_table "rivet_cms_components", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
     t.text "description"
-    t.bigint "category_id"
-    t.bigint "organization_id", null: false
+    t.integer "category_id"
+    t.integer "organization_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_rivet_cms_components_on_category_id"
@@ -93,12 +93,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["organization_id"], name: "index_rivet_cms_components_on_organization_id"
   end
 
-  create_table "rivet_cms_content_types", charset: "latin1", force: :cascade do |t|
+  create_table "rivet_cms_content_types", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
     t.text "description"
     t.boolean "single", default: false
-    t.bigint "organization_id", null: false
+    t.integer "organization_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
@@ -108,10 +108,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["organization_id"], name: "index_rivet_cms_content_types_on_organization_id"
   end
 
-  create_table "rivet_cms_content_values", charset: "latin1", force: :cascade do |t|
+  create_table "rivet_cms_content_values", force: :cascade do |t|
     t.string "owner_type", null: false
-    t.bigint "owner_id", null: false
-    t.bigint "field_id", null: false
+    t.integer "owner_id", null: false
+    t.integer "field_id", null: false
     t.string "string_value"
     t.text "text_value"
     t.integer "integer_value"
@@ -122,18 +122,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.json "json_value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "media_asset_id"
+    t.integer "media_asset_id"
     t.index ["field_id"], name: "index_rivet_cms_content_values_on_field_id"
     t.index ["media_asset_id"], name: "index_rivet_cms_content_values_on_media_asset_id"
     t.index ["owner_type", "owner_id", "field_id"], name: "idx_content_values_owner_field", unique: true
   end
 
-  create_table "rivet_cms_document_revisions", charset: "latin1", force: :cascade do |t|
-    t.bigint "document_id", null: false
+  create_table "rivet_cms_document_revisions", force: :cascade do |t|
+    t.integer "document_id", null: false
     t.string "locale", default: "en", null: false
     t.integer "schema_version", default: 1, null: false
     t.string "author_type"
-    t.bigint "author_id"
+    t.integer "author_id"
     t.string "author_name"
     t.integer "state", default: 0, null: false
     t.datetime "published_at"
@@ -145,9 +145,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["document_id"], name: "index_rivet_cms_document_revisions_on_document_id"
   end
 
-  create_table "rivet_cms_documents", charset: "latin1", force: :cascade do |t|
-    t.bigint "organization_id", null: false
-    t.bigint "content_type_id", null: false
+  create_table "rivet_cms_documents", force: :cascade do |t|
+    t.integer "organization_id", null: false
+    t.integer "content_type_id", null: false
     t.string "slug", null: false
     t.string "singleton_key"
     t.bigint "published_revision_id"
@@ -164,10 +164,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["published_revision_id"], name: "index_rivet_cms_documents_on_published_revision_id"
   end
 
-  create_table "rivet_cms_fields", charset: "latin1", force: :cascade do |t|
-    t.bigint "organization_id", null: false
-    t.bigint "content_type_id"
-    t.bigint "component_id"
+  create_table "rivet_cms_fields", force: :cascade do |t|
+    t.integer "organization_id", null: false
+    t.integer "content_type_id"
+    t.integer "component_id"
     t.string "key", null: false
     t.string "label", null: false
     t.integer "field_type", default: 0, null: false
@@ -191,8 +191,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["position"], name: "index_rivet_cms_fields_on_position"
   end
 
-  create_table "rivet_cms_media_assets", charset: "latin1", force: :cascade do |t|
-    t.bigint "organization_id", null: false
+  create_table "rivet_cms_media_assets", force: :cascade do |t|
+    t.integer "organization_id", null: false
     t.string "filename"
     t.string "content_type"
     t.bigint "byte_size"
@@ -205,7 +205,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["organization_id"], name: "index_rivet_cms_media_assets_on_organization_id"
   end
 
-  create_table "rivet_cms_organizations", charset: "latin1", force: :cascade do |t|
+  create_table "rivet_cms_organizations", force: :cascade do |t|
     t.string "name", null: false
     t.string "domain", null: false
     t.string "subdomain"
@@ -217,11 +217,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["subdomain"], name: "index_rivet_cms_organizations_on_subdomain"
   end
 
-  create_table "rivet_cms_relations", charset: "latin1", force: :cascade do |t|
+  create_table "rivet_cms_relations", force: :cascade do |t|
     t.string "owner_type", null: false
-    t.bigint "owner_id", null: false
-    t.bigint "field_id", null: false
-    t.bigint "target_document_id", null: false
+    t.integer "owner_id", null: false
+    t.integer "field_id", null: false
+    t.integer "target_document_id", null: false
     t.integer "position", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -230,8 +230,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["target_document_id"], name: "index_rivet_cms_relations_on_target_document_id"
   end
 
-  create_table "rivet_cms_users", charset: "latin1", force: :cascade do |t|
-    t.bigint "organization_id", null: false
+  create_table "rivet_cms_users", force: :cascade do |t|
+    t.integer "organization_id", null: false
     t.string "name", null: false
     t.string "email", null: false
     t.string "password_digest"
@@ -242,7 +242,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_000001) do
     t.index ["organization_id"], name: "index_rivet_cms_users_on_organization_id"
   end
 
-  create_table "users", charset: "latin1", force: :cascade do |t|
+  create_table "users", force: :cascade do |t|
     t.string "name"
     t.string "email"
     t.datetime "created_at", null: false

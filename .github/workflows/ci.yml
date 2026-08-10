@@ -103,5 +103,5 @@ jobs:
 
       - name: Run engine migrations on MySQL
         env:
-          DATABASE_URL: trilogy://root:root@127.0.0.1:3306/rivet_cms_ci
+          DATABASE_URL: trilogy://root:root@127.0.0.1:3306/rivet_cms_ci?encoding=utf8mb4
         run: cd spec/dummy && bin/rails db:migrate
