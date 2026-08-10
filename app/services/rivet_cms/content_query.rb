@@ -9,6 +9,15 @@ module RivetCms
     DEFAULT_PER_PAGE = 25
     MAX_PER_PAGE = 100
     DOCUMENT_SORTS = { "created_at" => :created_at, "updated_at" => :updated_at, "slug" => :slug }.freeze
+    # Custom field types that can be sorted on, with the value column each
+    # one lives in. Filters stay date-only. Long-text types are deliberately
+    # excluded: sorting on unbounded blobs is never intended and MySQL cannot
+    # sort TEXT without prefix filesorts.
+    SORTABLE_VALUE_COLUMNS = {
+      "date" => "date_value", "datetime" => "datetime_value",
+      "integer" => "integer_value", "decimal" => "decimal_value",
+      "string" => "string_value", "enumeration" => "string_value"
+    }.freeze
 
     def initialize(content_type, sort: nil, filters: {}, page: nil, per_page: nil, populate: nil, fields: nil)
       @content_type = content_type
@@ -97,10 +106,22 @@ module RivetCms
           .order(Arel.sql("pub.published_at #{direction}"))
       end
 
-      field = date_field(key)
+      field = sortable_field(key)
       raise Error, "unknown sort field: #{key}" if field.nil?
 
-      scope.joins(field_join(field, "cv_sort")).order(Arel.sql("cv_sort.#{date_column(field)} #{direction}"))
+      column = "cv_sort.#{SORTABLE_VALUE_COLUMNS.fetch(field.field_type)}"
+      # Case-insensitive for string-backed fields: binary collations (SQLite)
+      # would otherwise sort every capitalized value before every lowercase one
+      column = "LOWER(#{column})" if column.end_with?(".string_value")
+      # Entries without the field come back NULL through the left join, and
+      # the databases disagree on where NULLs sort; pin them last in either
+      # direction. The id tiebreaker keeps pagination stable on equal values.
+      scope.joins(field_join(field, "cv_sort"))
+           .order(Arel.sql("(#{column} IS NULL), #{column} #{direction}, rivet_cms_documents.id"))
+    end
+
+    def sortable_field(key)
+      @content_type.fields.kept.find_by(key: key, field_type: SORTABLE_VALUE_COLUMNS.keys)
     end
 
     def filtered(scope)

@@ -4,6 +4,13 @@ All notable changes to RivetCMS are documented here. While the version is
 below 1.0, minor releases may include breaking changes; each one is listed
 under a Breaking heading.
 
+## Unreleased
+
+### Added
+- Entries can be sorted by integer, decimal, string, and enumeration field
+  keys in the delivery API and the Ruby helpers (previously only date and
+  datetime fields). String and enumeration sorts are case-insensitive.
+
 ## 0.3.1 - 2026-08-09
 
 ### Fixed

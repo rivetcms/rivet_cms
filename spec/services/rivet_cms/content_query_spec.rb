@@ -26,6 +26,35 @@ module RivetCms
       expect(docs.limit_value).to eq(100)
     end
 
+    it "sorts by an integer field key, entries without the field last in both directions" do
+      order_field = create(:field, field_type: :integer, key: "nav_order", content_type: content_type, organization: organization)
+      [ [ "second", 2 ], [ "first", 1 ], [ "unordered", nil ] ].each do |slug, value|
+        document = create(:document, slug: slug, content_type: content_type, organization: organization)
+        draft = create(:document_revision, document: document, state: :draft)
+        document.update!(draft_revision: draft)
+        draft.content_values.create!(field: order_field, integer_value: value) if value
+        draft.publish!
+      end
+
+      expect(described_class.new(content_type, sort: "nav_order").documents.map(&:slug)).to eq(%w[first second unordered])
+      expect(described_class.new(content_type, sort: "-nav_order").documents.map(&:slug)).to eq(%w[second first unordered])
+    end
+
+    it "sorts by a string field key case-insensitively, excluding long-text types" do
+      body_field = create(:field, field_type: :text, key: "body", content_type: content_type, organization: organization)
+      [ [ "banana", "Banana" ], [ "apple", "apple" ] ].each do |slug, title|
+        document = create(:document, slug: slug, content_type: content_type, organization: organization)
+        draft = create(:document_revision, document: document, state: :draft)
+        document.update!(draft_revision: draft)
+        draft.content_values.create!(field: title_field, string_value: title)
+        draft.publish!
+      end
+
+      expect(described_class.new(content_type, sort: "title").documents.map(&:slug)).to eq(%w[apple banana])
+      expect { described_class.new(content_type, sort: body_field.key).documents }
+        .to raise_error(ContentQuery::Error, /unknown sort field/)
+    end
+
     it "raises on an unknown sort field" do
       expect {
         described_class.new(content_type, sort: "bogus").documents
