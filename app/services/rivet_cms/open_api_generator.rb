@@ -62,7 +62,7 @@ module RivetCms
         { name: "page", in: "query", schema: { type: "integer", default: 1 } },
         { name: "per_page", in: "query", schema: { type: "integer", default: 25, maximum: 100 } },
         { name: "sort", in: "query", schema: { type: "string" },
-          description: "Field/column, prefix - for descending (e.g. -published_at)." },
+          description: "Field/column, prefix - for descending (e.g. -published_at). Columns created_at/updated_at/slug/published_at, or the key of a date, datetime, integer, decimal, string, or enumeration field. String sorts are case-insensitive." },
         populate_param,
         fields_param
       ]

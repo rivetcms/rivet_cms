@@ -38,6 +38,17 @@ module RivetCms
         expect(list.first.title).to start_with("Post")
       end
 
+      it "sorts by an integer field key" do
+        order_field = create(:field, field_type: :integer, key: "nav_order", content_type: posts, organization: organization)
+        [ [ "second", 2 ], [ "first", 1 ] ].each do |slug, value|
+          document = publish(posts, slug: slug)
+          document.published_revision.content_values.create!(field: order_field, integer_value: value)
+        end
+
+        expect(RivetCms.entries("posts", organization: organization, sort: "nav_order").map(&:slug)).to eq(%w[first second])
+        expect(RivetCms.entries("posts", organization: organization, sort: "-nav_order").map(&:slug)).to eq(%w[second first])
+      end
+
       it "populates references into nested entries" do
         jane = publish(authors, slug: "jane", values: { name_field => "Jane" })
         publish(posts, slug: "hello", values: { title_field => "Hi" }, relations: { author_field => jane })
