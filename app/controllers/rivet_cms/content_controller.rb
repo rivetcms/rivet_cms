@@ -1,12 +1,5 @@
 module RivetCms
-  class ContentController < ApplicationController
-    # The read API is token-gated (or public when RivetCms.public_api), so host
-    # admin auth/CSRF must not run, and the org comes from the token, not the host.
-    skip_before_action :authenticate_rivet_user
-    skip_before_action :set_rivet_current_user
-    skip_before_action :set_current_organization
-    skip_after_action :set_csrf_cookie
-
+  class ContentController < DeliveryBaseController
     before_action :resolve_api_access
 
     def index

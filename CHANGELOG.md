@@ -11,6 +11,12 @@ under a Breaking heading.
   keys in the delivery API and the Ruby helpers (previously only date and
   datetime fields). String and enumeration sorts are case-insensitive.
 
+### Fixed
+- The delivery API no longer inherits from `config.parent_controller`, so a
+  host admin base class with its own before_actions, layouts, or rescue_from
+  handlers can no longer break API responses. Only the admin UI inherits the
+  host parent.
+
 ## 0.3.1 - 2026-08-09
 
 ### Fixed
