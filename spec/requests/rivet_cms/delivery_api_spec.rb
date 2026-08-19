@@ -38,6 +38,14 @@ module RivetCms
         # A host admin base class with its own before_actions, layouts, or
         # rescue_from handlers must never affect API responses, so the
         # delivery controllers may not descend from the re-parented admin base.
+        #
+        # TODO: only this half of the contract is automated. The other half,
+        # that a configured parent_controller DOES re-parent the admin and run
+        # host filters there, is exercised only by the RIVET_HOST_AUTH=1 dev
+        # demo, because the parent is baked in when the engine classes load
+        # and cannot be swapped per-example. Before promoting BYO auth to real
+        # users, add coverage that boots the dummy with a host parent (e.g. a
+        # separate CI job running the suite with RIVET_HOST_AUTH set).
         expect(ContentController.superclass).to eq(RivetCms::DeliveryBaseController)
         expect(RivetCms::DeliveryBaseController.superclass).to eq(ActionController::Base)
         expect(ContentController.ancestors).not_to include(RivetCms::ApplicationController)
