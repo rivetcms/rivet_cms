@@ -34,6 +34,15 @@ module RivetCms
         expect(response).to have_http_status(:ok)
       end
 
+      it "stays outside the host parent_controller inheritance chain" do
+        # A host admin base class with its own before_actions, layouts, or
+        # rescue_from handlers must never affect API responses, so the
+        # delivery controllers may not descend from the re-parented admin base.
+        expect(ContentController.superclass).to eq(RivetCms::DeliveryBaseController)
+        expect(RivetCms::DeliveryBaseController.superclass).to eq(ActionController::Base)
+        expect(ContentController.ancestors).not_to include(RivetCms::ApplicationController)
+      end
+
       it "200s with a valid token" do
         token = ApiToken.generate!(name: "CI", organization: organization)
         content_type

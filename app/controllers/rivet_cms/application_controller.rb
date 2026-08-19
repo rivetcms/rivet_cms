@@ -1,8 +1,12 @@
 module RivetCms
   # Inherits from the host-configured parent controller so host auth filters and
   # helpers are available. Do not reference this class from initializers — the
-  # parent is resolved when Zeitwerk first loads it.
+  # parent is resolved when Zeitwerk first loads it. Admin controllers only:
+  # the delivery API inherits DeliveryBaseController, so host filters never
+  # reach it.
   class ApplicationController < RivetCms.parent_controller.constantize
+    include ResolvesOrganization
+
     layout "rivet_cms/application"
 
     # Organization first: built-in authentication scopes its user lookup to it
@@ -204,20 +208,6 @@ module RivetCms
 
     def effective_logout_path
       RivetCms.builtin_auth? ? logout_path : RivetCms.logout_path
-    end
-
-    def set_current_organization
-      RivetCms::Current.organization =
-        Organization.find_by(domain: request.host) ||
-        Organization.find_by(domain: "localhost") ||
-        Organization.first ||
-        default_organization
-    end
-
-    def default_organization
-      return unless Rails.env.development? || Rails.env.test?
-
-      Organization.create!(name: "Development Org", domain: "localhost", subdomain: "dev")
     end
   end
 end
