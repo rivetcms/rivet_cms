@@ -35,6 +35,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "prefixed_ids", "~> 1.8"
   spec.add_dependency "kaminari", "~> 1.2"
   spec.add_dependency "inertia_rails", "~> 3.0"
-  spec.add_development_dependency "rspec-rails", "~> 6.0"
+  spec.add_development_dependency "rspec-rails", "~> 8.0"
   spec.add_development_dependency "factory_bot_rails", "~> 6.2"
 end
