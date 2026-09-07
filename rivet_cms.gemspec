@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "rails", ">= 7.2", "< 9"
   spec.add_dependency "bcrypt", "~> 3.1.7"
-  spec.add_dependency "image_processing", "~> 1.14"
+  spec.add_dependency "image_processing", ">= 1.14", "< 3.0"
   # Declared directly, not left transitive through image_processing: the media
   # library generates variants with the vips backend, so it is a first-class
   # runtime requirement. (The libvips system binary stays optional; missing it
